@@ -67,15 +67,16 @@ export function formatDateShort(dateString: string | null | undefined): string {
 }
 
 export const BUSINESS_TYPES = [
+  { value: 'clothing', label: 'Tienda de Ropa y Calzado (Tallas, Colores, Género)' },
+  { value: 'minimarket', label: 'Minimarket / Supermercado (Código de Barras, Pack)' },
+  { value: 'hardware', label: 'Ferretería / Construcción (Unidades, Metros, Kilos)' },
+  { value: 'pharmacy', label: 'Farmacia / Droguería (Lotes, Vencimiento, Fórmulas)' },
+  { value: 'restaurant', label: 'Restaurante / Cafetería (Comandas, Mesas, Delivery)' },
+  { value: 'bakery', label: 'Panadería / Pastelería (Horneadas, Peso, Porciones)' },
+  { value: 'icecream', label: 'Heladería / Gelatería (Sabores, Conos, Vasos, Kilos)' },
+  { value: 'butchery', label: 'Carnicería / Frigorífico (Cortes, Pesaje balanza, Kg/Lb)' },
   { value: 'retail', label: 'Comercio General / Retail' },
-  { value: 'minimarket', label: 'Minimarket / Colmado / Supermercado' },
-  { value: 'hardware', label: 'Ferretería / Construcción' },
-  { value: 'restaurant', label: 'Restaurante / Cafetería / Bar' },
-  { value: 'pharmacy', label: 'Farmacia / Droguería' },
-  { value: 'clothing', label: 'Tienda de Ropa y Calzado' },
-  { value: 'stationery', label: 'Papelería / Librería' },
-  { value: 'services', label: 'Servicios Profesionales' },
-  { value: 'general', label: 'Otro Comercio' },
+  { value: 'general', label: 'Otro Giro Comercial' },
 ];
 
 export const COUNTRIES = [
