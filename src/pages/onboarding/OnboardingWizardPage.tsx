@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { CountrySelect } from '@/components/ui/CountrySelect';
+import { CurrencySelect } from '@/components/ui/CurrencySelect';
 import { Card } from '@/components/ui/Card';
 import { BUSINESS_TYPES, COUNTRIES } from '@/utils/formatters';
 
@@ -320,28 +321,10 @@ export const OnboardingWizardPage: React.FC = () => {
 
               {/* Currency and Timezone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Select
+                <CurrencySelect
                   label="Moneda Principal de Facturación *"
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  options={[
-                    { value: 'BOB', label: '🇧🇴 BOB (Bs) — Boliviano' },
-                    { value: 'USD', label: '💵 USD ($) — Dólar Estadounidense' },
-                    { value: 'BRL', label: '🇧🇷 BRL (R$) — Real Brasileño' },
-                    { value: 'PYG', label: '🇵🇾 PYG (₲) — Guaraní Paraguayo' },
-                    { value: 'UYU', label: '🇺🇾 UYU ($U) — Peso Uruguayo' },
-                    { value: 'PEN', label: '🇵🇪 PEN (S/.) — Sol Peruano' },
-                    { value: 'COP', label: '🇨🇴 COP ($) — Peso Colombiano' },
-                    { value: 'MXN', label: '🇲🇽 MXN ($) — Peso Mexicano' },
-                    { value: 'CLP', label: '🇨🇱 CLP ($) — Peso Chileno' },
-                    { value: 'ARS', label: '🇦🇷 ARS ($) — Peso Argentino' },
-                    { value: 'DOP', label: '🇩🇴 DOP (RD$) — Peso Dominicano' },
-                    { value: 'GTQ', label: '🇬🇹 GTQ (Q) — Quetzal Guatemalteco' },
-                    { value: 'CRC', label: '🇨🇷 CRC (₡) — Colón Costarricense' },
-                    { value: 'HNL', label: '🇭🇳 HNL (L) — Lempira Hondureño' },
-                    { value: 'NIO', label: '🇳🇮 NIO (C$) — Córdoba Nicaragüense' },
-                    { value: 'EUR', label: '🇪🇺 EUR (€) — Euro' },
-                  ]}
+                  onChange={(newCurr) => setCurrency(newCurr)}
                 />
 
                 <Input
