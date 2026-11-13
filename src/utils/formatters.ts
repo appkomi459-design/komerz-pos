@@ -2,14 +2,21 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
   const symbolMap: Record<string, string> = {
     USD: '$',
     EUR: '€',
+    BOB: 'Bs',
+    Bs: 'Bs',
+    BRL: 'R$',
+    PYG: '₲',
+    UYU: '$U',
     DOP: 'RD$',
     MXN: '$',
     COP: '$',
     PEN: 'S/.',
     CLP: '$',
     ARS: '$',
-    BOB: 'Bs',
-    Bs: 'Bs',
+    GTQ: 'Q',
+    CRC: '₡',
+    HNL: 'L',
+    NIO: 'C$',
   };
 
   const symbol = symbolMap[currency] || currency;
@@ -79,17 +86,33 @@ export const BUSINESS_TYPES = [
   { value: 'general', label: 'Otro Giro Comercial' },
 ];
 
-export const COUNTRIES = [
-  { code: 'DO', name: 'República Dominicana', currency: 'DOP', timezone: 'America/Santo_Domingo' },
-  { code: 'US', name: 'Estados Unidos', currency: 'USD', timezone: 'America/New_York' },
-  { code: 'MX', name: 'México', currency: 'MXN', timezone: 'America/Mexico_City' },
-  { code: 'CO', name: 'Colombia', currency: 'COP', timezone: 'America/Bogota' },
-  { code: 'PE', name: 'Perú', currency: 'PEN', timezone: 'America/Lima' },
-  { code: 'CL', name: 'Chile', currency: 'CLP', timezone: 'America/Santiago' },
-  { code: 'AR', name: 'Argentina', currency: 'ARS', timezone: 'America/Argentina/Buenos_Aires' },
-  { code: 'ES', name: 'España', currency: 'EUR', timezone: 'Europe/Madrid' },
-  { code: 'EC', name: 'Ecuador', currency: 'USD', timezone: 'America/Guayaquil' },
-  { code: 'PA', name: 'Panamá', currency: 'USD', timezone: 'America/Panama' },
-  { code: 'GT', name: 'Guatemala', currency: 'GTQ', timezone: 'America/Guatemala' },
-  { code: 'CR', name: 'Costa Rica', currency: 'CRC', timezone: 'America/Costa_Rica' },
+export interface CountryInfo {
+  code: string;
+  name: string;
+  currency: string;
+  timezone: string;
+  flag: string;
+  isDollarized?: boolean;
+}
+
+export const COUNTRIES: CountryInfo[] = [
+  { code: 'BO', name: 'Bolivia', currency: 'BOB', timezone: 'America/La_Paz', flag: '🇧🇴' },
+  { code: 'BR', name: 'Brasil', currency: 'BRL', timezone: 'America/Sao_Paulo', flag: '🇧🇷' },
+  { code: 'PY', name: 'Paraguay', currency: 'PYG', timezone: 'America/Asuncion', flag: '🇵🇾' },
+  { code: 'UY', name: 'Uruguay', currency: 'UYU', timezone: 'America/Montevideo', flag: '🇺🇾' },
+  { code: 'PE', name: 'Perú', currency: 'PEN', timezone: 'America/Lima', flag: '🇵🇪' },
+  { code: 'EC', name: 'Ecuador (Dolarizado)', currency: 'USD', timezone: 'America/Guayaquil', flag: '🇪🇨', isDollarized: true },
+  { code: 'PA', name: 'Panamá (Dolarizado)', currency: 'USD', timezone: 'America/Panama', flag: '🇵🇦', isDollarized: true },
+  { code: 'SV', name: 'El Salvador (Dolarizado)', currency: 'USD', timezone: 'America/El_Salvador', flag: '🇸🇻', isDollarized: true },
+  { code: 'CO', name: 'Colombia', currency: 'COP', timezone: 'America/Bogota', flag: '🇨🇴' },
+  { code: 'MX', name: 'México', currency: 'MXN', timezone: 'America/Mexico_City', flag: '🇲🇽' },
+  { code: 'CL', name: 'Chile', currency: 'CLP', timezone: 'America/Santiago', flag: '🇨🇱' },
+  { code: 'AR', name: 'Argentina', currency: 'ARS', timezone: 'America/Argentina/Buenos_Aires', flag: '🇦🇷' },
+  { code: 'DO', name: 'República Dominicana', currency: 'DOP', timezone: 'America/Santo_Domingo', flag: '🇩🇴' },
+  { code: 'GT', name: 'Guatemala', currency: 'GTQ', timezone: 'America/Guatemala', flag: '🇬🇹' },
+  { code: 'CR', name: 'Costa Rica', currency: 'CRC', timezone: 'America/Costa_Rica', flag: '🇨🇷' },
+  { code: 'HNL', name: 'Honduras', currency: 'HNL', timezone: 'America/Tegucigalpa', flag: '🇭🇳' },
+  { code: 'NI', name: 'Nicaragua', currency: 'NIO', timezone: 'America/Managua', flag: '🇳🇮' },
+  { code: 'US', name: 'Estados Unidos (Dólar)', currency: 'USD', timezone: 'America/New_York', flag: '🇺🇸', isDollarized: true },
+  { code: 'ES', name: 'España', currency: 'EUR', timezone: 'Europe/Madrid', flag: '🇪🇸' },
 ];

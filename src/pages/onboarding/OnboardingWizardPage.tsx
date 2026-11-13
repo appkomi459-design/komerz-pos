@@ -219,12 +219,12 @@ export const OnboardingWizardPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
-                  label="País *"
+                  label="País de Operación *"
                   value={country}
                   onChange={(e) => handleCountryChange(e.target.value)}
                   options={COUNTRIES.map((c) => ({
                     value: c.code,
-                    label: c.name,
+                    label: `${c.flag}  ${c.name} (${c.currency})`,
                   }))}
                 />
 
@@ -324,18 +324,26 @@ export const OnboardingWizardPage: React.FC = () => {
               {/* Currency and Timezone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
-                  label="Moneda Principal *"
+                  label="Moneda Principal de Facturación *"
                   value={currency}
                   onChange={(e) => setCurrency(e.target.value)}
                   options={[
-                    { value: 'USD', label: 'USD ($) Dólar Estadounidense' },
-                    { value: 'DOP', label: 'DOP (RD$) Peso Dominicano' },
-                    { value: 'MXN', label: 'MXN ($) Peso Mexicano' },
-                    { value: 'COP', label: 'COP ($) Peso Colombiano' },
-                    { value: 'EUR', label: 'EUR (€) Euro' },
-                    { value: 'PEN', label: 'PEN (S/.) Sol Peruano' },
-                    { value: 'CLP', label: 'CLP ($) Peso Chileno' },
-                    { value: 'ARS', label: 'ARS ($) Peso Argentino' },
+                    { value: 'BOB', label: '🇧🇴 BOB (Bs) — Boliviano' },
+                    { value: 'USD', label: '💵 USD ($) — Dólar Estadounidense' },
+                    { value: 'BRL', label: '🇧🇷 BRL (R$) — Real Brasileño' },
+                    { value: 'PYG', label: '🇵🇾 PYG (₲) — Guaraní Paraguayo' },
+                    { value: 'UYU', label: '🇺🇾 UYU ($U) — Peso Uruguayo' },
+                    { value: 'PEN', label: '🇵🇪 PEN (S/.) — Sol Peruano' },
+                    { value: 'COP', label: '🇨🇴 COP ($) — Peso Colombiano' },
+                    { value: 'MXN', label: '🇲🇽 MXN ($) — Peso Mexicano' },
+                    { value: 'CLP', label: '🇨🇱 CLP ($) — Peso Chileno' },
+                    { value: 'ARS', label: '🇦🇷 ARS ($) — Peso Argentino' },
+                    { value: 'DOP', label: '🇩🇴 DOP (RD$) — Peso Dominicano' },
+                    { value: 'GTQ', label: '🇬🇹 GTQ (Q) — Quetzal Guatemalteco' },
+                    { value: 'CRC', label: '🇨🇷 CRC (₡) — Colón Costarricense' },
+                    { value: 'HNL', label: '🇭🇳 HNL (L) — Lempira Hondureño' },
+                    { value: 'NIO', label: '🇳🇮 NIO (C$) — Córdoba Nicaragüense' },
+                    { value: 'EUR', label: '🇪🇺 EUR (€) — Euro' },
                   ]}
                 />
 
