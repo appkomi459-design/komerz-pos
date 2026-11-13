@@ -140,13 +140,13 @@ export const LandingPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-28 pb-20 relative overflow-hidden bg-[#0b0f19]">
-      {/* Background Aurora Mesh de fondo Oscuro Futurista (Índigo Cobalto + Violeta Eléctrico + Cian) */}
+    <div className="space-y-28 pb-20 relative overflow-hidden bg-[#080c10]">
+      {/* Background Aurora Mesh de fondo Esmeralda Nórdico & Titanio */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-[700px] h-[700px] bg-indigo-600/20 rounded-full blur-[150px] animate-pulse" />
-        <div className="absolute top-1/4 -right-32 w-[650px] h-[650px] bg-violet-600/20 rounded-full blur-[160px]" />
-        <div className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-cyan-600/15 rounded-full blur-[150px]" />
-        <div className="absolute -bottom-20 right-1/4 w-[550px] h-[550px] bg-blue-600/15 rounded-full blur-[140px]" />
+        <div className="absolute -top-32 -left-32 w-[700px] h-[700px] bg-emerald-600/12 rounded-full blur-[160px]" />
+        <div className="absolute top-1/4 -right-32 w-[650px] h-[650px] bg-teal-600/10 rounded-full blur-[180px]" />
+        <div className="absolute bottom-1/3 left-1/4 w-[600px] h-[600px] bg-emerald-950/30 rounded-full blur-[160px]" />
+        <div className="absolute -bottom-20 right-1/4 w-[550px] h-[550px] bg-slate-800/20 rounded-full blur-[150px]" />
       </div>
 
       {/* Hero Section con Fondos de Fotos de Negocios Reales */}
@@ -154,44 +154,44 @@ export const LandingPage: React.FC = () => {
         {/* IMÁGENES DE NEGOCIOS REALES VISIBLES FLOTANTES */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
           {/* Foto Tienda de Ropa / Moda (Izquierda) */}
-          <div className="absolute top-2 left-2 sm:left-6 w-56 sm:w-80 h-48 sm:h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[-3deg] border-2 border-cyan-400/50">
+          <div className="absolute top-2 left-2 sm:left-6 w-56 sm:w-80 h-48 sm:h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[-3deg] border-2 border-emerald-500/30">
             <img
               src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"
               alt="Boutique y Tienda de Ropa"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-black/20" />
-            <div className="absolute bottom-3 left-3 text-xs font-black text-white bg-slate-950/90 px-3 py-1.5 rounded-xl border border-cyan-400/50 flex items-center gap-1.5 shadow-xl">
-              <Shirt className="w-4 h-4 text-cyan-400" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080c10] via-transparent to-black/20" />
+            <div className="absolute bottom-3 left-3 text-xs font-black text-white bg-slate-950/90 px-3 py-1.5 rounded-xl border border-emerald-500/40 flex items-center gap-1.5 shadow-xl">
+              <Shirt className="w-4 h-4 text-emerald-400" />
               <span>Tiendas de Ropa</span>
             </div>
           </div>
 
           {/* Foto Supermercado / Minimarket (Derecha) */}
-          <div className="absolute top-2 right-2 sm:right-6 w-56 sm:w-80 h-48 sm:h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[3deg] border-2 border-violet-400/50">
+          <div className="absolute top-2 right-2 sm:right-6 w-56 sm:w-80 h-48 sm:h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[3deg] border-2 border-emerald-500/30">
             <img
               src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"
               alt="Minimarket y Supermercado"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f19] via-transparent to-black/20" />
-            <div className="absolute bottom-3 right-3 text-xs font-black text-white bg-slate-950/90 px-3 py-1.5 rounded-xl border border-violet-400/50 flex items-center gap-1.5 shadow-xl">
-              <ShoppingCart className="w-4 h-4 text-violet-400" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#080c10] via-transparent to-black/20" />
+            <div className="absolute bottom-3 right-3 text-xs font-black text-white bg-slate-950/90 px-3 py-1.5 rounded-xl border border-emerald-500/40 flex items-center gap-1.5 shadow-xl">
+              <ShoppingCart className="w-4 h-4 text-emerald-400" />
               <span>Minimarkets</span>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-indigo-500/15 via-violet-500/15 to-cyan-500/15 border border-indigo-500/30 text-cyan-300 text-[11px] font-black tracking-wider uppercase mb-5 shadow-lg shadow-indigo-950/40 hover:scale-105 transition-transform duration-300">
-            <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-spin" style={{ animationDuration: '4s' }} />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-[11px] font-black tracking-wider uppercase mb-5 shadow-sm hover:scale-105 transition-transform duration-300">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
             <span>Plataforma SaaS Cloud POS de Nueva Generación</span>
           </div>
 
-          {/* TÍTULO BALANCEADO (NO TAN GIGANTE) */}
+          {/* TÍTULO BALANCEADO CON ESMERALDA NÓRDICO */}
           <h1 className="text-3xl sm:text-5xl lg:text-5xl font-black tracking-tight text-white max-w-3xl mx-auto leading-[1.15]">
             El Punto de Venta ágil que impulsa el crecimiento de tu{' '}
-            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-md">
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-400 bg-clip-text text-transparent">
               Negocio
             </span>
           </h1>
@@ -202,13 +202,13 @@ export const LandingPage: React.FC = () => {
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <Link to="/register" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-black text-xs sm:text-sm shadow-xl shadow-indigo-600/35 hover:shadow-cyan-500/35 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <button className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/25 hover:scale-[1.03] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer">
                 <span>Crear mi Negocio Gratis</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.5]" />
               </button>
             </Link>
             <Link to="/login" className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto px-7 py-3 rounded-2xl border-2 border-slate-700 hover:border-cyan-500/50 bg-slate-900/80 backdrop-blur-md text-slate-200 font-black text-xs sm:text-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg">
+              <button className="w-full sm:w-auto px-7 py-3.5 rounded-2xl border border-slate-700 hover:border-emerald-500/50 bg-slate-900/80 backdrop-blur-md text-slate-200 font-bold text-xs sm:text-sm hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shadow-lg">
                 Ingresar a mi Cuenta
               </button>
             </Link>
@@ -216,11 +216,11 @@ export const LandingPage: React.FC = () => {
 
           <div className="mt-6 flex items-center justify-center gap-6 text-xs text-slate-400 font-semibold">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Sin tarjeta requerida</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-violet-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Prueba completa de 14 días</span>
             </div>
           </div>
@@ -233,7 +233,7 @@ export const LandingPage: React.FC = () => {
       {/* Características */}
       <section id="caracteristicas" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-black uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black uppercase tracking-wider mb-3">
             Funcionalidades Profesionales
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -250,9 +250,9 @@ export const LandingPage: React.FC = () => {
             return (
               <div
                 key={i}
-                className="group relative bg-slate-900/70 backdrop-blur-md rounded-3xl p-7 border border-slate-800/90 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-500/15 transition-all duration-300 flex flex-col hover:-translate-y-1"
+                className="group relative bg-slate-900/70 backdrop-blur-md rounded-3xl p-7 border border-slate-800/90 hover:border-emerald-500/40 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-300 flex flex-col hover:-translate-y-1"
               >
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500/15 via-violet-500/15 to-cyan-500/15 text-indigo-400 flex items-center justify-center mb-6 border border-indigo-500/25 group-hover:scale-110 group-hover:bg-gradient-to-tr group-hover:from-indigo-600 group-hover:to-violet-600 group-hover:text-white transition-all duration-300 shadow-md">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300 shadow-md">
                   <Icon className="w-7 h-7 stroke-[2.2]" />
                 </div>
                 <h3 className="text-lg font-black text-white mb-2">{f.title}</h3>
@@ -266,10 +266,10 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Tipos de Negocios Compatibles - Simulador Adaptable Interactivo */}
-      <section id="negocios" className="relative py-24 border-y border-slate-800/80 bg-[#0d121f] scroll-mt-20">
+      <section id="negocios" className="relative py-24 border-y border-slate-800/80 bg-[#0a0f14] scroll-mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-black uppercase tracking-wider mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black uppercase tracking-wider mb-3">
               Versatilidad Total & Adaptabilidad en Vivo
             </div>
             <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -288,7 +288,7 @@ export const LandingPage: React.FC = () => {
       {/* Planes de suscripción */}
       <section id="planes" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-black uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black uppercase tracking-wider mb-3">
             Precios Claros y Transparentes
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
@@ -305,13 +305,13 @@ export const LandingPage: React.FC = () => {
               key={i}
               className={`rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative ${
                 p.popular
-                  ? 'bg-gradient-to-b from-slate-900 via-slate-900 to-[#101426] border-2 border-indigo-500 shadow-2xl shadow-indigo-500/25 scale-[1.02]'
+                  ? 'bg-gradient-to-b from-slate-900 via-slate-900 to-[#0c1410] border-2 border-emerald-500 shadow-2xl shadow-emerald-500/20 scale-[1.02]'
                   : 'bg-slate-900/80 border border-slate-800 shadow-lg'
               }`}
             >
               {p.popular && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 text-white text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-lg shadow-indigo-600/40">
+                  <span className="bg-emerald-500 text-slate-950 text-[11px] font-black uppercase tracking-wider px-4 py-1 rounded-full shadow-lg shadow-emerald-500/30">
                     MÁS ELEGIDO
                   </span>
                 </div>
@@ -329,7 +329,7 @@ export const LandingPage: React.FC = () => {
                 <ul className="space-y-3 mb-8">
                   {p.features.map((feat, fIdx) => (
                     <li key={fIdx} className="flex items-center gap-2.5 text-xs text-slate-300">
-                      <Check className="w-4 h-4 text-cyan-400 flex-shrink-0 stroke-[2.5]" />
+                      <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 stroke-[2.5]" />
                       <span>{feat}</span>
                     </li>
                   ))}
@@ -340,7 +340,7 @@ export const LandingPage: React.FC = () => {
                 <button
                   className={`w-full py-3 rounded-2xl font-black text-xs transition-all cursor-pointer ${
                     p.popular
-                      ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white shadow-xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98]'
+                      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
                       : 'border-2 border-slate-700 hover:border-slate-500 text-slate-200 hover:bg-slate-800/60'
                   }`}
                 >
@@ -376,7 +376,7 @@ export const LandingPage: React.FC = () => {
                 <span>{faq.q}</span>
                 <ChevronDown
                   className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                    openFaq === i ? 'rotate-180 text-cyan-400' : ''
+                    openFaq === i ? 'rotate-180 text-emerald-400' : ''
                   }`}
                 />
               </button>
@@ -391,24 +391,24 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Call to Action Final */}
+      {/* Call to Action Final Esmeralda Ejecutivo */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-r from-indigo-700 via-violet-700 to-cyan-600 rounded-3xl p-8 sm:p-14 text-white text-center shadow-2xl relative overflow-hidden border border-indigo-500/30">
-          <div className="absolute inset-0 bg-radial from-white/10 to-transparent pointer-events-none" />
+        <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 rounded-3xl p-8 sm:p-14 text-white text-center shadow-2xl relative overflow-hidden border border-emerald-500/30">
+          <div className="absolute inset-0 bg-radial from-emerald-500/10 to-transparent pointer-events-none" />
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight">
               Lleva tu negocio al siguiente nivel hoy mismo
             </h2>
-            <p className="mt-4 text-indigo-100 text-sm sm:text-base">
+            <p className="mt-4 text-slate-300 text-sm sm:text-base">
               Únete a cientos de comerciantes que ahorran horas de trabajo cada semana con Komerz POS.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/register" className="w-full sm:w-auto">
                 <button
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Registrarse Gratis</span>
-                  <ArrowRight className="w-4 h-4 text-indigo-600 stroke-[2.5]" />
+                  <ArrowRight className="w-4 h-4 text-slate-950 stroke-[2.5]" />
                 </button>
               </Link>
             </div>

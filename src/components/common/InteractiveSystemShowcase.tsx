@@ -32,11 +32,11 @@ export const InteractiveSystemShowcase: React.FC = () => {
           onClick={() => setActiveTab('pos')}
           className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
             activeTab === 'pos'
-              ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 text-white shadow-xl shadow-indigo-600/35 scale-105 ring-2 ring-cyan-400/50'
+              ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-500/25 scale-105 ring-2 ring-emerald-400/50'
               : 'bg-slate-900/90 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
           }`}
         >
-          <Zap className="w-4 h-4 text-cyan-300 animate-pulse" />
+          <Zap className="w-4 h-4 text-slate-950 animate-pulse" />
           <span>1. Punto de Venta (Caja)</span>
         </button>
 
@@ -44,11 +44,11 @@ export const InteractiveSystemShowcase: React.FC = () => {
           onClick={() => setActiveTab('inventory')}
           className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
             activeTab === 'inventory'
-              ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 text-white shadow-xl shadow-indigo-600/35 scale-105 ring-2 ring-cyan-400/50'
+              ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-500/25 scale-105 ring-2 ring-emerald-400/50'
               : 'bg-slate-900/90 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
           }`}
         >
-          <Package className="w-4 h-4 text-amber-300" />
+          <Package className="w-4 h-4 text-slate-950" />
           <span>2. Control de Stock</span>
         </button>
 
@@ -56,19 +56,19 @@ export const InteractiveSystemShowcase: React.FC = () => {
           onClick={() => setActiveTab('qr')}
           className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-300 cursor-pointer ${
             activeTab === 'qr'
-              ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-cyan-500 text-white shadow-xl shadow-indigo-600/35 scale-105 ring-2 ring-cyan-400/50'
+              ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-xl shadow-emerald-500/25 scale-105 ring-2 ring-emerald-400/50'
               : 'bg-slate-900/90 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
           }`}
         >
-          <Printer className="w-4 h-4 text-emerald-300" />
+          <Printer className="w-4 h-4 text-slate-950" />
           <span>3. Impresión Oficial & Factura</span>
         </button>
       </div>
 
       {/* Marco de demostración estilo pantalla interactiva de última generación */}
       <div className="relative rounded-3xl border border-slate-700/80 bg-gradient-to-b from-slate-900/95 to-[#0b0f19] p-4 sm:p-7 shadow-2xl backdrop-blur-xl overflow-hidden group">
-        {/* Glow de fondo */}
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/15 rounded-full blur-[100px] pointer-events-none" />
+        {/* Glow de fondo Esmeralda Nórdico */}
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
 
         {/* Cabecera de la ventana simulada */}
         <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-6">
@@ -293,7 +293,7 @@ export const InteractiveSystemShowcase: React.FC = () => {
                       </div>
                       <div>
                         <p className="font-black text-white">Camisa Casual Slim L</p>
-                        <span className="text-[9px] text-violet-400 font-bold">Ropa & Moda</span>
+                        <span className="text-[9px] text-teal-400 font-bold">Ropa & Moda</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-center font-mono text-slate-400">PROD-5020</td>
