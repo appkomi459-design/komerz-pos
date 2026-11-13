@@ -20,6 +20,7 @@ import { uploadBusinessAsset } from '@/services/storage';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { CountrySelect } from '@/components/ui/CountrySelect';
 import { Card } from '@/components/ui/Card';
 import { BUSINESS_TYPES, COUNTRIES } from '@/utils/formatters';
 
@@ -33,12 +34,12 @@ export const OnboardingWizardPage: React.FC = () => {
   // Form fields
   const [name, setName] = useState('');
   const [businessType, setBusinessType] = useState('retail');
-  const [country, setCountry] = useState('DO');
+  const [country, setCountry] = useState('BO');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [timezone, setTimezone] = useState('America/Santo_Domingo');
+  const [currency, setCurrency] = useState('BOB');
+  const [timezone, setTimezone] = useState('America/La_Paz');
 
   // Media files & previews
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -218,19 +219,15 @@ export const OnboardingWizardPage: React.FC = () => {
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Select
+                <CountrySelect
                   label="País de Operación *"
                   value={country}
-                  onChange={(e) => handleCountryChange(e.target.value)}
-                  options={COUNTRIES.map((c) => ({
-                    value: c.code,
-                    label: `${c.flag}  ${c.name} (${c.currency})`,
-                  }))}
+                  onChange={handleCountryChange}
                 />
 
                 <Input
                   label="Ciudad"
-                  placeholder="Ej. Santo Domingo, Bogotá, CDMX"
+                  placeholder="Ej. La Paz, Santa Cruz, Bogotá, Lima"
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
                   icon={<MapPin className="w-4 h-4" />}

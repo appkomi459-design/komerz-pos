@@ -111,7 +111,7 @@ export const COUNTRIES: CountryInfo[] = [
   { code: 'DO', name: 'República Dominicana', currency: 'DOP', timezone: 'America/Santo_Domingo', flag: '🇩🇴' },
   { code: 'GT', name: 'Guatemala', currency: 'GTQ', timezone: 'America/Guatemala', flag: '🇬🇹' },
   { code: 'CR', name: 'Costa Rica', currency: 'CRC', timezone: 'America/Costa_Rica', flag: '🇨🇷' },
-  { code: 'HNL', name: 'Honduras', currency: 'HNL', timezone: 'America/Tegucigalpa', flag: '🇭🇳' },
+  { code: 'HN', name: 'Honduras', currency: 'HNL', timezone: 'America/Tegucigalpa', flag: '🇭🇳' },
   { code: 'NI', name: 'Nicaragua', currency: 'NIO', timezone: 'America/Managua', flag: '🇳🇮' },
   { code: 'US', name: 'Estados Unidos (Dólar)', currency: 'USD', timezone: 'America/New_York', flag: '🇺🇸', isDollarized: true },
   { code: 'ES', name: 'España', currency: 'EUR', timezone: 'Europe/Madrid', flag: '🇪🇸' },
