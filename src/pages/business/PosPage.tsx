@@ -42,15 +42,24 @@ export const PosPage: React.FC = () => {
   const { user } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'transfer' | 'card'>('cash');
   const [amountPaid, setAmountPaid] = useState<string>('');
   const [customerName, setCustomerName] = useState('Consumidor Final');
   const [customerNit, setCustomerNit] = useState('');
+  const [showCustomerFields, setShowCustomerFields] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [completedSale, setCompletedSale] = useState<any | null>(null);
+
+  // Modo de Impuesto en POS:
+  // 'included': Precio del producto es el precio final que paga el cliente (Default retail)
+  // 'added': Suma el impuesto encima del precio
+  // 'none': Sin impuesto (0%)
+  const [taxMode, setTaxMode] = useState<'included' | 'added' | 'none'>('included');
 
   // Quick modals state (Nuevo Producto Horizontal)
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
@@ -96,13 +105,22 @@ export const PosPage: React.FC = () => {
     if (!activeBusiness) return;
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('business_id', activeBusiness.id)
-        .eq('is_active', true)
-        .order('name', { ascending: true });
-      if (data) setProducts(data as Product[]);
+      const [prodRes, catRes] = await Promise.all([
+        supabase
+          .from('products')
+          .select('*')
+          .eq('business_id', activeBusiness.id)
+          .eq('is_active', true)
+          .order('name', { ascending: true }),
+        supabase
+          .from('categories')
+          .select('id, name')
+          .eq('business_id', activeBusiness.id)
+          .order('name', { ascending: true })
+      ]);
+
+      if (prodRes.data) setProducts(prodRes.data as Product[]);
+      if (catRes.data) setCategories(catRes.data);
     } catch (err) {
       console.error('Error fetching POS products:', err);
     } finally {
@@ -159,14 +177,40 @@ export const PosPage: React.FC = () => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   };
 
-  // Calculations
-  const taxRate = (settings?.tax_percentage ?? 0) / 100;
-  const subtotal = cart.reduce(
+  // Cálculos transparentes de Totales e Impuestos
+  const taxPercentage = settings?.tax_percentage ?? 0;
+  const taxRate = taxPercentage / 100;
+
+  const rawCartSum = cart.reduce(
     (acc, item) => acc + item.product.sale_price * item.quantity,
     0
   );
-  const taxAmount = subtotal * taxRate;
-  const total = subtotal + taxAmount;
+
+  let subtotal = rawCartSum;
+  let taxAmount = 0;
+  let total = rawCartSum;
+
+  if (taxMode === 'included') {
+    // Modo estándar retail: El precio fijado en el producto es el total a pagar
+    total = rawCartSum;
+    if (taxRate > 0) {
+      subtotal = Number((total / (1 + taxRate)).toFixed(2));
+      taxAmount = Number((total - subtotal).toFixed(2));
+    } else {
+      subtotal = total;
+      taxAmount = 0;
+    }
+  } else if (taxMode === 'added') {
+    // Suma impuesto encima del precio
+    subtotal = rawCartSum;
+    taxAmount = Number((subtotal * taxRate).toFixed(2));
+    total = Number((subtotal + taxAmount).toFixed(2));
+  } else {
+    // Sin impuesto
+    subtotal = rawCartSum;
+    taxAmount = 0;
+    total = rawCartSum;
+  }
 
   const totalItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -373,17 +417,17 @@ export const PosPage: React.FC = () => {
       {/* ======================================================== */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* LADO IZQUIERDO: CATÁLOGO CON TARJETAS VISUALES */}
-        <div className="flex-1 w-full space-y-4">
+        <div className="flex-1 w-full space-y-3.5 min-w-0">
           {/* Barra de Búsqueda y Botón "+ Nuevo Producto" */}
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar producto o SKU..."
+                placeholder="Buscar por nombre, código de barra o SKU..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-sm font-bold pl-11 pr-4 py-3 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 shadow-sm transition-all"
+                className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-sm font-bold pl-11 pr-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-xs transition-all"
               />
               {search && (
                 <button
@@ -397,17 +441,51 @@ export const PosPage: React.FC = () => {
 
             <button
               onClick={() => setIsNewProductModalOpen(true)}
-              className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition-all cursor-pointer whitespace-nowrap active:scale-95"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
               <span>Nuevo Producto</span>
             </button>
           </div>
 
-          {/* Grilla de Tarjetas de Productos Cuadraditas y Bien Centradas */}
+          {/* Barra de Filtro de Categorías */}
+          {categories.length > 0 && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                  selectedCategory === 'all'
+                    ? 'bg-slate-950 text-white shadow-xs'
+                    : 'bg-white dark:bg-[#181615] text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800 hover:border-slate-300'
+                }`}
+              >
+                Todos ({products.length})
+              </button>
+              {categories.map((c) => {
+                const count = products.filter((p) => p.category_id === c.id).length;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(c.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                      selectedCategory === c.id
+                        ? 'bg-slate-950 text-white shadow-xs'
+                        : 'bg-white dark:bg-[#181615] text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800 hover:border-slate-300'
+                    }`}
+                  >
+                    {c.name} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Grilla de Tarjetas de Productos Cuadraditas y Proporcionadas */}
           {loading ? (
             <div className="py-24 text-center">
-              <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-xs font-black text-slate-500">Cargando productos...</p>
             </div>
           ) : filteredProducts.length === 0 ? (
@@ -421,14 +499,14 @@ export const PosPage: React.FC = () => {
               </p>
               <button
                 onClick={() => setIsNewProductModalOpen(true)}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-md hover:bg-indigo-700 transition-all cursor-pointer"
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-md hover:bg-emerald-500 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 Crear Producto Ahora
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 items-start">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5 items-start">
               {filteredProducts.map((product) => {
                 const inCartItem = cart.find((c) => c.product.id === product.id);
                 const isOutOfStock = product.stock <= 0;
@@ -439,12 +517,12 @@ export const PosPage: React.FC = () => {
                     className={`bg-white dark:bg-[#181615] rounded-2xl border-2 transition-all duration-200 p-3.5 flex flex-col justify-between shadow-md hover:shadow-xl ${
                       inCartItem
                         ? 'border-emerald-500 dark:border-emerald-500/80 shadow-emerald-500/15 ring-2 ring-emerald-500/20'
-                        : 'border-slate-300 dark:border-zinc-700 hover:border-indigo-600'
+                        : 'border-slate-300 dark:border-zinc-700 hover:border-emerald-500'
                     }`}
                   >
                     <div>
                       {/* Imagen o Foto del Producto Cuadrada/Proporcionada */}
-                      <div className="h-28 w-full rounded-xl overflow-hidden bg-gradient-to-br from-indigo-50/70 via-slate-100 to-amber-50/50 dark:from-zinc-800 dark:to-zinc-900 mb-2.5 flex items-center justify-center relative border border-slate-200 dark:border-zinc-700 group">
+                      <div className="h-28 w-full rounded-xl overflow-hidden bg-gradient-to-br from-emerald-50/40 via-slate-100 to-teal-50/30 dark:from-zinc-800 dark:to-zinc-900 mb-2.5 flex items-center justify-center relative border border-slate-200 dark:border-zinc-700 group">
                         {product.image_url ? (
                           <img
                             src={product.image_url}
@@ -453,7 +531,7 @@ export const PosPage: React.FC = () => {
                           />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-zinc-500">
-                            <Store className="w-9 h-9 opacity-40 mb-0.5 text-indigo-400" />
+                            <Store className="w-9 h-9 opacity-40 mb-0.5 text-emerald-500" />
                             <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                               Komi POS
                             </span>
@@ -530,7 +608,7 @@ export const PosPage: React.FC = () => {
                           className={`flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
                             isOutOfStock
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                              : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-600/30'
+                              : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs shadow-emerald-600/20'
                           }`}
                         >
                           <ShoppingCart className="w-3.5 h-3.5" />
@@ -546,23 +624,23 @@ export const PosPage: React.FC = () => {
         </div>
 
         {/* ======================================================== */}
-        {/* LADO DERECHO: PANEL CARRITO DE VENTA                     */}
+        {/* LADO DERECHO: PANEL CARRITO DE VENTA ERGONÓMICO          */}
         {/* ======================================================== */}
-        <div className="w-full lg:w-[360px] xl:w-[380px] bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col sticky top-4 flex-shrink-0">
-          {/* Cabecera del Carrito */}
-          <div className="bg-slate-900 text-white px-5 py-4 border-b-2 border-slate-950 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs">
+        <div className="w-full lg:w-[380px] xl:w-[410px] bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col h-[calc(100vh-95px)] sticky top-3 flex-shrink-0">
+          {/* 1. Cabecera Fija del Carrito */}
+          <div className="bg-slate-900 text-white px-4 py-3 border-b-2 border-slate-950 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
                 <ShoppingCart className="w-4 h-4" />
               </div>
-              <h3 className="text-base font-black text-white tracking-tight">
+              <h3 className="text-sm font-black text-white tracking-tight">
                 Carrito de Venta
               </h3>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="bg-indigo-500/20 text-indigo-300 border border-indigo-400/40 text-xs font-black px-2.5 py-0.5 rounded-full">
-                {totalItemsCount} items
+              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-black px-2.5 py-0.5 rounded-full">
+                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
               </span>
               {cart.length > 0 && (
                 <button
@@ -576,27 +654,27 @@ export const PosPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-5 flex flex-col justify-between space-y-4">
-            {/* Lista de Productos en el Carrito */}
-            <div className="max-h-[320px] overflow-y-auto space-y-2.5 pr-1">
-              {cart.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 dark:text-zinc-500">
-                  <Receipt className="w-12 h-12 mx-auto mb-2 opacity-30 text-slate-400" />
-                  <p className="text-xs font-black text-slate-700 dark:text-zinc-300">
-                    El carrito está vacío
-                  </p>
-                  <p className="text-[11px] font-bold text-slate-400 mt-0.5">
-                    Toca "Vender" en los productos para agregarlos
-                  </p>
-                </div>
-              ) : (
-                cart.map((item) => (
+          {/* 2. Cuerpo Scrollable: Lista de Productos y Datos de Cliente */}
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3 min-h-0">
+            {cart.length === 0 ? (
+              <div className="py-14 text-center text-slate-400 dark:text-zinc-500">
+                <Receipt className="w-12 h-12 mx-auto mb-2 opacity-30 text-slate-400" />
+                <p className="text-xs font-black text-slate-700 dark:text-zinc-300">
+                  El carrito está vacío
+                </p>
+                <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                  Toca los productos para agregarlos a la venta
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {cart.map((item) => (
                   <div
                     key={item.product.id}
-                    className="p-3 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border-2 border-slate-200 dark:border-zinc-700 flex items-center gap-3"
+                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 flex items-center gap-2.5"
                   >
                     {/* Miniatura */}
-                    <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {item.product.image_url ? (
                         <img
                           src={item.product.image_url}
@@ -604,7 +682,7 @@ export const PosPage: React.FC = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <Package className="w-5 h-5 text-slate-400" />
+                        <Package className="w-4 h-4 text-slate-400" />
                       )}
                     </div>
 
@@ -619,150 +697,236 @@ export const PosPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <p className="text-[10px] font-bold text-slate-400">
-                        {formatCurrency(item.product.sale_price, currency)} c/u
-                      </p>
+                      <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-200/60 dark:border-zinc-700/60">
+                        <p className="text-[10px] font-bold text-slate-400">
+                          {formatCurrency(item.product.sale_price, currency)} c/u
+                        </p>
 
-                      {/* Stepper de Cantidad */}
-                      <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200 dark:border-zinc-700">
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">
-                          Cant. (máx. {item.product.stock}):
-                        </span>
-
-                        <div className="flex items-center gap-1.5">
+                        {/* Stepper de Cantidad */}
+                        <div className="flex items-center gap-1">
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.product.id, -1)}
-                            className="w-6 h-6 rounded-lg bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 flex items-center justify-center font-black text-xs transition-colors cursor-pointer"
+                            className="w-5 h-5 rounded bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 flex items-center justify-center font-black text-xs transition-colors cursor-pointer"
                           >
-                            <Minus className="w-3 h-3 stroke-[3]" />
+                            <Minus className="w-2.5 h-2.5 stroke-[3]" />
                           </button>
-                          <span className="w-6 text-center text-xs font-black text-slate-900 dark:text-zinc-100">
+                          <span className="w-5 text-center text-xs font-black text-slate-900 dark:text-zinc-100">
                             {item.quantity}
                           </span>
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.product.id, 1)}
-                            className="w-6 h-6 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center font-black text-xs transition-colors cursor-pointer"
+                            className="w-5 h-5 rounded bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center font-black text-xs transition-colors cursor-pointer"
                           >
-                            <Plus className="w-3 h-3 stroke-[3]" />
+                            <Plus className="w-2.5 h-2.5 stroke-[3]" />
                           </button>
                           <button
                             type="button"
                             onClick={() => removeFromCart(item.product.id)}
-                            className="p-1 text-slate-400 hover:text-rose-500 transition-colors ml-1 cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-rose-500 transition-colors ml-0.5 cursor-pointer"
                             title="Quitar producto"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))
+                ))}
+              </div>
+            )}
+
+            {/* Datos de Cliente (Compacto y Desplegable para no robar espacio) */}
+            <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setShowCustomerFields((prev) => !prev)}
+                className="w-full flex items-center justify-between text-left text-[11px] font-black text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 py-1 cursor-pointer"
+              >
+                <span className="flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Cliente: <strong className="text-slate-900 dark:text-zinc-100">{customerName}</strong></span>
+                </span>
+                <span className="text-[10px] text-emerald-600 font-bold underline">
+                  {showCustomerFields ? 'Ocultar' : 'Editar / Factura'}
+                </span>
+              </button>
+
+              {showCustomerFields && (
+                <div className="grid grid-cols-2 gap-2 pt-2 animate-fadeIn">
+                  <div>
+                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
+                      Nombre / Razón Social
+                    </label>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      placeholder="Consumidor Final"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
+                      NIT / CI
+                    </label>
+                    <input
+                      type="text"
+                      value={customerNit}
+                      onChange={(e) => setCustomerNit(e.target.value)}
+                      placeholder="ej. 8493021"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
               )}
             </div>
+          </div>
 
-            {/* Total a Cobrar */}
-            <div className="pt-3 border-t-2 border-slate-200 dark:border-zinc-800 flex items-baseline justify-between">
-              <span className="text-sm font-bold text-slate-600 dark:text-zinc-400">
+          {/* 3. Footer Fijo de Cobro: Totales, Métodos y Botón SIEMPRE VISIBLE */}
+          <div className="p-3.5 border-t-2 border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 flex-shrink-0 space-y-2">
+            
+            {/* Desglose de Subtotal y Selector de Impuesto */}
+            <div className="space-y-1 text-xs">
+              <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 font-bold">
+                <span>Subtotal ({totalItemsCount} unid.):</span>
+                <span className="font-mono text-slate-800 dark:text-zinc-200 font-black">
+                  {formatCurrency(subtotal, currency)}
+                </span>
+              </div>
+
+              {/* Selector de Impuesto Transparente */}
+              <div className="flex items-center justify-between text-[11px]">
+                <div className="flex items-center gap-1">
+                  <span className="font-bold text-slate-500 dark:text-zinc-400">Impuesto:</span>
+                  <div className="inline-flex rounded-md p-0.5 bg-slate-200 dark:bg-zinc-800 text-[10px] font-black">
+                    <button
+                      type="button"
+                      onClick={() => setTaxMode('included')}
+                      className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                        taxMode === 'included'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                      }`}
+                      title="El precio del producto ya incluye el impuesto (Cobro exacto)"
+                    >
+                      IVA Inc.
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTaxMode('none')}
+                      className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                        taxMode === 'none'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                      }`}
+                      title="Sin impuesto (0%)"
+                    >
+                      0%
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTaxMode('added')}
+                      className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
+                        taxMode === 'added'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                      }`}
+                      title="Sumar impuesto adicional encima del precio"
+                    >
+                      +{taxPercentage}%
+                    </button>
+                  </div>
+                </div>
+
+                <span className="font-mono font-bold text-slate-700 dark:text-zinc-300">
+                  {taxMode === 'added'
+                    ? `+${formatCurrency(taxAmount, currency)}`
+                    : taxMode === 'included' && taxAmount > 0
+                    ? `(${formatCurrency(taxAmount, currency)} inc.)`
+                    : formatCurrency(0, currency)}
+                </span>
+              </div>
+            </div>
+
+            {/* Total Destacado a Cobrar */}
+            <div className="pt-1.5 border-t border-slate-200 dark:border-zinc-700/80 flex items-baseline justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
                 Total a cobrar:
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-950 dark:text-white">
+              <span className="text-2xl font-black text-slate-950 dark:text-white">
                 {formatCurrency(total, currency)}
               </span>
             </div>
 
-            {/* Campos de Cliente y Facturación (Opcionales) */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                  Cliente (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Consumidor Final"
-                  className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2 focus:outline-none focus:border-indigo-600"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
-                  NIT / CI (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={customerNit}
-                  onChange={(e) => setCustomerNit(e.target.value)}
-                  placeholder="ej. 8493021"
-                  className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2 focus:outline-none focus:border-indigo-600"
-                />
-              </div>
+            {/* Selector de Método de Pago Compacto */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { id: 'cash', label: 'Efectivo', icon: Banknote },
+                { id: 'transfer', label: 'QR / Trans.', icon: Smartphone },
+                { id: 'card', label: 'Tarjeta', icon: CreditCard },
+              ].map((m) => {
+                const Icon = m.icon;
+                const isSelected = paymentMethod === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(m.id as any)}
+                    className={`py-1.5 px-2 rounded-xl border-2 flex items-center justify-center gap-1.5 transition-all cursor-pointer font-black text-xs ${
+                      isSelected
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                        : 'border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300 bg-white dark:bg-zinc-800'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span className="text-[11px]">{m.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Selector de Método de Pago */}
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1.5">
-                Método de Pago
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'cash', label: 'Efectivo', icon: Banknote },
-                  { id: 'transfer', label: 'QR / Trans.', icon: Smartphone },
-                  { id: 'card', label: 'Tarjeta', icon: CreditCard },
-                ].map((m) => {
-                  const Icon = m.icon;
-                  const isSelected = paymentMethod === m.id;
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(m.id as any)}
-                      className={`p-2.5 rounded-2xl border-2 flex flex-col items-center gap-1.5 transition-all cursor-pointer font-black text-xs ${
-                        isSelected
-                          ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 shadow-sm'
-                          : 'border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-[11px]">{m.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Calculadora de Efectivo y Vuelto */}
+            {/* Calculadora de Efectivo, Billetes Rápidos y Vuelto */}
             {paymentMethod === 'cash' && cart.length > 0 && (
-              <div className="bg-slate-50 dark:bg-zinc-850 p-3 rounded-2xl border-2 border-slate-200 dark:border-zinc-700 space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-black text-slate-700 dark:text-zinc-300">
-                  <span>Monto Recibido ({currency}):</span>
-                  <span className="text-[10px] text-slate-400">Mín. {formatCurrency(total, currency)}</span>
-                </div>
-
+              <div className="bg-white dark:bg-zinc-850 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder={total.toFixed(2)}
-                    value={amountPaid}
-                    onChange={(e) => setAmountPaid(e.target.value)}
-                    className="flex-1 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm font-black px-3 py-2 rounded-xl border border-slate-300 dark:border-zinc-600 focus:outline-none focus:border-indigo-600 text-right"
-                  />
+                  <div className="flex-1 relative">
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder={total.toFixed(2)}
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-black px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-zinc-600 focus:outline-none focus:border-emerald-500 text-right pr-2"
+                    />
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => setAmountPaid(total.toFixed(2))}
-                    className="px-3 py-2 bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 text-xs font-black rounded-xl transition-colors cursor-pointer"
+                    className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 text-[11px] font-black rounded-lg transition-colors cursor-pointer"
                   >
                     Exacto
                   </button>
+
+                  {/* Billetes rápidos */}
+                  {[50, 100, 200].filter(v => v >= total).slice(0, 2).map((bill) => (
+                    <button
+                      key={bill}
+                      type="button"
+                      onClick={() => setAmountPaid(bill.toFixed(2))}
+                      className="px-2 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-black rounded-lg hover:bg-emerald-100 transition-colors cursor-pointer"
+                    >
+                      {bill}
+                    </button>
+                  ))}
                 </div>
 
                 {amountPaid && parseFloat(amountPaid) >= total && (
-                  <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-black">
+                  <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-black">
                     <span>Cambio / Vuelto:</span>
-                    <span className="text-sm">
+                    <span className="text-sm font-black">
                       {formatCurrency(parseFloat(amountPaid) - total, currency)}
                     </span>
                   </div>
@@ -770,19 +934,25 @@ export const PosPage: React.FC = () => {
               </div>
             )}
 
-            {/* Botón Principal: Cobrar Venta */}
+            {/* Botón Principal: Cobrar Venta (SIEMPRE VISIBLE) */}
             <button
               type="button"
               disabled={cart.length === 0 || processing}
               onClick={handleCheckout}
-              className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl transition-all cursor-pointer ${
+              className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
                 cart.length === 0 || processing
                   ? 'bg-slate-300 dark:bg-zinc-800 text-slate-500 cursor-not-allowed shadow-none'
-                  : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30 hover:-translate-y-0.5 active:translate-y-0'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/30 active:scale-98'
               }`}
             >
-              <CheckCircle2 className="w-5 h-5" />
-              <span>{processing ? 'Procesando Venta...' : 'Cobrar Venta'}</span>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>
+                {processing
+                  ? 'Procesando Venta...'
+                  : cart.length === 0
+                  ? 'Carrito Vacío'
+                  : `Cobrar ${formatCurrency(total, currency)}`}
+              </span>
             </button>
           </div>
         </div>
@@ -839,9 +1009,9 @@ export const PosPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2.5 rounded-xl border-2 border-slate-300 dark:border-zinc-700 hover:border-indigo-600 text-slate-700 dark:text-zinc-200 text-xs font-black flex items-center gap-2 bg-white dark:bg-zinc-800 transition-all cursor-pointer shadow-xs active:scale-95"
+                        className="px-4 py-2.5 rounded-xl border-2 border-slate-300 dark:border-zinc-700 hover:border-emerald-500 text-slate-700 dark:text-zinc-200 text-xs font-black flex items-center gap-2 bg-white dark:bg-zinc-800 transition-all cursor-pointer shadow-xs active:scale-95"
                       >
-                        <Upload className="w-4 h-4 text-indigo-600" />
+                        <Upload className="w-4 h-4 text-emerald-600" />
                         <span>Cargar Imagen</span>
                       </button>
                       <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 leading-tight">
@@ -864,7 +1034,7 @@ export const PosPage: React.FC = () => {
                         onClick={() => setNewProdCurrency('BOB')}
                         className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                           newProdCurrency === 'BOB'
-                            ? 'bg-indigo-600 text-white shadow-sm'
+                            ? 'bg-emerald-600 text-white shadow-xs'
                             : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
                         }`}
                       >
@@ -875,7 +1045,7 @@ export const PosPage: React.FC = () => {
                         onClick={() => setNewProdCurrency('USD')}
                         className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
                           newProdCurrency === 'USD'
-                            ? 'bg-indigo-600 text-white shadow-sm'
+                            ? 'bg-emerald-600 text-white shadow-xs'
                             : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
                         }`}
                       >
@@ -896,7 +1066,7 @@ export const PosPage: React.FC = () => {
                         placeholder="0.00"
                         value={newProdCost}
                         onChange={(e) => setNewProdCost(e.target.value)}
-                        className="w-full bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500/20"
+                        className="w-full bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
                       />
                     </div>
 
@@ -911,7 +1081,7 @@ export const PosPage: React.FC = () => {
                         placeholder="0.00"
                         value={newProdPrice}
                         onChange={(e) => setNewProdPrice(e.target.value)}
-                        className="w-full bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-black rounded-xl border-2 border-indigo-200 dark:border-indigo-900/60 px-3 py-2.5 focus:outline-none focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 text-indigo-700 dark:text-indigo-300"
+                        className="w-full bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-black rounded-xl border-2 border-emerald-300 dark:border-emerald-800 px-3 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-emerald-800 dark:text-emerald-300"
                       />
                     </div>
                   </div>
@@ -929,7 +1099,7 @@ export const PosPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={generateSkuCode}
-                      className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1 cursor-pointer transition-colors"
+                      className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 cursor-pointer transition-colors"
                     >
                       <Dices className="w-3.5 h-3.5" />
                       <span>Generar código</span>
@@ -940,7 +1110,7 @@ export const PosPage: React.FC = () => {
                     value={newProdSku}
                     onChange={(e) => setNewProdSku(e.target.value)}
                     placeholder="PROD-3400"
-                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-indigo-600 font-mono"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500 font-mono"
                   />
                   <p className="text-[10px] font-bold text-slate-400 mt-1">
                     Si no tienes un código de barras, se asignará uno automáticamente.
@@ -958,7 +1128,7 @@ export const PosPage: React.FC = () => {
                     placeholder="ej. Mouse Inalámbrico Logitech"
                     value={newProdName}
                     onChange={(e) => setNewProdName(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-indigo-600"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
@@ -972,7 +1142,7 @@ export const PosPage: React.FC = () => {
                     placeholder="Detalles breves del artículo"
                     value={newProdDescription}
                     onChange={(e) => setNewProdDescription(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-indigo-600"
+                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500"
                   />
                 </div>
 
@@ -988,7 +1158,7 @@ export const PosPage: React.FC = () => {
                       placeholder="0"
                       value={newProdStock}
                       onChange={(e) => setNewProdStock(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-indigo-600"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -1002,7 +1172,7 @@ export const PosPage: React.FC = () => {
                       placeholder="5"
                       value={newProdMinStock}
                       onChange={(e) => setNewProdMinStock(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-indigo-600"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -1021,7 +1191,7 @@ export const PosPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={savingNewProd}
-                className="px-8 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-indigo-600/30 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                className="px-8 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/25 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 {savingNewProd ? 'Guardando...' : 'Guardar'}
               </button>
@@ -1068,7 +1238,7 @@ export const PosPage: React.FC = () => {
                   required
                   value={stockToAdd}
                   onChange={(e) => setStockToAdd(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm font-black rounded-xl border border-slate-300 dark:border-zinc-700 p-2.5 focus:outline-none focus:border-indigo-600 text-center"
+                  className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-sm font-black rounded-xl border border-slate-300 dark:border-zinc-700 p-2.5 focus:outline-none focus:border-emerald-500 text-center"
                 />
               </div>
 
