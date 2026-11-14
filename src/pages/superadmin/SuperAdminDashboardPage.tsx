@@ -392,192 +392,161 @@ export const SuperAdminDashboardPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               {/* Encabezado negro / oscuro con líneas nítidas */}
-              <thead className="bg-slate-950 text-white uppercase tracking-wider text-[11px] font-black border-b-2 border-slate-900">
+              <thead className="bg-slate-950 text-white uppercase tracking-wider text-[10px] font-black border-b-2 border-slate-900">
                 <tr>
-                  <th className="px-6 py-4 border-r border-slate-800/80">Persona / Correo</th>
-                  <th className="px-6 py-4 border-r border-slate-800/80">Negocio que Ocupa</th>
-                  <th className="px-6 py-4 border-r border-slate-800/80">Tipo de Cuenta</th>
-                  <th className="px-6 py-4 border-r border-slate-800/80">Plan Adquirido</th>
-                  <th className="px-6 py-4 border-r border-slate-800/80">Estado</th>
-                  <th className="px-6 py-4 text-right">Acciones</th>
+                  <th className="px-4 py-2.5 border-r border-slate-800/80">Usuario / Titular</th>
+                  <th className="px-4 py-2.5 border-r border-slate-800/80">Negocio Vinculado</th>
+                  <th className="px-4 py-2.5 border-r border-slate-800/80">Plan & Membresía</th>
+                  <th className="px-4 py-2.5 border-r border-slate-800/80 text-center">Estado</th>
+                  <th className="px-4 py-2.5 text-right">Acciones</th>
                 </tr>
               </thead>
-              {/* Filas con líneas divisorias negras/oscuras bien marcadas */}
-              <tbody className="divide-y-2 divide-slate-300 dark:divide-zinc-700 font-medium">
+              {/* Filas con líneas divisorias limpias y altura compacta */}
+              <tbody className="divide-y divide-slate-200 dark:divide-zinc-800 font-medium">
                 {filtered.map((item) => (
                   <tr
                     key={item.profileId}
                     className={`transition-colors ${
-                      item.isPayingCustomer
-                        ? 'border-l-6 border-l-emerald-600'
-                        : 'border-l-6 border-l-amber-500'
-                    } even:bg-slate-100/70 dark:even:bg-zinc-900/60 odd:bg-white dark:odd:bg-[#181615] hover:bg-emerald-50/70 dark:hover:bg-emerald-950/30 border-b-2 border-slate-300 dark:border-zinc-700`}
+                      item.isSuperAdmin
+                        ? 'border-l-4 border-l-slate-900 bg-slate-50/60 dark:bg-slate-900/40'
+                        : item.isPayingCustomer
+                        ? 'border-l-4 border-l-emerald-600 bg-white dark:bg-[#181615]'
+                        : 'border-l-4 border-l-amber-500 bg-white dark:bg-[#181615]'
+                    } hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20`}
                   >
-                    {/* Persona & Correo */}
-                    <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
-                      <div className="font-black text-slate-950 dark:text-zinc-100 text-sm">
-                        {item.fullName}
+                    {/* 1. Usuario / Titular */}
+                    <td className="px-4 py-2.5 border-r border-slate-200 dark:border-zinc-800">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-black text-slate-950 dark:text-zinc-100 text-xs">
+                          {item.fullName}
+                        </span>
+                        {item.isSuperAdmin && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-black uppercase text-emerald-400 bg-slate-950 px-1.5 py-0.5 rounded border border-emerald-500/40">
+                            <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+                            Admin
+                          </span>
+                        )}
                       </div>
-                      <div className="text-slate-600 dark:text-zinc-400 font-mono text-xs font-bold">
+                      <div className="text-slate-500 dark:text-zinc-400 font-mono text-[11px] font-semibold truncate max-w-[190px]">
                         {item.email}
                       </div>
-                      {item.isSuperAdmin && (
-                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-black uppercase text-emerald-400 bg-slate-900 px-2 py-0.5 rounded-md border border-emerald-500/40">
-                          <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                          Super Admin Maestro
-                        </span>
-                      )}
                     </td>
 
-                    {/* Negocio + BOTÓN VER NEGOCIO */}
-                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
-                      <div className="flex items-start gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0 mt-0.5 font-bold shadow-xs">
-                          <Store className="w-4 h-4 text-emerald-600" />
+                    {/* 2. Negocio Vinculado */}
+                    <td className="px-4 py-2.5 border-r border-slate-200 dark:border-zinc-800">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-zinc-800 text-emerald-600 flex items-center justify-center flex-shrink-0 font-bold border border-emerald-200/50">
+                          <Store className="w-3.5 h-3.5" />
                         </div>
-                        <div>
-                          <p className="font-black text-slate-950 dark:text-zinc-100 text-sm leading-tight">
-                            {item.businessName}
-                          </p>
-                          <p className="text-[11px] font-bold text-slate-500 capitalize mt-0.5">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-black text-slate-950 dark:text-zinc-100 text-xs truncate">
+                              {item.businessName}
+                            </p>
+                            {item.businessId && (
+                              <button
+                                onClick={() => {
+                                  setSelectedBusinessId(item.businessId);
+                                  setModalOpen(true);
+                                }}
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition-colors cursor-pointer"
+                                title="Ver detalles completos del negocio"
+                              >
+                                <Eye className="w-2.5 h-2.5" />
+                                <span>Ver</span>
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-[10px] font-semibold text-slate-500 capitalize">
                             Rubro: {item.businessType}
                           </p>
-
-                          {item.businessId ? (
-                            <button
-                              onClick={() => {
-                                setSelectedBusinessId(item.businessId);
-                                setModalOpen(true);
-                              }}
-                              className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all cursor-pointer group"
-                              title="Ver información detallada de este negocio"
-                            >
-                              <Eye className="w-3 h-3" />
-                              <span>Ver Negocio</span>
-                              <ExternalLink className="w-2.5 h-2.5 opacity-75 group-hover:translate-x-0.5 transition-transform" />
-                            </button>
-                          ) : (
-                            <span className="inline-block mt-1 text-[11px] text-slate-400 italic font-bold">
-                              Sin negocio vinculado
-                            </span>
-                          )}
                         </div>
                       </div>
                     </td>
 
-                    {/* Tipo: Usuario vs Cliente vs Super Admin */}
-                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
+                    {/* 3. Plan & Membresía (Unificado y sin espacio muerto) */}
+                    <td className="px-4 py-2.5 border-r border-slate-200 dark:border-zinc-800">
                       {item.isSuperAdmin ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-slate-900 to-slate-950 text-emerald-400 border border-emerald-500/40 shadow-xs">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                          CUENTA MAESTRA
-                        </span>
-                      ) : item.isPayingCustomer ? (
-                        item.planCode === 'enterprise' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-xs">
-                            <Crown className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
-                            CLIENTE EMPRESARIAL
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-slate-900 text-emerald-400 border border-emerald-500/40">
+                            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                            CUENTA MAESTRA
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
-                            <Star className="w-3.5 h-3.5 fill-white text-white" />
-                            CLIENTE PRO
+                          <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                            Vitalicio • Sin límite
                           </span>
-                        )
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-950 dark:bg-amber-950/60 dark:text-amber-200 border-2 border-amber-300 dark:border-amber-700">
-                          <UserCheck className="w-3.5 h-3.5 text-amber-600" />
-                          Usuario en Prueba
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Plan Adquirido, Precio y Vigencia */}
-                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
-                      {item.isSuperAdmin ? (
-                        <>
-                          <p className="font-black text-slate-950 dark:text-zinc-100 text-sm">
-                            Acceso Maestro Ilimitado
-                          </p>
-                          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                            Vitalicio • Cuenta Privada
-                          </p>
-                          <div className="mt-1">
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300">
-                              Sin Expiración
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <p className="font-black text-slate-950 dark:text-zinc-100 text-sm">
-                            {item.planName}
-                          </p>
-                          <p className="text-xs font-bold text-slate-600 dark:text-zinc-400 mt-0.5">
-                            {item.planPrice > 0 ? `${formatCurrency(item.planPrice, 'USD')} / mes` : 'Sin costo (Gratis)'}
-                          </p>
-
-                          {/* Fecha de Vencimiento y Días Restantes */}
-                          {item.currentPeriodEnd ? (
-                            <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-zinc-400">
-                                <Calendar className="w-3 h-3 text-slate-400" />
-                                Vence: {formatDate(item.currentPeriodEnd)}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {item.isPayingCustomer ? (
+                            item.planCode === 'enterprise' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950">
+                                <Crown className="w-3 h-3 fill-slate-950 text-slate-950" />
+                                EMPRESARIAL ($79/m)
                               </span>
-                              <span
-                                className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
-                                  item.isExpired
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300'
-                                    : item.daysRemaining && item.daysRemaining <= 7
-                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300'
-                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300'
-                                }`}
-                              >
-                                {item.isExpired
-                                  ? `Vencido (${Math.abs(item.daysRemaining || 0)}d)`
-                                  : `${item.daysRemaining} días restantes`}
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
+                                <Star className="w-3 h-3 fill-white text-white" />
+                                PRO ($29/m)
                               </span>
-                            </div>
+                            )
                           ) : (
-                            <p className="text-[10px] text-slate-400 font-bold mt-1">
-                              {item.isPayingCustomer ? 'Vigencia activa' : '14 días de prueba'}
-                            </p>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-100 text-amber-950 border border-amber-300">
+                              <UserCheck className="w-3 h-3 text-amber-600" />
+                              PRUEBA (Gratis)
+                            </span>
                           )}
-                        </>
+
+                          {item.currentPeriodEnd ? (
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-black whitespace-nowrap ${
+                                item.isExpired
+                                  ? 'bg-rose-100 text-rose-700 border border-rose-300'
+                                  : item.daysRemaining && item.daysRemaining <= 7
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              }`}
+                            >
+                              {item.isExpired
+                                ? `Vencido`
+                                : `Vence: ${formatDate(item.currentPeriodEnd)} (${item.daysRemaining}d)`}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-bold">14 días de prueba</span>
+                          )}
+                        </div>
                       )}
                     </td>
 
-                    {/* Estado */}
-                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
-                      <span className={`inline-block px-2.5 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${
+                    {/* 4. Estado */}
+                    <td className="px-4 py-2.5 border-r border-slate-200 dark:border-zinc-800 text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
                         item.isSuperAdmin
-                          ? 'bg-slate-900 text-emerald-400 border border-emerald-500/40 shadow-xs'
+                          ? 'bg-slate-900 text-emerald-400 border border-emerald-500/30'
                           : item.businessStatus === 'active'
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-rose-600 text-white shadow-xs'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                          : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'
                       }`}>
                         {item.isSuperAdmin ? 'Permanente' : item.businessStatus === 'active' ? 'Activo' : 'Suspendido'}
                       </span>
                     </td>
 
-                    {/* Acciones */}
-                    <td className="px-6 py-4 text-right">
+                    {/* 5. Acciones */}
+                    <td className="px-4 py-2.5 text-right">
                       {item.isSuperAdmin ? (
-                        <div className="flex items-center justify-end gap-1.5">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                            Admin Maestro
-                          </span>
-                        </div>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                          <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                          Protegido
+                        </span>
                       ) : item.businessId ? (
-                        <div className="flex items-center justify-end gap-1.5 flex-wrap sm:flex-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
                           <button
                             disabled={actionLoading === item.businessId}
                             onClick={() => {
                               setSelectedTenantForPlan(item);
                               setAssignModalOpen(true);
                             }}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer shadow-xs whitespace-nowrap ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer shadow-xs whitespace-nowrap ${
                               item.isPayingCustomer
                                 ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-700'
                                 : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
@@ -585,15 +554,13 @@ export const SuperAdminDashboardPage: React.FC = () => {
                             title="Seleccionar plan y definir meses de servicio"
                           >
                             <Crown className="w-3 h-3 text-amber-300 flex-shrink-0" />
-                            <span>
-                              {item.isPayingCustomer ? 'Extender' : 'Asignar Plan'}
-                            </span>
+                            <span>{item.isPayingCustomer ? 'Extender' : 'Asignar Plan'}</span>
                           </button>
 
                           <button
                             disabled={actionLoading === item.businessId}
                             onClick={() => handleToggleStatus(item.businessId, item.businessStatus)}
-                            className={`inline-flex items-center px-2.5 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer shadow-xs whitespace-nowrap ${
+                            className={`inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer shadow-xs whitespace-nowrap ${
                               item.businessStatus === 'active'
                                 ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-600/20'
                                 : 'bg-slate-900 text-white hover:bg-black'
@@ -603,7 +570,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-400 font-bold italic">
+                        <span className="text-[10px] text-slate-400 font-bold italic">
                           Esperando negocio
                         </span>
                       )}
