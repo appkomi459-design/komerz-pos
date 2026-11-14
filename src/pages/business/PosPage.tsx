@@ -38,7 +38,7 @@ interface CartItem {
 }
 
 export const PosPage: React.FC = () => {
-  const { activeBusiness, settings, mainBranch } = useBusiness();
+  const { activeBusiness, settings, mainBranch, updateSettings } = useBusiness();
   const { user } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,10 +56,43 @@ export const PosPage: React.FC = () => {
   const [completedSale, setCompletedSale] = useState<any | null>(null);
 
   // Modo de Impuesto en POS:
-  // 'included': Precio del producto es el precio final que paga el cliente (Default retail)
-  // 'added': Suma el impuesto encima del precio
-  // 'none': Sin impuesto (0%)
-  const [taxMode, setTaxMode] = useState<'included' | 'added' | 'none'>('included');
+  // 'none': Sin IVA (0% - No tiene / Exento)
+  // 'included': Con IVA incluido en precio (Cobro exacto de vitrina)
+  // 'added': Con IVA adicional (+% suma encima del precio)
+  const [taxMode, setTaxMode] = useState<'included' | 'added' | 'none'>(() => {
+    const saved = localStorage.getItem('komipos_tax_mode');
+    if (saved === 'none' || saved === 'included' || saved === 'added') return saved;
+    return 'included';
+  });
+
+  // Porcentaje (%) de IVA configurable por el comerciante:
+  const [taxPercentage, setTaxPercentage] = useState<number>(() => {
+    const saved = localStorage.getItem('komipos_tax_percentage');
+    if (saved !== null) {
+      const parsed = parseFloat(saved);
+      if (!isNaN(parsed) && parsed >= 0) return parsed;
+    }
+    return settings?.tax_percentage ?? 13;
+  });
+
+  useEffect(() => {
+    if (settings?.tax_percentage !== undefined && settings.tax_percentage !== null) {
+      setTaxPercentage(settings.tax_percentage);
+    }
+  }, [settings?.tax_percentage]);
+
+  useEffect(() => {
+    localStorage.setItem('komipos_tax_mode', taxMode);
+  }, [taxMode]);
+
+  const handleTaxPercentageChange = (val: number) => {
+    const safeVal = Math.max(0, Math.min(100, Math.round(val * 10) / 10));
+    setTaxPercentage(safeVal);
+    localStorage.setItem('komipos_tax_percentage', safeVal.toString());
+    if (updateSettings) {
+      updateSettings({ tax_percentage: safeVal }).catch(console.error);
+    }
+  };
 
   // Quick modals state (Nuevo Producto Horizontal)
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
@@ -178,8 +211,7 @@ export const PosPage: React.FC = () => {
   };
 
   // Cálculos transparentes de Totales e Impuestos
-  const taxPercentage = settings?.tax_percentage ?? 0;
-  const taxRate = taxPercentage / 100;
+  const effectiveTaxRate = taxMode === 'none' ? 0 : taxPercentage / 100;
 
   const rawCartSum = cart.reduce(
     (acc, item) => acc + item.product.sale_price * item.quantity,
@@ -191,10 +223,10 @@ export const PosPage: React.FC = () => {
   let total = rawCartSum;
 
   if (taxMode === 'included') {
-    // Modo estándar retail: El precio fijado en el producto es el total a pagar
+    // Modo retail estándar: El precio en vitrina es el total final
     total = rawCartSum;
-    if (taxRate > 0) {
-      subtotal = Number((total / (1 + taxRate)).toFixed(2));
+    if (effectiveTaxRate > 0) {
+      subtotal = Number((total / (1 + effectiveTaxRate)).toFixed(2));
       taxAmount = Number((total - subtotal).toFixed(2));
     } else {
       subtotal = total;
@@ -203,10 +235,10 @@ export const PosPage: React.FC = () => {
   } else if (taxMode === 'added') {
     // Suma impuesto encima del precio
     subtotal = rawCartSum;
-    taxAmount = Number((subtotal * taxRate).toFixed(2));
+    taxAmount = Number((subtotal * effectiveTaxRate).toFixed(2));
     total = Number((subtotal + taxAmount).toFixed(2));
   } else {
-    // Sin impuesto
+    // Sin impuesto (taxMode === 'none')
     subtotal = rawCartSum;
     taxAmount = 0;
     total = rawCartSum;
@@ -514,7 +546,7 @@ export const PosPage: React.FC = () => {
                 return (
                   <div
                     key={product.id}
-                    className={`bg-white dark:bg-[#181615] rounded-2xl border-2 transition-all duration-200 p-3.5 flex flex-col justify-between shadow-md hover:shadow-xl ${
+                    className={`bg-white dark:bg-[#181615] rounded-2xl border-2 transition-all duration-200 p-3.5 flex flex-col justify-between shadow-md hover:shadow-xl overflow-hidden ${
                       inCartItem
                         ? 'border-emerald-500 dark:border-emerald-500/80 shadow-emerald-500/15 ring-2 ring-emerald-500/20'
                         : 'border-slate-300 dark:border-zinc-700 hover:border-emerald-500'
@@ -577,15 +609,15 @@ export const PosPage: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Botones de Acción al pie de la tarjeta */}
-                    <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-slate-200 dark:border-zinc-800">
+                    {/* Botones de Acción al pie de la tarjeta (Compactos y ajustados al contenedor) */}
+                    <div className="flex items-center gap-1.5 mt-2.5 pt-2 border-t border-slate-200 dark:border-zinc-800 w-full min-w-0">
                       <button
                         type="button"
                         onClick={() => {
                           setStockModalProduct(product);
                           setStockToAdd('10');
                         }}
-                        className="px-2.5 py-1.5 text-[11px] font-black rounded-lg border-2 border-slate-300 dark:border-zinc-700 hover:border-slate-500 dark:hover:border-zinc-500 text-slate-700 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap"
+                        className="px-2 py-1.5 text-[11px] font-black rounded-lg border-2 border-slate-300 dark:border-zinc-700 hover:border-slate-500 dark:hover:border-zinc-500 text-slate-700 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
                         title="Ajustar o agregar stock"
                       >
                         + Stock
@@ -595,23 +627,24 @@ export const PosPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => addToCart(product)}
-                          className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-1 shadow-sm shadow-emerald-600/30 transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                          className="flex-1 min-w-0 py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-1 shadow-sm shadow-emerald-600/30 transition-all cursor-pointer active:scale-95 whitespace-nowrap overflow-hidden"
+                          title="Añadir una unidad más al carrito"
                         >
-                          <ShoppingCart className="w-3.5 h-3.5" />
-                          <span>En carrito ({inCartItem.quantity}) +</span>
+                          <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span className="truncate">Carrito +{inCartItem.quantity}</span>
                         </button>
                       ) : (
                         <button
                           type="button"
                           disabled={isOutOfStock}
                           onClick={() => addToCart(product)}
-                          className={`flex-1 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 whitespace-nowrap ${
+                          className={`flex-1 min-w-0 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 whitespace-nowrap overflow-hidden ${
                             isOutOfStock
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs shadow-emerald-600/20'
                           }`}
                         >
-                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
                           <span>Vender</span>
                         </button>
                       )}
@@ -787,8 +820,8 @@ export const PosPage: React.FC = () => {
           {/* 3. Footer Fijo de Cobro: Totales, Métodos y Botón SIEMPRE VISIBLE */}
           <div className="p-3.5 border-t-2 border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 flex-shrink-0 space-y-2">
             
-            {/* Desglose de Subtotal y Selector de Impuesto */}
-            <div className="space-y-1 text-xs">
+            {/* Desglose de Subtotal y Selector de Impuesto / IVA Configurable */}
+            <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 font-bold">
                 <span>Subtotal ({totalItemsCount} unid.):</span>
                 <span className="font-mono text-slate-800 dark:text-zinc-200 font-black">
@@ -796,57 +829,121 @@ export const PosPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* Selector de Impuesto Transparente */}
-              <div className="flex items-center justify-between text-[11px]">
-                <div className="flex items-center gap-1">
-                  <span className="font-bold text-slate-500 dark:text-zinc-400">Impuesto:</span>
-                  <div className="inline-flex rounded-md p-0.5 bg-slate-200 dark:bg-zinc-800 text-[10px] font-black">
-                    <button
-                      type="button"
-                      onClick={() => setTaxMode('included')}
-                      className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
-                        taxMode === 'included'
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
-                      }`}
-                      title="El precio del producto ya incluye el impuesto (Cobro exacto)"
-                    >
-                      IVA Inc.
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTaxMode('none')}
-                      className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
-                        taxMode === 'none'
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
-                      }`}
-                      title="Sin impuesto (0%)"
-                    >
-                      0%
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTaxMode('added')}
-                      className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${
-                        taxMode === 'added'
-                          ? 'bg-amber-600 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
-                      }`}
-                      title="Sumar impuesto adicional encima del precio"
-                    >
-                      +{taxPercentage}%
-                    </button>
+              {/* Fila de Impuesto / IVA: Opción SI TIENE O NO + Edición del Porciento */}
+              <div className="bg-slate-100/90 dark:bg-zinc-800/80 rounded-xl p-2 border border-slate-200 dark:border-zinc-700/80 space-y-1.5">
+                <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
+                      Impuesto (IVA):
+                    </span>
+                    <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
+                      <button
+                        type="button"
+                        onClick={() => setTaxMode('none')}
+                        className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                          taxMode === 'none'
+                            ? 'bg-slate-900 text-white shadow-xs'
+                            : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                        }`}
+                        title="Sin impuesto / Exento (0%)"
+                      >
+                        Sin IVA (0%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (taxMode === 'none') setTaxMode('included');
+                        }}
+                        className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                          taxMode !== 'none'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                        }`}
+                        title="Aplicar IVA con porcentaje configurable"
+                      >
+                        Con IVA ({taxPercentage}%)
+                      </button>
+                    </div>
                   </div>
+
+                  <span className="font-mono text-[11px] font-black text-slate-800 dark:text-zinc-200">
+                    {taxMode === 'added'
+                      ? `+${formatCurrency(taxAmount, currency)}`
+                      : taxMode === 'included' && taxAmount > 0
+                      ? `(${formatCurrency(taxAmount, currency)} inc.)`
+                      : formatCurrency(0, currency)}
+                  </span>
                 </div>
 
-                <span className="font-mono font-bold text-slate-700 dark:text-zinc-300">
-                  {taxMode === 'added'
-                    ? `+${formatCurrency(taxAmount, currency)}`
-                    : taxMode === 'included' && taxAmount > 0
-                    ? `(${formatCurrency(taxAmount, currency)} inc.)`
-                    : formatCurrency(0, currency)}
-                </span>
+                {/* Subpanel cuando SÍ TIENE IVA: Ajuste de Porcentaje y Modo (Incluido / Adicional) */}
+                {taxMode !== 'none' && (
+                  <div className="pt-1.5 border-t border-slate-200 dark:border-zinc-700/60 flex items-center justify-between gap-1 text-[10px] animate-fadeIn">
+                    {/* Modo: Incluido en precio vs Sumado adicional */}
+                    <div className="inline-flex rounded-md p-0.5 bg-slate-200/80 dark:bg-zinc-700/80">
+                      <button
+                        type="button"
+                        onClick={() => setTaxMode('included')}
+                        className={`px-1.5 py-0.5 rounded font-black transition-all cursor-pointer ${
+                          taxMode === 'included'
+                            ? 'bg-emerald-600 text-white shadow-xs'
+                            : 'text-slate-600 dark:text-zinc-300'
+                        }`}
+                        title="El precio fijado ya incluye el impuesto (no recarga al cliente)"
+                      >
+                        IVA Inc.
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTaxMode('added')}
+                        className={`px-1.5 py-0.5 rounded font-black transition-all cursor-pointer ${
+                          taxMode === 'added'
+                            ? 'bg-amber-600 text-white shadow-xs'
+                            : 'text-slate-600 dark:text-zinc-300'
+                        }`}
+                        title="Suma el impuesto encima del precio"
+                      >
+                        + Adicional
+                      </button>
+                    </div>
+
+                    {/* Editor de Porcentaje (%) */}
+                    <div className="flex items-center gap-1">
+                      <span className="text-slate-500 dark:text-zinc-400 font-bold">Porciento:</span>
+                      <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded-md px-1.5 py-0.5 shadow-2xs">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={taxPercentage}
+                          onChange={(e) => handleTaxPercentageChange(parseFloat(e.target.value) || 0)}
+                          className="w-8 text-center text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none"
+                          title="Escribe aquí el porcentaje de IVA para tu negocio"
+                        />
+                        <span className="text-xs font-black text-emerald-600">%</span>
+                      </div>
+
+                      {/* Chips de porcentajes rápidos comunes */}
+                      <div className="flex items-center gap-0.5">
+                        {[13, 16, 18, 19].map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => handleTaxPercentageChange(p)}
+                            className={`px-1 py-0.5 text-[9px] font-black rounded border cursor-pointer ${
+                              taxPercentage === p
+                                ? 'bg-emerald-600 text-white border-emerald-600'
+                                : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700 hover:border-emerald-500'
+                            }`}
+                            title={`Fijar IVA al ${p}%`}
+                          >
+                            {p}%
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
