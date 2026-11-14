@@ -13,6 +13,10 @@ import {
   Store,
   ExternalLink,
   Eye,
+  Crown,
+  Calendar,
+  Clock,
+  ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/Card';
@@ -27,6 +31,7 @@ import {
   MoneyCoinsIllustration,
 } from '@/components/common/CardIllustrations';
 import { BusinessDetailsModal } from '@/components/superadmin/BusinessDetailsModal';
+import { AssignPlanModal, AssignPlanTenant } from '@/components/superadmin/AssignPlanModal';
 
 interface TenantUser {
   profileId: string;
@@ -37,6 +42,12 @@ interface TenantUser {
   businessName: string;
   businessType: string;
   businessStatus: string;
+  subscriptionId?: string | null;
+  subscriptionStatus?: string;
+  currentPeriodStart?: string | null;
+  currentPeriodEnd?: string | null;
+  daysRemaining?: number;
+  isExpired?: boolean;
   planCode: string;
   planName: string;
   planPrice: number;
@@ -52,6 +63,8 @@ export const SuperAdminDashboardPage: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedTenantForPlan, setSelectedTenantForPlan] = useState<AssignPlanTenant | null>(null);
 
   const fetchTenants = async () => {
     try {
@@ -74,7 +87,12 @@ export const SuperAdminDashboardPage: React.FC = () => {
             business_type,
             status,
             subscription:subscriptions (
+              id,
+              status,
+              current_period_start,
+              current_period_end,
               plan:plans (
+                id,
                 name,
                 code,
                 price_monthly
@@ -94,6 +112,15 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
         const isPaying = plan && plan.code !== 'free' && Number(plan.price_monthly) > 0;
 
+        let daysRemaining = 0;
+        let isExpired = false;
+        if (sub?.current_period_end) {
+          const endMs = new Date(sub.current_period_end).getTime();
+          const nowMs = Date.now();
+          daysRemaining = Math.ceil((endMs - nowMs) / (1000 * 60 * 60 * 24));
+          isExpired = daysRemaining < 0;
+        }
+
         return {
           profileId: p.id,
           fullName: p.full_name || 'Sin nombre',
@@ -103,6 +130,12 @@ export const SuperAdminDashboardPage: React.FC = () => {
           businessName: biz?.name || 'Aún no configuró negocio',
           businessType: biz?.business_type || 'N/A',
           businessStatus: biz?.status || 'active',
+          subscriptionId: sub?.id || null,
+          subscriptionStatus: sub?.status || 'trialing',
+          currentPeriodStart: sub?.current_period_start || null,
+          currentPeriodEnd: sub?.current_period_end || null,
+          daysRemaining,
+          isExpired,
           planCode: plan?.code || 'free',
           planName: plan?.name || 'Gratis / Prueba',
           planPrice: Number(plan?.price_monthly || 0),
@@ -432,10 +465,17 @@ export const SuperAdminDashboardPage: React.FC = () => {
                     {/* Tipo: Usuario vs Cliente */}
                     <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
                       {item.isPayingCustomer ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
-                          <Star className="w-3.5 h-3.5 fill-white text-white" />
-                          CLIENTE PRO
-                        </span>
+                        item.planCode === 'enterprise' ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-xs">
+                            <Crown className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
+                            CLIENTE EMPRESARIAL
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
+                            <Star className="w-3.5 h-3.5 fill-white text-white" />
+                            CLIENTE PRO
+                          </span>
+                        )
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-100 text-amber-950 dark:bg-amber-950/60 dark:text-amber-200 border-2 border-amber-300 dark:border-amber-700">
                           <UserCheck className="w-3.5 h-3.5 text-amber-600" />
@@ -444,7 +484,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
                       )}
                     </td>
 
-                    {/* Plan Adquirido y Precio */}
+                    {/* Plan Adquirido, Precio y Vigencia */}
                     <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
                       <p className="font-black text-slate-950 dark:text-zinc-100 text-sm">
                         {item.planName}
@@ -452,6 +492,33 @@ export const SuperAdminDashboardPage: React.FC = () => {
                       <p className="text-xs font-bold text-slate-600 dark:text-zinc-400 mt-0.5">
                         {item.planPrice > 0 ? `${formatCurrency(item.planPrice, 'USD')} / mes` : 'Sin costo (Gratis)'}
                       </p>
+
+                      {/* Fecha de Vencimiento y Días Restantes */}
+                      {item.currentPeriodEnd ? (
+                        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-zinc-400">
+                            <Calendar className="w-3 h-3 text-slate-400" />
+                            Vence: {formatDate(item.currentPeriodEnd)}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                              item.isExpired
+                                ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300'
+                                : item.daysRemaining && item.daysRemaining <= 7
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300'
+                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300'
+                            }`}
+                          >
+                            {item.isExpired
+                              ? `Vencido (${Math.abs(item.daysRemaining || 0)}d)`
+                              : `${item.daysRemaining} días restantes`}
+                          </span>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">
+                          {item.isPayingCustomer ? 'Vigencia activa' : '14 días de prueba'}
+                        </p>
+                      )}
                     </td>
 
                     {/* Estado */}
@@ -467,18 +534,25 @@ export const SuperAdminDashboardPage: React.FC = () => {
 
                     {/* Acciones */}
                     <td className="px-6 py-4.5 text-right space-x-2">
-                      {item.businessId && (
+                      {item.businessId ? (
                         <>
                           <button
                             disabled={actionLoading === item.businessId}
-                            onClick={() => handleTogglePlan(item.businessId, item.planCode)}
-                            className={`px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
+                            onClick={() => {
+                              setSelectedTenantForPlan(item);
+                              setAssignModalOpen(true);
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
                               item.isPayingCustomer
-                                ? 'bg-slate-200 dark:bg-zinc-700 text-slate-900 dark:text-zinc-100 hover:bg-slate-300 border border-slate-300'
-                                : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20'
+                                ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-700'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
                             }`}
+                            title="Seleccionar plan y definir meses de servicio"
                           >
-                            {item.isPayingCustomer ? 'Bajar a Prueba' : 'Pasar a Cliente (Pro)'}
+                            <Crown className="w-3.5 h-3.5 text-amber-300" />
+                            <span>
+                              {item.isPayingCustomer ? 'Gestionar / Extender Plan' : 'Asignar Plan (Meses)'}
+                            </span>
                           </button>
 
                           <button
@@ -493,6 +567,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
                             {item.businessStatus === 'active' ? 'Suspender' : 'Activar'}
                           </button>
                         </>
+                      ) : (
+                        <span className="text-xs text-slate-400 font-bold italic">
+                          Esperando creación de negocio
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -509,6 +587,17 @@ export const SuperAdminDashboardPage: React.FC = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onStatusChanged={fetchTenants}
+      />
+
+      {/* Modal para Asignar Plan y Meses a Usuarios/Negocios */}
+      <AssignPlanModal
+        isOpen={assignModalOpen}
+        onClose={() => {
+          setAssignModalOpen(false);
+          setSelectedTenantForPlan(null);
+        }}
+        tenant={selectedTenantForPlan}
+        onSuccess={fetchTenants}
       />
     </div>
   );
