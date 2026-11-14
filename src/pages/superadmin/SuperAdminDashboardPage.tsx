@@ -110,11 +110,13 @@ export const SuperAdminDashboardPage: React.FC = () => {
         const rawPlan = sub?.plan;
         const plan = Array.isArray(rawPlan) ? rawPlan[0] : rawPlan;
 
-        const isPaying = plan && plan.code !== 'free' && Number(plan.price_monthly) > 0;
+        const isSuperAdmin = Boolean(p.is_super_admin) || p.email === 'admin@komipos.com';
+
+        const isPaying = !isSuperAdmin && plan && plan.code !== 'free' && Number(plan.price_monthly) > 0;
 
         let daysRemaining = 0;
         let isExpired = false;
-        if (sub?.current_period_end) {
+        if (!isSuperAdmin && sub?.current_period_end) {
           const endMs = new Date(sub.current_period_end).getTime();
           const nowMs = Date.now();
           daysRemaining = Math.ceil((endMs - nowMs) / (1000 * 60 * 60 * 24));
@@ -125,20 +127,20 @@ export const SuperAdminDashboardPage: React.FC = () => {
           profileId: p.id,
           fullName: p.full_name || 'Sin nombre',
           email: p.email || 'Sin correo',
-          isSuperAdmin: Boolean(p.is_super_admin),
+          isSuperAdmin,
           businessId: biz?.id || null,
           businessName: biz?.name || 'Aún no configuró negocio',
           businessType: biz?.business_type || 'N/A',
           businessStatus: biz?.status || 'active',
           subscriptionId: sub?.id || null,
-          subscriptionStatus: sub?.status || 'trialing',
-          currentPeriodStart: sub?.current_period_start || null,
-          currentPeriodEnd: sub?.current_period_end || null,
-          daysRemaining,
-          isExpired,
-          planCode: plan?.code || 'free',
-          planName: plan?.name || 'Gratis / Prueba',
-          planPrice: Number(plan?.price_monthly || 0),
+          subscriptionStatus: isSuperAdmin ? 'lifetime' : (sub?.status || 'trialing'),
+          currentPeriodStart: isSuperAdmin ? null : (sub?.current_period_start || null),
+          currentPeriodEnd: isSuperAdmin ? null : (sub?.current_period_end || null),
+          daysRemaining: isSuperAdmin ? 99999 : daysRemaining,
+          isExpired: isSuperAdmin ? false : isExpired,
+          planCode: isSuperAdmin ? 'superadmin' : (plan?.code || 'free'),
+          planName: isSuperAdmin ? 'Acceso Maestro Ilimitado' : (plan?.name || 'Gratis / Prueba'),
+          planPrice: isSuperAdmin ? 0 : Number(plan?.price_monthly || 0),
           isPayingCustomer: Boolean(isPaying),
           createdAt: p.created_at,
         };
@@ -156,10 +158,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
     fetchTenants();
   }, []);
 
-  // Métricas
+  // Métricas (excluyendo la cuenta maestra Super Admin de las cuentas de prueba)
   const totalPeople = tenants.length;
-  const trialUsers = tenants.filter((t) => !t.isPayingCustomer).length;
-  const payingClients = tenants.filter((t) => t.isPayingCustomer).length;
+  const trialUsers = tenants.filter((t) => !t.isSuperAdmin && !t.isPayingCustomer).length;
+  const payingClients = tenants.filter((t) => !t.isSuperAdmin && t.isPayingCustomer).length;
   const totalRevenue = tenants.reduce((acc, t) => acc + (t.isPayingCustomer ? t.planPrice : 0), 0);
 
   // Alternar estado activo / suspendido del negocio
@@ -420,14 +422,15 @@ export const SuperAdminDashboardPage: React.FC = () => {
                         {item.email}
                       </div>
                       {item.isSuperAdmin && (
-                        <span className="inline-block mt-1 text-[10px] font-black uppercase text-purple-700 bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300 px-2 py-0.5 rounded-md border border-purple-300">
-                          Super Admin
+                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-black uppercase text-emerald-400 bg-slate-900 px-2 py-0.5 rounded-md border border-emerald-500/40">
+                          <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                          Super Admin Maestro
                         </span>
                       )}
                     </td>
 
                     {/* Negocio + BOTÓN VER NEGOCIO */}
-                    <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
+                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
                       <div className="flex items-start gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 flex items-center justify-center flex-shrink-0 mt-0.5 font-bold shadow-xs">
                           <Store className="w-4 h-4 text-emerald-600" />
@@ -446,12 +449,12 @@ export const SuperAdminDashboardPage: React.FC = () => {
                                 setSelectedBusinessId(item.businessId);
                                 setModalOpen(true);
                               }}
-                              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all cursor-pointer group"
+                              className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-all cursor-pointer group"
                               title="Ver información detallada de este negocio"
                             >
-                              <Eye className="w-3.5 h-3.5" />
+                              <Eye className="w-3 h-3" />
                               <span>Ver Negocio</span>
-                              <ExternalLink className="w-3 h-3 opacity-75 group-hover:translate-x-0.5 transition-transform" />
+                              <ExternalLink className="w-2.5 h-2.5 opacity-75 group-hover:translate-x-0.5 transition-transform" />
                             </button>
                           ) : (
                             <span className="inline-block mt-1 text-[11px] text-slate-400 italic font-bold">
@@ -462,22 +465,27 @@ export const SuperAdminDashboardPage: React.FC = () => {
                       </div>
                     </td>
 
-                    {/* Tipo: Usuario vs Cliente */}
-                    <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
-                      {item.isPayingCustomer ? (
+                    {/* Tipo: Usuario vs Cliente vs Super Admin */}
+                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
+                      {item.isSuperAdmin ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-slate-900 to-slate-950 text-emerald-400 border border-emerald-500/40 shadow-xs">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          CUENTA MAESTRA
+                        </span>
+                      ) : item.isPayingCustomer ? (
                         item.planCode === 'enterprise' ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-xs">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-xs">
                             <Crown className="w-3.5 h-3.5 fill-slate-950 text-slate-950" />
                             CLIENTE EMPRESARIAL
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
                             <Star className="w-3.5 h-3.5 fill-white text-white" />
                             CLIENTE PRO
                           </span>
                         )
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-amber-100 text-amber-950 dark:bg-amber-950/60 dark:text-amber-200 border-2 border-amber-300 dark:border-amber-700">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-black bg-amber-100 text-amber-950 dark:bg-amber-950/60 dark:text-amber-200 border-2 border-amber-300 dark:border-amber-700">
                           <UserCheck className="w-3.5 h-3.5 text-amber-600" />
                           Usuario en Prueba
                         </span>
@@ -485,80 +493,107 @@ export const SuperAdminDashboardPage: React.FC = () => {
                     </td>
 
                     {/* Plan Adquirido, Precio y Vigencia */}
-                    <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
-                      <p className="font-black text-slate-950 dark:text-zinc-100 text-sm">
-                        {item.planName}
-                      </p>
-                      <p className="text-xs font-bold text-slate-600 dark:text-zinc-400 mt-0.5">
-                        {item.planPrice > 0 ? `${formatCurrency(item.planPrice, 'USD')} / mes` : 'Sin costo (Gratis)'}
-                      </p>
-
-                      {/* Fecha de Vencimiento y Días Restantes */}
-                      {item.currentPeriodEnd ? (
-                        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-zinc-400">
-                            <Calendar className="w-3 h-3 text-slate-400" />
-                            Vence: {formatDate(item.currentPeriodEnd)}
-                          </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
-                              item.isExpired
-                                ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300'
-                                : item.daysRemaining && item.daysRemaining <= 7
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300'
-                                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300'
-                            }`}
-                          >
-                            {item.isExpired
-                              ? `Vencido (${Math.abs(item.daysRemaining || 0)}d)`
-                              : `${item.daysRemaining} días restantes`}
-                          </span>
-                        </div>
+                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
+                      {item.isSuperAdmin ? (
+                        <>
+                          <p className="font-black text-slate-950 dark:text-zinc-100 text-sm">
+                            Acceso Maestro Ilimitado
+                          </p>
+                          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                            Vitalicio • Cuenta Privada
+                          </p>
+                          <div className="mt-1">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300">
+                              Sin Expiración
+                            </span>
+                          </div>
+                        </>
                       ) : (
-                        <p className="text-[10px] text-slate-400 font-bold mt-1">
-                          {item.isPayingCustomer ? 'Vigencia activa' : '14 días de prueba'}
-                        </p>
+                        <>
+                          <p className="font-black text-slate-950 dark:text-zinc-100 text-sm">
+                            {item.planName}
+                          </p>
+                          <p className="text-xs font-bold text-slate-600 dark:text-zinc-400 mt-0.5">
+                            {item.planPrice > 0 ? `${formatCurrency(item.planPrice, 'USD')} / mes` : 'Sin costo (Gratis)'}
+                          </p>
+
+                          {/* Fecha de Vencimiento y Días Restantes */}
+                          {item.currentPeriodEnd ? (
+                            <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 dark:text-zinc-400">
+                                <Calendar className="w-3 h-3 text-slate-400" />
+                                Vence: {formatDate(item.currentPeriodEnd)}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
+                                  item.isExpired
+                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-300'
+                                    : item.daysRemaining && item.daysRemaining <= 7
+                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300'
+                                    : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300'
+                                }`}
+                              >
+                                {item.isExpired
+                                  ? `Vencido (${Math.abs(item.daysRemaining || 0)}d)`
+                                  : `${item.daysRemaining} días restantes`}
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-[10px] text-slate-400 font-bold mt-1">
+                              {item.isPayingCustomer ? 'Vigencia activa' : '14 días de prueba'}
+                            </p>
+                          )}
+                        </>
                       )}
                     </td>
 
                     {/* Estado */}
-                    <td className="px-6 py-4.5 border-r border-slate-200 dark:border-zinc-800">
-                      <span className={`inline-block px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider ${
-                        item.businessStatus === 'active'
+                    <td className="px-6 py-4 border-r border-slate-200 dark:border-zinc-800">
+                      <span className={`inline-block px-2.5 py-1 rounded-xl text-xs font-black uppercase tracking-wider ${
+                        item.isSuperAdmin
+                          ? 'bg-slate-900 text-emerald-400 border border-emerald-500/40 shadow-xs'
+                          : item.businessStatus === 'active'
                           ? 'bg-emerald-600 text-white shadow-xs'
                           : 'bg-rose-600 text-white shadow-xs'
                       }`}>
-                        {item.businessStatus === 'active' ? 'Activo' : 'Suspendido'}
+                        {item.isSuperAdmin ? 'Permanente' : item.businessStatus === 'active' ? 'Activo' : 'Suspendido'}
                       </span>
                     </td>
 
                     {/* Acciones */}
-                    <td className="px-6 py-4.5 text-right space-x-2">
-                      {item.businessId ? (
-                        <>
+                    <td className="px-6 py-4 text-right">
+                      {item.isSuperAdmin ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                            Admin Maestro
+                          </span>
+                        </div>
+                      ) : item.businessId ? (
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap sm:flex-nowrap">
                           <button
                             disabled={actionLoading === item.businessId}
                             onClick={() => {
                               setSelectedTenantForPlan(item);
                               setAssignModalOpen(true);
                             }}
-                            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer shadow-xs whitespace-nowrap ${
                               item.isPayingCustomer
                                 ? 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-slate-700'
                                 : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
                             }`}
                             title="Seleccionar plan y definir meses de servicio"
                           >
-                            <Crown className="w-3.5 h-3.5 text-amber-300" />
+                            <Crown className="w-3 h-3 text-amber-300 flex-shrink-0" />
                             <span>
-                              {item.isPayingCustomer ? 'Gestionar / Extender Plan' : 'Asignar Plan (Meses)'}
+                              {item.isPayingCustomer ? 'Extender' : 'Asignar Plan'}
                             </span>
                           </button>
 
                           <button
                             disabled={actionLoading === item.businessId}
                             onClick={() => handleToggleStatus(item.businessId, item.businessStatus)}
-                            className={`px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs ${
+                            className={`inline-flex items-center px-2.5 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer shadow-xs whitespace-nowrap ${
                               item.businessStatus === 'active'
                                 ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-600/20'
                                 : 'bg-slate-900 text-white hover:bg-black'
@@ -566,10 +601,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
                           >
                             {item.businessStatus === 'active' ? 'Suspender' : 'Activar'}
                           </button>
-                        </>
+                        </div>
                       ) : (
                         <span className="text-xs text-slate-400 font-bold italic">
-                          Esperando creación de negocio
+                          Esperando negocio
                         </span>
                       )}
                     </td>
