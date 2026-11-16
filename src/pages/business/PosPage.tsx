@@ -327,6 +327,8 @@ export const PosPage: React.FC = () => {
       });
 
       const changeAmount = amountPaid && parseFloat(amountPaid) >= total ? parseFloat(amountPaid) - total : 0;
+      const cashierName = user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : 'Administrador');
+
       setCompletedSale({
         ...saleData,
         items: cart,
@@ -334,6 +336,7 @@ export const PosPage: React.FC = () => {
         change: changeAmount,
         customerName,
         customerNit,
+        cashierName,
         discountAmount,
         discountType,
         discountValue,
@@ -1579,7 +1582,7 @@ export const PosPage: React.FC = () => {
                 <div className="text-right">
                   <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Datos de Emisión</p>
                   <p className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">
-                    Cajero: <span className="font-black">Administrador</span>
+                    Cajero: <span className="font-black">{completedSale.cashierName || 'Administrador'}</span>
                   </p>
                   <p className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">
                     Método:{' '}
@@ -1590,31 +1593,49 @@ export const PosPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Tabla de Productos */}
+              {/* Tabla de Productos con Foto */}
               <div className="rounded-2xl border border-slate-200 dark:border-zinc-700 overflow-hidden">
                 {/* Encabezado */}
                 <div className="grid grid-cols-12 bg-slate-100 dark:bg-zinc-800 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-400">
-                  <span className="col-span-2">Cant.</span>
-                  <span className="col-span-5">Descripción</span>
+                  <span className="col-span-2 text-center">Cant.</span>
+                  <span className="col-span-6">Producto</span>
                   <span className="col-span-2 text-right">P. Unit</span>
-                  <span className="col-span-3 text-right">Subtotal</span>
+                  <span className="col-span-2 text-right">Subtotal</span>
                 </div>
                 {/* Filas */}
                 {(completedSale.items || []).map((item: CartItem, i: number) => (
                   <div
                     key={i}
-                    className="grid grid-cols-12 px-3 py-2 text-xs border-t border-slate-100 dark:border-zinc-800"
+                    className="grid grid-cols-12 px-3 py-2 text-xs border-t border-slate-100 dark:border-zinc-800 items-center"
                   >
-                    <span className="col-span-2 font-black text-slate-700 dark:text-zinc-300">
+                    <span className="col-span-2 font-black text-slate-700 dark:text-zinc-300 text-center">
                       x{item.quantity}
                     </span>
-                    <span className="col-span-5 font-bold text-slate-900 dark:text-zinc-100 truncate pr-1">
-                      {item.product.name}
-                    </span>
+                    <div className="col-span-6 flex items-center gap-2 min-w-0 pr-1">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {item.product.image_url ? (
+                          <img
+                            src={item.product.image_url}
+                            alt={item.product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Package className="w-4 h-4 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 dark:text-zinc-100 truncate text-xs">
+                          {item.product.name}
+                        </p>
+                        <p className="text-[10px] text-slate-400 font-mono truncate">
+                          {item.product.sku || item.product.barcode || ''}
+                        </p>
+                      </div>
+                    </div>
                     <span className="col-span-2 text-right font-mono text-slate-600 dark:text-zinc-400 text-[11px]">
                       {formatCurrency(item.product.sale_price, currency)}
                     </span>
-                    <span className="col-span-3 text-right font-black text-slate-900 dark:text-zinc-100 font-mono">
+                    <span className="col-span-2 text-right font-black text-slate-900 dark:text-zinc-100 font-mono">
                       {formatCurrency(item.product.sale_price * item.quantity, currency)}
                     </span>
                   </div>
@@ -1762,69 +1783,482 @@ export const PosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const win = window.open('', '_blank', 'width=900,height=700');
+                  const win = window.open('', '_blank', 'width=950,height=800');
                   if (!win) return;
+                  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                    (typeof window !== 'undefined' ? window.location.origin : '') + '/factura/' + completedSale.invoice_number
+                  )}`;
+                  const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  const timeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
                   win.document.write(`
-                    <html><head><title>Factura ${completedSale.invoice_number}</title>
-                    <style>
-                      * { margin:0; padding:0; box-sizing:border-box; }
-                      body { font-family: Arial, sans-serif; font-size: 12px; padding: 32px; color: #111; }
-                      .header { background: linear-gradient(135deg,#1a2e1a,#0f4c2a); color: white; padding: 24px; border-radius: 12px; display:flex; align-items:center; gap:20px; margin-bottom:20px; }
-                      .header img { width:60px; height:60px; border-radius:12px; object-fit:cover; }
-                      .biz-name { font-size:22px; font-weight:900; }
-                      .badge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#fff; font-size:10px; font-weight:700; padding:4px 12px; border-radius:20px; display:inline-block; margin-bottom:8px; }
-                      .inv-num { float:right; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; }
-                      .section { border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:16px; }
-                      .section-title { font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#059669; margin-bottom:8px; }
-                      table { width:100%; border-collapse:collapse; }
-                      th { background:#f1f5f9; padding:8px; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#64748b; text-align:left; }
-                      td { padding:8px; border-top:1px solid #f1f5f9; font-size:12px; }
-                      .total-row { font-weight:900; font-size:14px; color:#065f46; }
-                      .footer-note { text-align:center; font-style:italic; color:#94a3b8; font-size:10px; margin-top:16px; }
-                    </style></head><body>
-                    <div class="header">
-                      <div style="flex:1">
-                        <div class="badge">Factura Oficial · ${(activeBusiness?.name || '').toUpperCase()}</div>
-                        <span class="inv-num">${completedSale.invoice_number}</span>
-                        <div class="biz-name">${activeBusiness?.name || 'Mi Negocio'}</div>
-                        ${activeBusiness?.address ? `<div style="color:rgba(255,255,255,0.7);font-size:11px;margin-top:4px">${activeBusiness.address}${activeBusiness.city ? ' · '+activeBusiness.city : ''}</div>` : ''}
-                        ${activeBusiness?.phone ? `<div style="color:rgba(255,255,255,0.7);font-size:11px">Tel: ${activeBusiness.phone}</div>` : ''}
-                        <div style="color:rgba(255,255,255,0.6);font-size:10px;margin-top:4px">${new Date().toLocaleString('es-ES')}</div>
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                      <meta charset="utf-8" />
+                      <title>Factura ${completedSale.invoice_number} - ${activeBusiness?.name || 'Komerz POS'}</title>
+                      <style>
+                        @page {
+                          size: letter portrait;
+                          margin: 12mm 14mm;
+                        }
+                        * {
+                          margin: 0;
+                          padding: 0;
+                          box-sizing: border-box;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                          color-adjust: exact !important;
+                        }
+                        body {
+                          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                          color: #0f172a;
+                          background: #ffffff;
+                          font-size: 11px;
+                          line-height: 1.4;
+                        }
+                        .invoice-container {
+                          max-width: 780px;
+                          margin: 0 auto;
+                          border: 1px solid #cbd5e1;
+                          border-radius: 18px;
+                          overflow: hidden;
+                        }
+                        /* Cabecera idéntica al catálogo de stock (Image 2) con degradado rico */
+                        .header-banner {
+                          background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%) !important;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                          color: #ffffff;
+                          padding: 18px 24px;
+                          display: flex;
+                          align-items: center;
+                          justify-content: space-between;
+                          gap: 16px;
+                        }
+                        .logo-box {
+                          width: 58px;
+                          height: 58px;
+                          border-radius: 12px;
+                          object-fit: cover;
+                          border: 3px solid rgba(255,255,255,0.4);
+                          background: #ffffff;
+                          flex-shrink: 0;
+                        }
+                        .avatar-box {
+                          width: 58px;
+                          height: 58px;
+                          border-radius: 12px;
+                          background: rgba(255,255,255,0.22);
+                          border: 3px solid rgba(255,255,255,0.4);
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          font-size: 26px;
+                          font-weight: 900;
+                          color: #ffffff;
+                          flex-shrink: 0;
+                        }
+                        .badge-official {
+                          background: rgba(255,255,255,0.22);
+                          border: 1px solid rgba(255,255,255,0.4);
+                          color: #ffffff;
+                          font-size: 9px;
+                          font-weight: 800;
+                          letter-spacing: 1.5px;
+                          text-transform: uppercase;
+                          padding: 3px 12px;
+                          border-radius: 20px;
+                          display: inline-block;
+                          margin-bottom: 4px;
+                        }
+                        .biz-name {
+                          font-size: 22px;
+                          font-weight: 900;
+                          line-height: 1.1;
+                          color: #ffffff;
+                        }
+                        .biz-sub {
+                          font-size: 10px;
+                          color: rgba(255,255,255,0.8);
+                          margin-top: 3px;
+                        }
+                        .inv-pill {
+                          background: rgba(255,255,255,0.25);
+                          border: 1px solid rgba(255,255,255,0.4);
+                          color: #ffffff;
+                          font-size: 13px;
+                          font-weight: 900;
+                          font-family: monospace;
+                          padding: 6px 16px;
+                          border-radius: 20px;
+                          display: inline-block;
+                          margin-bottom: 4px;
+                        }
+                        .inv-meta {
+                          font-size: 10px;
+                          color: rgba(255,255,255,0.8);
+                          text-align: right;
+                        }
+                        .body-pad {
+                          padding: 20px 24px;
+                        }
+                        /* Tarjetas de datos */
+                        .info-grid {
+                          display: grid;
+                          grid-template-columns: 1fr 1fr;
+                          gap: 14px;
+                          margin-bottom: 18px;
+                        }
+                        .info-card {
+                          background: #f8fafc;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 12px;
+                          padding: 12px 14px;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                        }
+                        .card-title {
+                          font-size: 9px;
+                          font-weight: 900;
+                          letter-spacing: 1.5px;
+                          text-transform: uppercase;
+                          color: #059669;
+                          margin-bottom: 4px;
+                        }
+                        .card-main {
+                          font-size: 13px;
+                          font-weight: 800;
+                          color: #0f172a;
+                        }
+                        .card-sub {
+                          font-size: 11px;
+                          color: #64748b;
+                          margin-top: 2px;
+                        }
+                        /* Tabla de artículos */
+                        .items-table {
+                          width: 100%;
+                          border-collapse: separate;
+                          border-spacing: 0;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 12px;
+                          overflow: hidden;
+                          margin-bottom: 18px;
+                        }
+                        .items-table th {
+                          background: #f1f5f9;
+                          color: #475569;
+                          font-size: 9px;
+                          font-weight: 900;
+                          letter-spacing: 1px;
+                          text-transform: uppercase;
+                          padding: 9px 12px;
+                          text-align: left;
+                          border-bottom: 1px solid #e2e8f0;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                        }
+                        .items-table td {
+                          padding: 9px 12px;
+                          border-top: 1px solid #f1f5f9;
+                          vertical-align: middle;
+                          font-size: 11px;
+                        }
+                        .items-table tr:first-child td {
+                          border-top: none;
+                        }
+                        .cant-badge {
+                          display: inline-block;
+                          font-weight: 900;
+                          color: #0f172a;
+                          background: #f1f5f9;
+                          border: 1px solid #e2e8f0;
+                          padding: 2px 7px;
+                          border-radius: 6px;
+                          font-size: 11px;
+                        }
+                        .prod-img {
+                          width: 42px;
+                          height: 42px;
+                          border-radius: 8px;
+                          object-fit: cover;
+                          border: 1px solid #cbd5e1;
+                          flex-shrink: 0;
+                          background: #f8fafc;
+                        }
+                        .prod-avatar {
+                          width: 42px;
+                          height: 42px;
+                          border-radius: 8px;
+                          background: #f1f5f9;
+                          border: 1px solid #cbd5e1;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          font-size: 18px;
+                          flex-shrink: 0;
+                        }
+                        .prod-name {
+                          font-weight: 800;
+                          font-size: 12px;
+                          color: #0f172a;
+                          line-height: 1.2;
+                        }
+                        .prod-sku {
+                          font-family: monospace;
+                          font-size: 10px;
+                          color: #64748b;
+                          margin-top: 2px;
+                        }
+                        /* Totales y QR */
+                        .summary-grid {
+                          display: grid;
+                          grid-template-columns: 1fr 1fr;
+                          gap: 16px;
+                          align-items: end;
+                          margin-bottom: 16px;
+                        }
+                        .cert-box {
+                          background: #f8fafc;
+                          border: 1px solid #e2e8f0;
+                          border-radius: 12px;
+                          padding: 12px;
+                          display: flex;
+                          align-items: center;
+                          gap: 12px;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                        }
+                        .qr-code-img {
+                          width: 72px;
+                          height: 72px;
+                          border-radius: 8px;
+                          border: 1px solid #cbd5e1;
+                          background: #ffffff;
+                          padding: 2px;
+                          flex-shrink: 0;
+                        }
+                        .totals-wrap {
+                          display: flex;
+                          flex-direction: column;
+                          gap: 4px;
+                        }
+                        .tot-line {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 11px;
+                          color: #475569;
+                        }
+                        .tot-line strong {
+                          color: #0f172a;
+                          font-family: monospace;
+                        }
+                        .tot-final-bar {
+                          background: linear-gradient(135deg, #064e3b 0%, #047857 100%) !important;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                          color: #ffffff;
+                          padding: 10px 14px;
+                          border-radius: 10px;
+                          display: flex;
+                          justify-content: space-between;
+                          align-items: center;
+                          font-size: 13px;
+                          font-weight: 900;
+                          margin-top: 6px;
+                        }
+                        .footer-text {
+                          text-align: center;
+                          font-size: 10px;
+                          color: #64748b;
+                          font-style: italic;
+                          border-top: 1px solid #e2e8f0;
+                          padding-top: 12px;
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="invoice-container">
+                        <!-- Cabecera Oficial -->
+                        <div class="header-banner">
+                          <div style="display: flex; align-items: center; gap: 14px;">
+                            ${activeBusiness?.logo_url ? `
+                              <img src="${activeBusiness.logo_url}" alt="Logo" class="logo-box" />
+                            ` : `
+                              <div class="avatar-box">
+                                ${(activeBusiness?.name || 'K').charAt(0).toUpperCase()}
+                              </div>
+                            `}
+                            <div>
+                              <div class="badge-official">
+                                Factura Oficial · ${(activeBusiness?.name || 'Mi Negocio').toUpperCase()}
+                              </div>
+                              <div class="biz-name">
+                                ${activeBusiness?.name || 'Mi Negocio'}
+                              </div>
+                              <div class="biz-sub">
+                                ${activeBusiness?.address ? activeBusiness.address + (activeBusiness.city ? ' · ' + activeBusiness.city : '') + ' · ' : ''}
+                                ${activeBusiness?.phone ? 'Tel: ' + activeBusiness.phone : 'Comprobante Oficial de Entrega'}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style="text-align: right; flex-shrink: 0;">
+                            <div class="inv-pill">
+                              ${completedSale.invoice_number}
+                            </div>
+                            <div class="inv-meta">
+                              ${dateStr} · ${timeStr}
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Cuerpo de la Factura -->
+                        <div class="body-pad">
+                          <!-- Grid de Datos -->
+                          <div class="info-grid">
+                            <div class="info-card">
+                              <div class="card-title">Datos del Cliente</div>
+                              <div class="card-main">${completedSale.customerName || 'Consumidor Final'}</div>
+                              <div class="card-sub">NIT / CI: ${completedSale.customerNit || 'S/N'}</div>
+                            </div>
+                            <div class="info-card" style="text-align: right;">
+                              <div class="card-title">Datos de Emisión</div>
+                              <div class="card-sub">Cajero: <strong style="color: #0f172a;">${completedSale.cashierName || 'Administrador'}</strong></div>
+                              <div class="card-sub">Método: <strong style="color: #0f172a; text-transform: capitalize;">${
+                                completedSale.payment_method === 'cash' ? 'Efectivo' : completedSale.payment_method === 'transfer' ? 'QR / Trans.' : 'Tarjeta'
+                              }</strong></div>
+                              <div class="card-sub">Estado: <strong style="color: #059669;">✓ Pagado / Confirmado</strong></div>
+                            </div>
+                          </div>
+
+                          <!-- Tabla de Artículos con Foto -->
+                          <table class="items-table">
+                            <thead>
+                              <tr>
+                                <th style="width: 55px; text-align: center;">Cant.</th>
+                                <th>Producto / Detalle</th>
+                                <th style="width: 100px; text-align: right;">P. Unit</th>
+                                <th style="width: 110px; text-align: right;">Subtotal</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              ${(completedSale.items || []).map((item: CartItem) => `
+                                <tr>
+                                  <td style="text-align: center;">
+                                    <span class="cant-badge">x${item.quantity}</span>
+                                  </td>
+                                  <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                      ${item.product.image_url ? `
+                                        <img src="${item.product.image_url}" alt="${item.product.name}" class="prod-img" />
+                                      ` : `
+                                        <div class="prod-avatar">📦</div>
+                                      `}
+                                      <div style="min-width: 0;">
+                                        <div class="prod-name">${item.product.name}</div>
+                                        <div class="prod-sku">${item.product.sku || item.product.barcode || 'PROD-' + item.product.id.slice(0, 4)}</div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td style="text-align: right; font-family: monospace; color: #475569;">
+                                    ${formatCurrency(item.product.sale_price, currency)}
+                                  </td>
+                                  <td style="text-align: right; font-family: monospace; font-weight: 800; color: #0f172a;">
+                                    ${formatCurrency(item.product.sale_price * item.quantity, currency)}
+                                  </td>
+                                </tr>
+                              `).join('')}
+                            </tbody>
+                          </table>
+
+                          <!-- Resumen de Pago y Certificación -->
+                          <div class="summary-grid">
+                            <!-- QR de Verificación -->
+                            <div class="cert-box">
+                              <img src="${qrUrl}" alt="QR Verificación" class="qr-code-img" />
+                              <div>
+                                <div style="font-size: 10px; font-weight: 900; color: #0f172a;">COMPROBANTE VÁLIDO</div>
+                                <div style="font-size: 9px; font-weight: 700; color: #059669; margin-top: 1px;">✓ Venta Registrada en Sistema</div>
+                                <div style="font-size: 8px; color: #64748b; margin-top: 3px; line-height: 1.3;">
+                                  Escanea este código para validar la autenticidad de esta nota de venta oficial.
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Desglose de Totales -->
+                            <div class="totals-wrap">
+                              <div class="tot-line">
+                                <span>Subtotal:</span>
+                                <strong>${formatCurrency(completedSale.subtotal ?? completedSale.total, currency)}</strong>
+                              </div>
+
+                              ${completedSale.discountAmount > 0 ? `
+                                <div class="tot-line" style="color: #dc2626;">
+                                  <span>Descuento ${completedSale.discountType === 'percent' ? '(' + completedSale.discountValue + '%)' : '(Fijo)'}:</span>
+                                  <strong style="color: #dc2626;">-${formatCurrency(completedSale.discountAmount, currency)}</strong>
+                                </div>
+                              ` : ''}
+
+                              ${completedSale.taxAmount > 0 ? `
+                                <div class="tot-line">
+                                  <span>IVA (${completedSale.taxMode === 'included' ? 'Inc.' : '+' + taxPercentage + '%'}):</span>
+                                  <strong>${completedSale.taxMode === 'included' ? '(' + formatCurrency(completedSale.taxAmount, currency) + ' inc.)' : '+' + formatCurrency(completedSale.taxAmount, currency)}</strong>
+                                </div>
+                              ` : ''}
+
+                              ${completedSale.payment_method === 'cash' && completedSale.paid > 0 ? `
+                                <div class="tot-line" style="padding-top: 4px; border-top: 1px solid #e2e8f0;">
+                                  <span>Monto Recibido:</span>
+                                  <strong>${formatCurrency(completedSale.paid, currency)}</strong>
+                                </div>
+                              ` : ''}
+
+                              ${completedSale.payment_method === 'cash' && completedSale.change > 0 ? `
+                                <div class="tot-line" style="color: #059669;">
+                                  <span>Vuelto / Cambio:</span>
+                                  <strong style="color: #059669;">${formatCurrency(completedSale.change, currency)}</strong>
+                                </div>
+                              ` : ''}
+
+                              <div class="tot-final-bar">
+                                <span>TOTAL A PAGAR:</span>
+                                <span style="font-family: monospace;">${formatCurrency(completedSale.total, currency)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Pie de Factura -->
+                          <div class="footer-text">
+                            ${settings?.receipt_footer || '"Gracias por su preferencia — Esta nota de venta avala la entrega formal de mercadería"'}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-                      <div class="section">
-                        <div class="section-title">Datos del Cliente</div>
-                        <div style="font-weight:900;font-size:14px">${completedSale.customerName || 'Consumidor Final'}</div>
-                        <div style="color:#64748b">NIT / CI: ${completedSale.customerNit || 'S/N'}</div>
-                      </div>
-                      <div class="section">
-                        <div class="section-title">Datos de Emisión</div>
-                        <div>Cajero: <strong>Administrador</strong></div>
-                        <div>Método: <strong>${completedSale.payment_method === 'cash' ? 'Efectivo' : completedSale.payment_method === 'transfer' ? 'QR / Trans.' : 'Tarjeta'}</strong></div>
-                      </div>
-                    </div>
-                    <table>
-                      <thead><tr><th>Cant.</th><th>Descripción</th><th style="text-align:right">P. Unit</th><th style="text-align:right">Subtotal</th></tr></thead>
-                      <tbody>
-                        ${(completedSale.items || []).map((item: CartItem) =>
-                          `<tr><td>x${item.quantity}</td><td>${item.product.name}</td><td style="text-align:right">${formatCurrency(item.product.sale_price, currency)}</td><td style="text-align:right;font-weight:700">${formatCurrency(item.product.sale_price * item.quantity, currency)}</td></tr>`
-                        ).join('')}
-                      </tbody>
-                      <tfoot>
-                        ${completedSale.discountAmount > 0 ? `<tr><td colspan="3" style="text-align:right;color:#dc2626">Descuento:</td><td style="text-align:right;color:#dc2626;font-weight:700">-${formatCurrency(completedSale.discountAmount, currency)}</td></tr>` : ''}
-                        ${completedSale.taxAmount > 0 ? `<tr><td colspan="3" style="text-align:right;color:#64748b">IVA:</td><td style="text-align:right;color:#64748b">${formatCurrency(completedSale.taxAmount, currency)}</td></tr>` : ''}
-                        ${completedSale.payment_method === 'cash' ? `<tr><td colspan="3" style="text-align:right">Monto Recibido:</td><td style="text-align:right;font-weight:700">${formatCurrency(completedSale.paid, currency)}</td></tr><tr><td colspan="3" style="text-align:right;color:#059669;font-weight:700">Vuelto / Cambio:</td><td style="text-align:right;color:#059669;font-weight:700">${formatCurrency(completedSale.change, currency)}</td></tr>` : ''}
-                        <tr class="total-row"><td colspan="3" style="text-align:right;border-top:2px solid #e2e8f0;padding-top:12px">TOTAL A PAGAR:</td><td style="text-align:right;border-top:2px solid #e2e8f0;padding-top:12px">${formatCurrency(completedSale.total, currency)}</td></tr>
-                      </tfoot>
-                    </table>
-                    <div class="footer-note">${settings?.receipt_footer || '"Gracias por su preferencia — Esta nota de venta avala la entrega de mercadería"'}</div>
-                    <script>window.onload = () => { window.print(); }</script>
-                    </body></html>
+
+                      <!-- Script de Impresión que Espera Carga de Fotos -->
+                      <script>
+                        window.addEventListener('load', function() {
+                          var imgs = Array.from(document.images);
+                          Promise.all(imgs.map(function(img) {
+                            if (img.complete) return Promise.resolve();
+                            return new Promise(function(resolve) {
+                              img.onload = resolve;
+                              img.onerror = resolve;
+                            });
+                          })).then(function() {
+                            setTimeout(function() {
+                              window.print();
+                            }, 250);
+                          });
+                        });
+                      </script>
+                    </body>
+                    </html>
                   `);
                   win.document.close();
                 }}
-                className="py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                className="py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-md shadow-emerald-700/20"
               >
                 <Receipt className="w-3.5 h-3.5" />
                 <span>Factura Color (Carta)</span>
