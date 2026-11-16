@@ -630,11 +630,12 @@ export const SalesPage: React.FC = () => {
     win.document.close();
   };
 
-  // Impresión de Ticket Térmico POS (80mm)
-  const handlePrintThermalTicket = (sale: SaleWithItems) => {
-    const win = window.open('', '_blank', 'width=420,height=750');
+  // Impresión de Ticket Térmico POS (58mm o 80mm)
+  const handlePrintThermalTicket = (sale: SaleWithItems, format: '58mm' | '80mm' = '80mm') => {
+    const is58 = format === '58mm';
+    const win = window.open('', '_blank', `width=${is58 ? 340 : 420},height=750`);
     if (!win) return;
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${is58 ? '100x100' : '120x120'}&data=${encodeURIComponent(
       (typeof window !== 'undefined' ? window.location.origin : '') + '/factura/' + sale.invoice_number
     )}`;
     const saleDate = new Date(sale.created_at);
@@ -646,10 +647,10 @@ export const SalesPage: React.FC = () => {
       <html lang="es">
       <head>
         <meta charset="utf-8" />
-        <title>Ticket POS - ${sale.invoice_number}</title>
+        <title>Ticket POS ${format} - ${sale.invoice_number}</title>
         <style>
           @page {
-            size: 80mm auto;
+            size: ${is58 ? '58mm auto' : '80mm auto'};
             margin: 0;
           }
           * {
@@ -661,27 +662,27 @@ export const SalesPage: React.FC = () => {
           }
           body {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 11px;
-            line-height: 1.35;
+            font-size: ${is58 ? '10px' : '11px'};
+            line-height: 1.3;
             color: #000000;
             background: #ffffff;
-            width: 76mm;
-            max-width: 76mm;
+            width: ${is58 ? '48mm' : '76mm'};
+            max-width: ${is58 ? '48mm' : '76mm'};
             margin: 0 auto;
-            padding: 6mm 4mm 14mm 4mm;
+            padding: ${is58 ? '4mm 2mm 8mm 2mm' : '6mm 4mm 14mm 4mm'};
           }
           .text-center { text-align: center; }
           .text-right { text-align: right; }
           .bold { font-weight: bold; }
           .biz-name {
-            font-size: 15px;
+            font-size: ${is58 ? '13px' : '15px'};
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             margin-bottom: 2px;
           }
           .biz-sub {
-            font-size: 10px;
+            font-size: ${is58 ? '8.5px' : '10px'};
             color: #333333;
             margin-bottom: 1px;
           }
@@ -689,70 +690,70 @@ export const SalesPage: React.FC = () => {
             border-top: 1px dashed #000;
             border-bottom: 1px dashed #000;
             height: 3px;
-            margin: 6px 0;
+            margin: 5px 0;
           }
           .divider-single {
             border-top: 1px dashed #000;
-            margin: 5px 0;
+            margin: 4px 0;
           }
           .meta-row {
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
+            font-size: ${is58 ? '8.5px' : '10px'};
             margin-bottom: 2px;
           }
           .items-header {
             display: flex;
             justify-content: space-between;
             font-weight: bold;
-            font-size: 10px;
+            font-size: ${is58 ? '8.5px' : '10px'};
             padding: 2px 0;
           }
           .item-block {
-            margin-bottom: 5px;
+            margin-bottom: 4px;
           }
           .item-title {
             font-weight: bold;
-            font-size: 11px;
+            font-size: ${is58 ? '10px' : '11px'};
             word-break: break-word;
           }
           .item-calc {
             display: flex;
             justify-content: space-between;
-            font-size: 10px;
-            padding-left: 6px;
+            font-size: ${is58 ? '8.5px' : '10px'};
+            padding-left: 4px;
             color: #222222;
           }
           .tot-row {
             display: flex;
             justify-content: space-between;
-            font-size: 11px;
+            font-size: ${is58 ? '9.5px' : '11px'};
             margin-bottom: 2px;
           }
           .total-banner {
-            font-size: 14px;
+            font-size: ${is58 ? '12px' : '14px'};
             font-weight: 900;
             display: flex;
             justify-content: space-between;
-            padding: 4px 0;
+            padding: 3px 0;
           }
           .qr-box {
-            margin: 8px auto 4px auto;
+            margin: 6px auto 3px auto;
             text-align: center;
           }
           .qr-img {
-            width: 72px;
-            height: 72px;
+            width: ${is58 ? '56px' : '72px'};
+            height: ${is58 ? '56px' : '72px'};
             display: inline-block;
           }
           .footer-note {
             text-align: center;
-            font-size: 9px;
-            margin-top: 6px;
-            line-height: 1.3;
+            font-size: ${is58 ? '8px' : '9px'};
+            margin-top: 5px;
+            line-height: 1.25;
           }
           .cut-space {
-            height: 20px;
+            height: 18px;
           }
         </style>
       </head>
@@ -1231,7 +1232,7 @@ export const SalesPage: React.FC = () => {
             </div>
 
             {/* Botones de Acción */}
-            <div className="px-5 pb-5 grid grid-cols-3 gap-2">
+            <div className="px-5 pb-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedSale(null)}
@@ -1242,10 +1243,21 @@ export const SalesPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handlePrintThermalTicket(selectedSale)}
-                className="py-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
+                onClick={() => handlePrintThermalTicket(selectedSale, '58mm')}
+                className="py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-800 text-emerald-400 border border-slate-700 text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-800 transition-colors"
+                title="Para mini impresoras térmicas de bolsillo (58mm)"
               >
-                <Receipt className="w-3.5 h-3.5" />
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Ticket Mini (58mm)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handlePrintThermalTicket(selectedSale, '80mm')}
+                className="py-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
+                title="Para impresoras térmicas de mostrador (80mm)"
+              >
+                <Receipt className="w-3.5 h-3.5 text-blue-400" />
                 <span>Ticket POS (80mm)</span>
               </button>
 

@@ -22,6 +22,7 @@ import {
   Upload,
   Image as ImageIcon,
   Dices,
+  Printer,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from '@/integrations/supabase/client';
@@ -1718,7 +1719,7 @@ export const PosPage: React.FC = () => {
             </div>
 
             {/* ── BOTONES DE ACCIÓN ── */}
-            <div className="px-5 pb-5 grid grid-cols-3 gap-2">
+            <div className="px-5 pb-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
               {/* Cerrar */}
               <button
                 type="button"
@@ -1728,7 +1729,233 @@ export const PosPage: React.FC = () => {
                 Cerrar
               </button>
 
-              {/* Ticket Térmico POS */}
+              {/* Ticket Mini 58mm */}
+              <button
+                type="button"
+                onClick={() => {
+                  const win = window.open('', '_blank', 'width=340,height=700');
+                  if (!win) return;
+                  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
+                    (typeof window !== 'undefined' ? window.location.origin : '') + '/factura/' + completedSale.invoice_number
+                  )}`;
+                  const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  const timeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+                  win.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                      <meta charset="utf-8" />
+                      <title>Ticket 58mm - ${completedSale.invoice_number}</title>
+                      <style>
+                        @page {
+                          size: 58mm auto;
+                          margin: 0;
+                        }
+                        * {
+                          margin: 0;
+                          padding: 0;
+                          box-sizing: border-box;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                        }
+                        body {
+                          font-family: 'Courier New', Courier, monospace;
+                          font-size: 10px;
+                          line-height: 1.25;
+                          color: #000000;
+                          background: #ffffff;
+                          width: 48mm;
+                          max-width: 48mm;
+                          margin: 0 auto;
+                          padding: 4mm 2mm 8mm 2mm;
+                        }
+                        .text-center { text-align: center; }
+                        .text-right { text-align: right; }
+                        .bold { font-weight: bold; }
+                        .biz-name {
+                          font-size: 13px;
+                          font-weight: 900;
+                          text-transform: uppercase;
+                          margin-bottom: 2px;
+                        }
+                        .biz-sub {
+                          font-size: 8.5px;
+                          color: #222222;
+                          margin-bottom: 1px;
+                        }
+                        .divider-double {
+                          border-top: 1px dashed #000;
+                          border-bottom: 1px dashed #000;
+                          height: 3px;
+                          margin: 4px 0;
+                        }
+                        .divider-single {
+                          border-top: 1px dashed #000;
+                          margin: 3px 0;
+                        }
+                        .meta-row {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 8.5px;
+                          margin-bottom: 1px;
+                        }
+                        .items-header {
+                          display: flex;
+                          justify-content: space-between;
+                          font-weight: bold;
+                          font-size: 8.5px;
+                          padding: 1px 0;
+                        }
+                        .item-block {
+                          margin-bottom: 3px;
+                        }
+                        .item-title {
+                          font-weight: bold;
+                          font-size: 9.5px;
+                          word-break: break-word;
+                        }
+                        .item-calc {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 8.5px;
+                          padding-left: 2px;
+                          color: #222222;
+                        }
+                        .tot-row {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 9px;
+                          margin-bottom: 1px;
+                        }
+                        .total-banner {
+                          font-size: 12px;
+                          font-weight: 900;
+                          display: flex;
+                          justify-content: space-between;
+                          padding: 3px 0;
+                        }
+                        .qr-box {
+                          margin: 6px auto 2px auto;
+                          text-align: center;
+                        }
+                        .qr-img {
+                          width: 58px;
+                          height: 58px;
+                          display: inline-block;
+                        }
+                        .footer-note {
+                          text-align: center;
+                          font-size: 8px;
+                          margin-top: 4px;
+                          line-height: 1.2;
+                        }
+                        .cut-space {
+                          height: 16px;
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="text-center bold biz-name">${activeBusiness?.name || 'MI NEGOCIO'}</div>
+                      ${activeBusiness?.address ? `<div class="text-center biz-sub">${activeBusiness.address}</div>` : ''}
+                      ${activeBusiness?.phone ? `<div class="text-center biz-sub">Tel: ${activeBusiness.phone}</div>` : ''}
+
+                      <div class="divider-double"></div>
+
+                      <div class="meta-row"><span>TICKET:</span><span class="bold">${completedSale.invoice_number}</span></div>
+                      <div class="meta-row"><span>FECHA:</span><span>${dateStr} ${timeStr}</span></div>
+                      <div class="meta-row"><span>CLIENTE:</span><span>${completedSale.customerName || 'Consumidor Final'}</span></div>
+                      <div class="meta-row"><span>NIT/CI:</span><span>${completedSale.customerNit || 'S/N'}</span></div>
+                      <div class="meta-row"><span>PAGO:</span><span class="bold">${(completedSale.payment_method === 'cash' ? 'Efectivo' : completedSale.payment_method === 'transfer' ? 'QR/Trans.' : 'Tarjeta').toUpperCase()}</span></div>
+
+                      <div class="divider-single"></div>
+                      <div class="items-header"><span>CANT. ARTÍCULO</span><span>TOTAL</span></div>
+                      <div class="divider-single"></div>
+
+                      ${(completedSale.items || []).map((item: CartItem) => `
+                        <div class="item-block">
+                          <div class="item-title">x${item.quantity} ${item.product.name}</div>
+                          <div class="item-calc">
+                            <span>${formatCurrency(item.product.sale_price, currency)}</span>
+                            <span class="bold">${formatCurrency(item.product.sale_price * item.quantity, currency)}</span>
+                          </div>
+                        </div>
+                      `).join('')}
+
+                      <div class="divider-single"></div>
+
+                      <div class="tot-row">
+                        <span>Subtotal:</span>
+                        <span>${formatCurrency(completedSale.subtotal ?? completedSale.total, currency)}</span>
+                      </div>
+
+                      ${completedSale.discountAmount > 0 ? `
+                        <div class="tot-row">
+                          <span>Desc. ${completedSale.discountType === 'percent' ? completedSale.discountValue + '%' : ''}:</span>
+                          <span>-${formatCurrency(completedSale.discountAmount, currency)}</span>
+                        </div>
+                      ` : ''}
+
+                      ${completedSale.taxAmount > 0 ? `
+                        <div class="tot-row">
+                          <span>IVA:</span>
+                          <span>${formatCurrency(completedSale.taxAmount, currency)}</span>
+                        </div>
+                      ` : ''}
+
+                      <div class="divider-double"></div>
+                      <div class="total-banner">
+                        <span>TOTAL:</span>
+                        <span>${formatCurrency(completedSale.total, currency)}</span>
+                      </div>
+                      <div class="divider-double"></div>
+
+                      ${completedSale.payment_method === 'cash' && completedSale.paid > 0 ? `
+                        <div class="tot-row"><span>Entregado:</span><span>${formatCurrency(completedSale.paid, currency)}</span></div>
+                        <div class="tot-row bold"><span>Cambio:</span><span>${formatCurrency(completedSale.change, currency)}</span></div>
+                        <div class="divider-single"></div>
+                      ` : ''}
+
+                      <div class="qr-box">
+                        <img src="${qrUrl}" alt="QR" class="qr-img" />
+                        <div style="font-size: 7.5px; margin-top: 1px;">COMPROBANTE VÁLIDO</div>
+                      </div>
+
+                      <div class="footer-note">
+                        ${settings?.receipt_footer || '¡Gracias por su compra!'}
+                      </div>
+
+                      <div class="cut-space"></div>
+
+                      <script>
+                        window.addEventListener('load', function() {
+                          var imgs = Array.from(document.images);
+                          Promise.all(imgs.map(function(img) {
+                            if (img.complete) return Promise.resolve();
+                            return new Promise(function(resolve) {
+                              img.onload = resolve;
+                              img.onerror = resolve;
+                            });
+                          })).then(function() {
+                            setTimeout(function() {
+                              window.print();
+                            }, 200);
+                          });
+                        });
+                      </script>
+                    </body>
+                    </html>
+                  `);
+                  win.document.close();
+                }}
+                className="py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-800 text-emerald-400 border border-slate-700 text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-800 transition-colors"
+                title="Para mini impresoras térmicas portátiles de bolsillo (58mm)"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Ticket Mini (58mm)</span>
+              </button>
+
+              {/* Ticket Térmico POS 80mm */}
               <button
                 type="button"
                 onClick={() => {
@@ -1745,7 +1972,7 @@ export const PosPage: React.FC = () => {
                     <html lang="es">
                     <head>
                       <meta charset="utf-8" />
-                      <title>Ticket POS - ${completedSale.invoice_number}</title>
+                      <title>Ticket POS 80mm - ${completedSale.invoice_number}</title>
                       <style>
                         @page {
                           size: 80mm auto;
@@ -1848,7 +2075,7 @@ export const PosPage: React.FC = () => {
                           text-align: center;
                           font-size: 9px;
                           margin-top: 6px;
-                          line-height: 1.3;
+                          line-line: 1.3;
                         }
                         .cut-space {
                           height: 20px;
@@ -1955,8 +2182,9 @@ export const PosPage: React.FC = () => {
                   win.document.close();
                 }}
                 className="py-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
+                title="Para impresoras térmicas de mostrador estándar (80mm)"
               >
-                <Receipt className="w-3.5 h-3.5" />
+                <Receipt className="w-3.5 h-3.5 text-blue-400" />
                 <span>Ticket POS (80mm)</span>
               </button>
 
