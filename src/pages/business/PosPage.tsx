@@ -334,6 +334,13 @@ export const PosPage: React.FC = () => {
         change: changeAmount,
         customerName,
         customerNit,
+        discountAmount,
+        discountType,
+        discountValue,
+        taxMode,
+        taxAmount,
+        subtotal,
+        total,
       });
 
       // Reset
@@ -1495,77 +1502,337 @@ export const PosPage: React.FC = () => {
       )}
 
       {/* ======================================================== */}
-      {/* MODAL: VENTA REALIZADA CON ÉXITO                         */}
+      {/* MODAL: FACTURA PROFESIONAL POST-VENTA                    */}
       {/* ======================================================== */}
       {completedSale && (
-        <Modal
-          isOpen={Boolean(completedSale)}
-          onClose={() => setCompletedSale(null)}
-          title="¡Venta Realizada con Éxito!"
-        >
-          <div className="text-center py-4 space-y-3">
-            <div className="w-16 h-16 rounded-3xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center mx-auto shadow-lg shadow-emerald-600/20">
-              <CheckCircle2 className="w-9 h-9" />
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-y-auto">
 
-            <h4 className="text-2xl font-black text-slate-900 dark:text-zinc-100">
-              {formatCurrency(completedSale.total, currency)}
-            </h4>
-
-            <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">
-              Comprobante Nº:{' '}
-              <span className="font-mono font-black text-slate-800 dark:text-zinc-200">
-                {completedSale.invoice_number}
-              </span>
-            </p>
-
-            <div className="p-3 bg-slate-50 dark:bg-zinc-850 rounded-2xl text-xs space-y-1.5 text-left max-w-xs mx-auto border border-slate-200 dark:border-zinc-700 font-bold">
-              <div className="flex justify-between text-slate-500">
-                <span>Cliente:</span>
-                <span className="text-slate-800 dark:text-zinc-200">{completedSale.customerName || 'Consumidor Final'}</span>
+            {/* ── CABECERA DEL NEGOCIO (color oscuro) ── */}
+            <div
+              className="relative rounded-t-3xl px-6 pt-5 pb-4"
+              style={{ background: 'linear-gradient(135deg, #1a2e1a 0%, #0f4c2a 60%, #166534 100%)' }}
+            >
+              {/* Badge FACTURA OFICIAL */}
+              <div className="flex items-start justify-between mb-3">
+                <span className="bg-emerald-400/20 border border-emerald-400/50 text-emerald-300 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                  Factura Oficial · {activeBusiness?.name?.toUpperCase() || 'MI NEGOCIO'}
+                </span>
+                <span className="bg-white/10 border border-white/20 text-white text-[11px] font-black px-3 py-1 rounded-full font-mono">
+                  {completedSale.invoice_number}
+                </span>
               </div>
-              {completedSale.customerNit && (
-                <div className="flex justify-between text-slate-500">
-                  <span>NIT / CI:</span>
-                  <span className="text-slate-800 dark:text-zinc-200">{completedSale.customerNit}</span>
+
+              {/* Logo + Nombre del Negocio */}
+              <div className="flex items-center gap-4">
+                {activeBusiness?.logo_url ? (
+                  <img
+                    src={activeBusiness.logo_url}
+                    alt={activeBusiness.name}
+                    className="w-14 h-14 rounded-2xl object-cover border-2 border-white/30 shadow-lg flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-600/40 border-2 border-emerald-400/50 flex items-center justify-center flex-shrink-0">
+                    <Store className="w-7 h-7 text-emerald-300" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-black text-white leading-tight">
+                    {activeBusiness?.name || 'Mi Negocio'}
+                  </h2>
+                  {activeBusiness?.address && (
+                    <p className="text-emerald-300/80 text-[11px] font-bold mt-0.5">
+                      {activeBusiness.address}
+                      {activeBusiness.city ? ` · ${activeBusiness.city}` : ''}
+                    </p>
+                  )}
+                  {activeBusiness?.phone && (
+                    <p className="text-emerald-300/70 text-[11px] font-bold">
+                      Tel: {activeBusiness.phone}
+                    </p>
+                  )}
                 </div>
-              )}
-              <div className="flex justify-between text-slate-500">
-                <span>Método de Pago:</span>
-                <span className="text-slate-800 dark:text-zinc-200 uppercase">{completedSale.payment_method}</span>
               </div>
-              {completedSale.payment_method === 'cash' && completedSale.paid > 0 && (
-                <>
-                  <div className="flex justify-between text-slate-500 pt-1 border-t border-slate-200 dark:border-zinc-700">
-                    <span>Efectivo recibido:</span>
-                    <span>{formatCurrency(completedSale.paid, currency)}</span>
-                  </div>
-                  <div className="flex justify-between font-black text-emerald-600 dark:text-emerald-400">
-                    <span>Devuelta / Vuelto:</span>
-                    <span>{formatCurrency(completedSale.change, currency)}</span>
-                  </div>
-                </>
-              )}
+
+              {/* Fecha/Hora */}
+              <p className="text-emerald-300/70 text-[10px] font-bold mt-2 text-right">
+                {new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                {' · '}
+                {new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
 
-            <div className="pt-3 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="px-4 py-2.5 rounded-xl border-2 border-slate-200 dark:border-zinc-700 text-xs font-black text-slate-700 dark:text-zinc-300 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                Imprimir Ticket
-              </button>
+            {/* ── CUERPO DE LA FACTURA ── */}
+            <div className="px-5 py-4 space-y-4">
+
+              {/* Grid: Datos del Cliente + Datos de Emisión */}
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Datos del Cliente</p>
+                  <p className="text-sm font-black text-slate-900 dark:text-zinc-100">
+                    {completedSale.customerName || 'Consumidor Final'}
+                  </p>
+                  <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                    NIT / CI: {completedSale.customerNit || 'S/N'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Datos de Emisión</p>
+                  <p className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">
+                    Cajero: <span className="font-black">Administrador</span>
+                  </p>
+                  <p className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">
+                    Método:{' '}
+                    <span className="font-black capitalize">
+                      {completedSale.payment_method === 'cash' ? 'Efectivo' : completedSale.payment_method === 'transfer' ? 'QR / Trans.' : 'Tarjeta'}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Tabla de Productos */}
+              <div className="rounded-2xl border border-slate-200 dark:border-zinc-700 overflow-hidden">
+                {/* Encabezado */}
+                <div className="grid grid-cols-12 bg-slate-100 dark:bg-zinc-800 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-400">
+                  <span className="col-span-2">Cant.</span>
+                  <span className="col-span-5">Descripción</span>
+                  <span className="col-span-2 text-right">P. Unit</span>
+                  <span className="col-span-3 text-right">Subtotal</span>
+                </div>
+                {/* Filas */}
+                {(completedSale.items || []).map((item: CartItem, i: number) => (
+                  <div
+                    key={i}
+                    className="grid grid-cols-12 px-3 py-2 text-xs border-t border-slate-100 dark:border-zinc-800"
+                  >
+                    <span className="col-span-2 font-black text-slate-700 dark:text-zinc-300">
+                      x{item.quantity}
+                    </span>
+                    <span className="col-span-5 font-bold text-slate-900 dark:text-zinc-100 truncate pr-1">
+                      {item.product.name}
+                    </span>
+                    <span className="col-span-2 text-right font-mono text-slate-600 dark:text-zinc-400 text-[11px]">
+                      {formatCurrency(item.product.sale_price, currency)}
+                    </span>
+                    <span className="col-span-3 text-right font-black text-slate-900 dark:text-zinc-100 font-mono">
+                      {formatCurrency(item.product.sale_price * item.quantity, currency)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totales + QR */}
+              <div className="flex items-end gap-4">
+                {/* QR placeholder */}
+                <div className="flex-shrink-0 w-20 h-20 bg-slate-100 dark:bg-zinc-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center">
+                  <QrCode className="w-10 h-10 text-slate-400 dark:text-zinc-500" />
+                  <p className="text-[8px] font-black text-slate-400 mt-1 text-center leading-tight">
+                    Comprobante<br/>Válido
+                  </p>
+                </div>
+
+                {/* Desglose */}
+                <div className="flex-1 space-y-1 text-xs">
+                  {/* Subtotal */}
+                  <div className="flex justify-between text-slate-600 dark:text-zinc-400 font-bold">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">{formatCurrency(completedSale.subtotal ?? completedSale.total, currency)}</span>
+                  </div>
+
+                  {/* Descuento (si existe) */}
+                  {completedSale.discountAmount > 0 && (
+                    <div className="flex justify-between text-rose-600 dark:text-rose-400 font-bold">
+                      <span>
+                        Descuento
+                        {completedSale.discountType === 'percent'
+                          ? ` (${completedSale.discountValue}%)`
+                          : ' (Monto fijo)'}:
+                      </span>
+                      <span className="font-mono font-black">-{formatCurrency(completedSale.discountAmount, currency)}</span>
+                    </div>
+                  )}
+
+                  {/* IVA */}
+                  {completedSale.taxAmount > 0 && (
+                    <div className="flex justify-between text-slate-500 dark:text-zinc-500 font-bold">
+                      <span>IVA ({completedSale.taxMode === 'included' ? 'Inc.' : '+' + taxPercentage + '%'}):</span>
+                      <span className="font-mono">
+                        {completedSale.taxMode === 'included'
+                          ? `(${formatCurrency(completedSale.taxAmount, currency)} inc.)`
+                          : `+${formatCurrency(completedSale.taxAmount, currency)}`}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Monto recibido (efectivo) */}
+                  {completedSale.payment_method === 'cash' && completedSale.paid > 0 && (
+                    <div className="flex justify-between text-slate-600 dark:text-zinc-400 font-bold pt-1 border-t border-slate-100 dark:border-zinc-800">
+                      <span>Monto Recibido:</span>
+                      <span className="font-mono">{formatCurrency(completedSale.paid, currency)}</span>
+                    </div>
+                  )}
+
+                  {/* Vuelto */}
+                  {completedSale.payment_method === 'cash' && completedSale.change > 0 && (
+                    <div className="flex justify-between font-black text-emerald-600 dark:text-emerald-400">
+                      <span>Vuelto / Cambio:</span>
+                      <span className="font-mono">{formatCurrency(completedSale.change, currency)}</span>
+                    </div>
+                  )}
+
+                  {/* TOTAL */}
+                  <div className="flex justify-between font-black text-slate-900 dark:text-zinc-100 pt-1.5 border-t-2 border-slate-300 dark:border-zinc-600 mt-1">
+                    <span className="text-sm uppercase tracking-wider">Total a Pagar:</span>
+                    <span className="text-sm font-mono text-emerald-700 dark:text-emerald-400">
+                      {formatCurrency(completedSale.total, currency)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer nota */}
+              <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold italic px-4 border-t border-slate-100 dark:border-zinc-800 pt-3">
+                {settings?.receipt_footer || '"Gracias por su preferencia — Esta nota de venta avala la entrega de mercadería"'}
+              </p>
+            </div>
+
+            {/* ── BOTONES DE ACCIÓN ── */}
+            <div className="px-5 pb-5 grid grid-cols-3 gap-2">
+              {/* Cerrar */}
               <button
                 type="button"
                 onClick={() => setCompletedSale(null)}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-md transition-colors cursor-pointer"
+                className="py-2.5 rounded-xl border-2 border-slate-200 dark:border-zinc-700 text-xs font-black text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
-                Nueva Venta
+                Cerrar
+              </button>
+
+              {/* Ticket Térmico POS */}
+              <button
+                type="button"
+                onClick={() => {
+                  const printContent = document.getElementById('pos-print-ticket');
+                  if (!printContent) return;
+                  const win = window.open('', '_blank', 'width=400,height=700');
+                  if (!win) return;
+                  win.document.write(`
+                    <html><head><title>Ticket POS</title>
+                    <style>
+                      * { margin:0; padding:0; box-sizing:border-box; }
+                      body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 8px; }
+                      .center { text-align: center; }
+                      .bold { font-weight: bold; }
+                      .line { border-top: 1px dashed #000; margin: 6px 0; }
+                      .row { display: flex; justify-content: space-between; }
+                      .total { font-size: 15px; font-weight: bold; }
+                    </style></head><body>
+                    <div class="center bold" style="font-size:14px">${activeBusiness?.name || 'Mi Negocio'}</div>
+                    ${activeBusiness?.address ? `<div class="center">${activeBusiness.address}</div>` : ''}
+                    ${activeBusiness?.phone ? `<div class="center">Tel: ${activeBusiness.phone}</div>` : ''}
+                    <div class="center">${new Date().toLocaleString('es-ES')}</div>
+                    <div class="center">${completedSale.invoice_number}</div>
+                    <div class="line"></div>
+                    <div class="row"><span>CANT.</span><span>DESCRIPCIÓN</span><span>PRECIO</span></div>
+                    <div class="line"></div>
+                    ${(completedSale.items || []).map((item: CartItem) =>
+                      `<div class="row"><span>x${item.quantity}</span><span>${item.product.name}</span><span>${formatCurrency(item.product.sale_price * item.quantity, currency)}</span></div>`
+                    ).join('')}
+                    <div class="line"></div>
+                    ${completedSale.discountAmount > 0 ? `<div class="row"><span>Descuento:</span><span>-${formatCurrency(completedSale.discountAmount, currency)}</span></div>` : ''}
+                    ${completedSale.taxAmount > 0 ? `<div class="row"><span>IVA:</span><span>${formatCurrency(completedSale.taxAmount, currency)}</span></div>` : ''}
+                    ${completedSale.payment_method === 'cash' ? `<div class="row"><span>Efectivo:</span><span>${formatCurrency(completedSale.paid, currency)}</span></div><div class="row"><span>Vuelto:</span><span>${formatCurrency(completedSale.change, currency)}</span></div>` : ''}
+                    <div class="line"></div>
+                    <div class="row total"><span>TOTAL:</span><span>${formatCurrency(completedSale.total, currency)}</span></div>
+                    <div class="line"></div>
+                    <div class="center" style="margin-top:8px;font-size:10px">${settings?.receipt_footer || 'Gracias por su preferencia'}</div>
+                    </body></html>
+                  `);
+                  win.document.close();
+                  win.focus();
+                  win.print();
+                  win.close();
+                }}
+                className="py-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                <span>Ticket POS (80mm)</span>
+              </button>
+
+              {/* Imprimir Factura Formal */}
+              <button
+                type="button"
+                onClick={() => {
+                  const win = window.open('', '_blank', 'width=900,height=700');
+                  if (!win) return;
+                  win.document.write(`
+                    <html><head><title>Factura ${completedSale.invoice_number}</title>
+                    <style>
+                      * { margin:0; padding:0; box-sizing:border-box; }
+                      body { font-family: Arial, sans-serif; font-size: 12px; padding: 32px; color: #111; }
+                      .header { background: linear-gradient(135deg,#1a2e1a,#0f4c2a); color: white; padding: 24px; border-radius: 12px; display:flex; align-items:center; gap:20px; margin-bottom:20px; }
+                      .header img { width:60px; height:60px; border-radius:12px; object-fit:cover; }
+                      .biz-name { font-size:22px; font-weight:900; }
+                      .badge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#fff; font-size:10px; font-weight:700; padding:4px 12px; border-radius:20px; display:inline-block; margin-bottom:8px; }
+                      .inv-num { float:right; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; }
+                      .section { border:1px solid #e2e8f0; border-radius:10px; padding:16px; margin-bottom:16px; }
+                      .section-title { font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:2px; color:#059669; margin-bottom:8px; }
+                      table { width:100%; border-collapse:collapse; }
+                      th { background:#f1f5f9; padding:8px; font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#64748b; text-align:left; }
+                      td { padding:8px; border-top:1px solid #f1f5f9; font-size:12px; }
+                      .total-row { font-weight:900; font-size:14px; color:#065f46; }
+                      .footer-note { text-align:center; font-style:italic; color:#94a3b8; font-size:10px; margin-top:16px; }
+                    </style></head><body>
+                    <div class="header">
+                      <div style="flex:1">
+                        <div class="badge">Factura Oficial · ${(activeBusiness?.name || '').toUpperCase()}</div>
+                        <span class="inv-num">${completedSale.invoice_number}</span>
+                        <div class="biz-name">${activeBusiness?.name || 'Mi Negocio'}</div>
+                        ${activeBusiness?.address ? `<div style="color:rgba(255,255,255,0.7);font-size:11px;margin-top:4px">${activeBusiness.address}${activeBusiness.city ? ' · '+activeBusiness.city : ''}</div>` : ''}
+                        ${activeBusiness?.phone ? `<div style="color:rgba(255,255,255,0.7);font-size:11px">Tel: ${activeBusiness.phone}</div>` : ''}
+                        <div style="color:rgba(255,255,255,0.6);font-size:10px;margin-top:4px">${new Date().toLocaleString('es-ES')}</div>
+                      </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+                      <div class="section">
+                        <div class="section-title">Datos del Cliente</div>
+                        <div style="font-weight:900;font-size:14px">${completedSale.customerName || 'Consumidor Final'}</div>
+                        <div style="color:#64748b">NIT / CI: ${completedSale.customerNit || 'S/N'}</div>
+                      </div>
+                      <div class="section">
+                        <div class="section-title">Datos de Emisión</div>
+                        <div>Cajero: <strong>Administrador</strong></div>
+                        <div>Método: <strong>${completedSale.payment_method === 'cash' ? 'Efectivo' : completedSale.payment_method === 'transfer' ? 'QR / Trans.' : 'Tarjeta'}</strong></div>
+                      </div>
+                    </div>
+                    <table>
+                      <thead><tr><th>Cant.</th><th>Descripción</th><th style="text-align:right">P. Unit</th><th style="text-align:right">Subtotal</th></tr></thead>
+                      <tbody>
+                        ${(completedSale.items || []).map((item: CartItem) =>
+                          `<tr><td>x${item.quantity}</td><td>${item.product.name}</td><td style="text-align:right">${formatCurrency(item.product.sale_price, currency)}</td><td style="text-align:right;font-weight:700">${formatCurrency(item.product.sale_price * item.quantity, currency)}</td></tr>`
+                        ).join('')}
+                      </tbody>
+                      <tfoot>
+                        ${completedSale.discountAmount > 0 ? `<tr><td colspan="3" style="text-align:right;color:#dc2626">Descuento:</td><td style="text-align:right;color:#dc2626;font-weight:700">-${formatCurrency(completedSale.discountAmount, currency)}</td></tr>` : ''}
+                        ${completedSale.taxAmount > 0 ? `<tr><td colspan="3" style="text-align:right;color:#64748b">IVA:</td><td style="text-align:right;color:#64748b">${formatCurrency(completedSale.taxAmount, currency)}</td></tr>` : ''}
+                        ${completedSale.payment_method === 'cash' ? `<tr><td colspan="3" style="text-align:right">Monto Recibido:</td><td style="text-align:right;font-weight:700">${formatCurrency(completedSale.paid, currency)}</td></tr><tr><td colspan="3" style="text-align:right;color:#059669;font-weight:700">Vuelto / Cambio:</td><td style="text-align:right;color:#059669;font-weight:700">${formatCurrency(completedSale.change, currency)}</td></tr>` : ''}
+                        <tr class="total-row"><td colspan="3" style="text-align:right;border-top:2px solid #e2e8f0;padding-top:12px">TOTAL A PAGAR:</td><td style="text-align:right;border-top:2px solid #e2e8f0;padding-top:12px">${formatCurrency(completedSale.total, currency)}</td></tr>
+                      </tfoot>
+                    </table>
+                    <div class="footer-note">${settings?.receipt_footer || '"Gracias por su preferencia — Esta nota de venta avala la entrega de mercadería"'}</div>
+                    <script>window.onload = () => { window.print(); }</script>
+                    </body></html>
+                  `);
+                  win.document.close();
+                }}
+                className="py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-colors"
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                <span>Factura Color (Carta)</span>
               </button>
             </div>
+
           </div>
-        </Modal>
+        </div>
       )}
     </div>
   );
