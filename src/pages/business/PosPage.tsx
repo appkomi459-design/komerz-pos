@@ -55,6 +55,11 @@ export const PosPage: React.FC = () => {
   const [processing, setProcessing] = useState(false);
   const [completedSale, setCompletedSale] = useState<any | null>(null);
 
+  // ---- DESCUENTO ----
+  // discountType: 'percent' = % del subtotal | 'fixed' = monto fijo directo
+  const [discountType, setDiscountType] = useState<'percent' | 'fixed'>('percent');
+  const [discountValue, setDiscountValue] = useState<string>('');
+
   // Modo de Impuesto en POS:
   // 'none': Sin IVA (0% - No tiene / Exento)
   // 'included': Con IVA incluido en precio (Cobro exacto de vitrina)
@@ -218,13 +223,22 @@ export const PosPage: React.FC = () => {
     0
   );
 
-  let subtotal = rawCartSum;
+  // Calcular monto de descuento
+  const discountNumeric = parseFloat(discountValue) || 0;
+  const discountAmount = discountValue && discountNumeric > 0
+    ? discountType === 'percent'
+      ? Number((rawCartSum * Math.min(discountNumeric, 100) / 100).toFixed(2))
+      : Number(Math.min(discountNumeric, rawCartSum).toFixed(2))
+    : 0;
+  const baseAfterDiscount = Number((rawCartSum - discountAmount).toFixed(2));
+
+  let subtotal = baseAfterDiscount;
   let taxAmount = 0;
-  let total = rawCartSum;
+  let total = baseAfterDiscount;
 
   if (taxMode === 'included') {
-    // Modo retail estándar: El precio en vitrina es el total final
-    total = rawCartSum;
+    // Modo retail estándar: El precio en vitrina es el total final, el descuento se aplica primero
+    total = baseAfterDiscount;
     if (effectiveTaxRate > 0) {
       subtotal = Number((total / (1 + effectiveTaxRate)).toFixed(2));
       taxAmount = Number((total - subtotal).toFixed(2));
@@ -233,15 +247,15 @@ export const PosPage: React.FC = () => {
       taxAmount = 0;
     }
   } else if (taxMode === 'added') {
-    // Suma impuesto encima del precio
-    subtotal = rawCartSum;
+    // Suma impuesto encima del precio ya descontado
+    subtotal = baseAfterDiscount;
     taxAmount = Number((subtotal * effectiveTaxRate).toFixed(2));
     total = Number((subtotal + taxAmount).toFixed(2));
   } else {
     // Sin impuesto (taxMode === 'none')
-    subtotal = rawCartSum;
+    subtotal = baseAfterDiscount;
     taxAmount = 0;
-    total = rawCartSum;
+    total = baseAfterDiscount;
   }
 
   const totalItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -325,6 +339,7 @@ export const PosPage: React.FC = () => {
       // Reset
       setCart([]);
       setAmountPaid('');
+      setDiscountValue('');
       setCustomerName('Consumidor Final');
       setCustomerNit('');
       fetchCatalog();
@@ -947,14 +962,119 @@ export const PosPage: React.FC = () => {
               </div>
             </div>
 
+            {/* ── DESCUENTO ── */}
+            <div className="bg-slate-100/90 dark:bg-zinc-800/80 rounded-xl p-2 border border-slate-200 dark:border-zinc-700/80">
+              <div className="flex items-center justify-between gap-1.5">
+                {/* Label + Toggle Tipo */}
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
+                    Descuento:
+                  </span>
+                  <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
+                    <button
+                      type="button"
+                      onClick={() => { setDiscountType('percent'); setDiscountValue(''); }}
+                      className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                        discountType === 'percent'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                      }`}
+                      title="Descuento en porcentaje (%)"
+                    >
+                      %
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setDiscountType('fixed'); setDiscountValue(''); }}
+                      className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                        discountType === 'fixed'
+                          ? 'bg-rose-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                      }`}
+                      title="Descuento en monto fijo"
+                    >
+                      Monto fijo
+                    </button>
+                  </div>
+                </div>
+
+                {/* Input de Descuento + botón limpiar */}
+                <div className="flex items-center gap-1">
+                  <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded-lg px-2 py-0.5 shadow-xs focus-within:border-rose-500 transition-colors">
+                    {discountType === 'fixed' && (
+                      <span className="text-[10px] font-black text-slate-400 mr-0.5">{currency === 'BOB' ? 'Bs' : currency === 'USD' ? '$' : currency}</span>
+                    )}
+                    <input
+                      type="number"
+                      min="0"
+                      max={discountType === 'percent' ? '100' : rawCartSum.toFixed(2)}
+                      step="any"
+                      placeholder={discountType === 'percent' ? '0' : '0.00'}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(e.target.value)}
+                      className="w-14 text-right text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none bg-transparent"
+                      title={discountType === 'percent' ? 'Porcentaje de descuento' : 'Monto fijo de descuento'}
+                    />
+                    {discountType === 'percent' && (
+                      <span className="text-[10px] font-black text-rose-600">%</span>
+                    )}
+                  </div>
+                  {discountAmount > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDiscountValue('')}
+                      className="text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
+                      title="Quitar descuento"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Monto ahorrado */}
+                <span className={`font-mono text-[11px] font-black ${discountAmount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`}>
+                  {discountAmount > 0 ? `-${formatCurrency(discountAmount, currency)}` : formatCurrency(0, currency)}
+                </span>
+              </div>
+
+              {/* Chips rápidos de descuento en % */}
+              {discountType === 'percent' && (
+                <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-slate-200 dark:border-zinc-700/60">
+                  <span className="text-[9px] font-black text-slate-400 mr-1">Rápido:</span>
+                  {[5, 10, 15, 20, 25, 50].map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setDiscountValue(String(p))}
+                      className={`px-1.5 py-0.5 text-[9px] font-black rounded border cursor-pointer transition-all ${
+                        discountValue === String(p)
+                          ? 'bg-rose-600 text-white border-rose-600'
+                          : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700 hover:border-rose-400'
+                      }`}
+                    >
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Total Destacado a Cobrar */}
-            <div className="pt-1.5 border-t border-slate-200 dark:border-zinc-700/80 flex items-baseline justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
-                Total a cobrar:
-              </span>
-              <span className="text-2xl font-black text-slate-950 dark:text-white">
-                {formatCurrency(total, currency)}
-              </span>
+            <div className="pt-1.5 border-t border-slate-200 dark:border-zinc-700/80">
+              {discountAmount > 0 && (
+                <div className="flex items-center justify-between text-[10px] font-black text-slate-400 mb-1">
+                  <span>Precio original:</span>
+                  <span className="line-through font-mono">{formatCurrency(rawCartSum, currency)}</span>
+                </div>
+              )}
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
+                  Total a cobrar:
+                </span>
+                <span className="text-2xl font-black text-slate-950 dark:text-white">
+                  {formatCurrency(total, currency)}
+                </span>
+              </div>
             </div>
 
             {/* Selector de Método de Pago Compacto */}
