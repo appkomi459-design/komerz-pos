@@ -1732,46 +1732,227 @@ export const PosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  const printContent = document.getElementById('pos-print-ticket');
-                  if (!printContent) return;
-                  const win = window.open('', '_blank', 'width=400,height=700');
+                  const win = window.open('', '_blank', 'width=420,height=750');
                   if (!win) return;
+                  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
+                    (typeof window !== 'undefined' ? window.location.origin : '') + '/factura/' + completedSale.invoice_number
+                  )}`;
+                  const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                  const timeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
                   win.document.write(`
-                    <html><head><title>Ticket POS</title>
-                    <style>
-                      * { margin:0; padding:0; box-sizing:border-box; }
-                      body { font-family: 'Courier New', monospace; font-size: 12px; width: 80mm; padding: 8px; }
-                      .center { text-align: center; }
-                      .bold { font-weight: bold; }
-                      .line { border-top: 1px dashed #000; margin: 6px 0; }
-                      .row { display: flex; justify-content: space-between; }
-                      .total { font-size: 15px; font-weight: bold; }
-                    </style></head><body>
-                    <div class="center bold" style="font-size:14px">${activeBusiness?.name || 'Mi Negocio'}</div>
-                    ${activeBusiness?.address ? `<div class="center">${activeBusiness.address}</div>` : ''}
-                    ${activeBusiness?.phone ? `<div class="center">Tel: ${activeBusiness.phone}</div>` : ''}
-                    <div class="center">${new Date().toLocaleString('es-ES')}</div>
-                    <div class="center">${completedSale.invoice_number}</div>
-                    <div class="line"></div>
-                    <div class="row"><span>CANT.</span><span>DESCRIPCIÓN</span><span>PRECIO</span></div>
-                    <div class="line"></div>
-                    ${(completedSale.items || []).map((item: CartItem) =>
-                      `<div class="row"><span>x${item.quantity}</span><span>${item.product.name}</span><span>${formatCurrency(item.product.sale_price * item.quantity, currency)}</span></div>`
-                    ).join('')}
-                    <div class="line"></div>
-                    ${completedSale.discountAmount > 0 ? `<div class="row"><span>Descuento:</span><span>-${formatCurrency(completedSale.discountAmount, currency)}</span></div>` : ''}
-                    ${completedSale.taxAmount > 0 ? `<div class="row"><span>IVA:</span><span>${formatCurrency(completedSale.taxAmount, currency)}</span></div>` : ''}
-                    ${completedSale.payment_method === 'cash' ? `<div class="row"><span>Efectivo:</span><span>${formatCurrency(completedSale.paid, currency)}</span></div><div class="row"><span>Vuelto:</span><span>${formatCurrency(completedSale.change, currency)}</span></div>` : ''}
-                    <div class="line"></div>
-                    <div class="row total"><span>TOTAL:</span><span>${formatCurrency(completedSale.total, currency)}</span></div>
-                    <div class="line"></div>
-                    <div class="center" style="margin-top:8px;font-size:10px">${settings?.receipt_footer || 'Gracias por su preferencia'}</div>
-                    </body></html>
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                      <meta charset="utf-8" />
+                      <title>Ticket POS - ${completedSale.invoice_number}</title>
+                      <style>
+                        @page {
+                          size: 80mm auto;
+                          margin: 0;
+                        }
+                        * {
+                          margin: 0;
+                          padding: 0;
+                          box-sizing: border-box;
+                          -webkit-print-color-adjust: exact !important;
+                          print-color-adjust: exact !important;
+                        }
+                        body {
+                          font-family: 'Courier New', Courier, monospace;
+                          font-size: 11px;
+                          line-height: 1.35;
+                          color: #000000;
+                          background: #ffffff;
+                          width: 76mm;
+                          max-width: 76mm;
+                          margin: 0 auto;
+                          padding: 6mm 4mm 14mm 4mm;
+                        }
+                        .text-center { text-align: center; }
+                        .text-right { text-align: right; }
+                        .bold { font-weight: bold; }
+                        .biz-name {
+                          font-size: 15px;
+                          font-weight: 900;
+                          text-transform: uppercase;
+                          letter-spacing: 0.5px;
+                          margin-bottom: 2px;
+                        }
+                        .biz-sub {
+                          font-size: 10px;
+                          color: #333333;
+                          margin-bottom: 1px;
+                        }
+                        .divider-double {
+                          border-top: 1px dashed #000;
+                          border-bottom: 1px dashed #000;
+                          height: 3px;
+                          margin: 6px 0;
+                        }
+                        .divider-single {
+                          border-top: 1px dashed #000;
+                          margin: 5px 0;
+                        }
+                        .meta-row {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 10px;
+                          margin-bottom: 2px;
+                        }
+                        .items-header {
+                          display: flex;
+                          justify-content: space-between;
+                          font-weight: bold;
+                          font-size: 10px;
+                          padding: 2px 0;
+                        }
+                        .item-block {
+                          margin-bottom: 5px;
+                        }
+                        .item-title {
+                          font-weight: bold;
+                          font-size: 11px;
+                          word-break: break-word;
+                        }
+                        .item-calc {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 10px;
+                          padding-left: 6px;
+                          color: #222222;
+                        }
+                        .tot-row {
+                          display: flex;
+                          justify-content: space-between;
+                          font-size: 11px;
+                          margin-bottom: 2px;
+                        }
+                        .total-banner {
+                          font-size: 14px;
+                          font-weight: 900;
+                          display: flex;
+                          justify-content: space-between;
+                          padding: 4px 0;
+                        }
+                        .qr-box {
+                          margin: 8px auto 4px auto;
+                          text-align: center;
+                        }
+                        .qr-img {
+                          width: 72px;
+                          height: 72px;
+                          display: inline-block;
+                        }
+                        .footer-note {
+                          text-align: center;
+                          font-size: 9px;
+                          margin-top: 6px;
+                          line-height: 1.3;
+                        }
+                        .cut-space {
+                          height: 20px;
+                        }
+                      </style>
+                    </head>
+                    <body>
+                      <!-- Encabezado del Negocio -->
+                      <div class="text-center bold biz-name">${activeBusiness?.name || 'MI NEGOCIO'}</div>
+                      ${activeBusiness?.address ? `<div class="text-center biz-sub">${activeBusiness.address}${activeBusiness.city ? ' - ' + activeBusiness.city : ''}</div>` : ''}
+                      ${activeBusiness?.phone ? `<div class="text-center biz-sub">Tel: ${activeBusiness.phone}</div>` : ''}
+
+                      <div class="divider-double"></div>
+
+                      <!-- Datos del Ticket -->
+                      <div class="meta-row"><span>TICKET Nº:</span><span class="bold">${completedSale.invoice_number}</span></div>
+                      <div class="meta-row"><span>FECHA:</span><span>${dateStr} ${timeStr}</span></div>
+                      <div class="meta-row"><span>CLIENTE:</span><span>${completedSale.customerName || 'Consumidor Final'}</span></div>
+                      <div class="meta-row"><span>NIT/CI:</span><span>${completedSale.customerNit || 'S/N'}</span></div>
+                      <div class="meta-row"><span>CAJERO:</span><span>${completedSale.cashierName || 'Administrador'}</span></div>
+                      <div class="meta-row"><span>PAGO:</span><span class="bold">${(completedSale.payment_method === 'cash' ? 'Efectivo' : completedSale.payment_method === 'transfer' ? 'QR / Trans.' : 'Tarjeta').toUpperCase()}</span></div>
+
+                      <div class="divider-single"></div>
+                      <div class="items-header"><span>CANT. ARTÍCULO</span><span>TOTAL</span></div>
+                      <div class="divider-single"></div>
+
+                      <!-- Lista de Artículos -->
+                      ${(completedSale.items || []).map((item: CartItem) => `
+                        <div class="item-block">
+                          <div class="item-title">x${item.quantity} ${item.product.name}</div>
+                          <div class="item-calc">
+                            <span>${formatCurrency(item.product.sale_price, currency)} c/u</span>
+                            <span class="bold">${formatCurrency(item.product.sale_price * item.quantity, currency)}</span>
+                          </div>
+                        </div>
+                      `).join('')}
+
+                      <div class="divider-single"></div>
+
+                      <!-- Totales -->
+                      <div class="tot-row">
+                        <span>Subtotal:</span>
+                        <span>${formatCurrency(completedSale.subtotal ?? completedSale.total, currency)}</span>
+                      </div>
+
+                      ${completedSale.discountAmount > 0 ? `
+                        <div class="tot-row">
+                          <span>Descuento ${completedSale.discountType === 'percent' ? '(' + completedSale.discountValue + '%)' : ''}:</span>
+                          <span>-${formatCurrency(completedSale.discountAmount, currency)}</span>
+                        </div>
+                      ` : ''}
+
+                      ${completedSale.taxAmount > 0 ? `
+                        <div class="tot-row">
+                          <span>IVA (${completedSale.taxMode === 'included' ? 'Inc.' : '+' + taxPercentage + '%'}):</span>
+                          <span>${formatCurrency(completedSale.taxAmount, currency)}</span>
+                        </div>
+                      ` : ''}
+
+                      <div class="divider-double"></div>
+                      <div class="total-banner">
+                        <span>TOTAL A PAGAR:</span>
+                        <span>${formatCurrency(completedSale.total, currency)}</span>
+                      </div>
+                      <div class="divider-double"></div>
+
+                      ${completedSale.payment_method === 'cash' && completedSale.paid > 0 ? `
+                        <div class="tot-row"><span>Efectivo Recibido:</span><span>${formatCurrency(completedSale.paid, currency)}</span></div>
+                        <div class="tot-row bold"><span>Cambio / Vuelto:</span><span>${formatCurrency(completedSale.change, currency)}</span></div>
+                        <div class="divider-single"></div>
+                      ` : ''}
+
+                      <!-- QR de Verificación Rápida -->
+                      <div class="qr-box">
+                        <img src="${qrUrl}" alt="QR" class="qr-img" />
+                        <div style="font-size: 8px; margin-top: 2px;">COMPROBANTE VÁLIDO</div>
+                      </div>
+
+                      <div class="footer-note">
+                        ${settings?.receipt_footer || '¡Gracias por su preferencia! Conserve este comprobante.'}
+                      </div>
+
+                      <div class="cut-space"></div>
+
+                      <script>
+                        window.addEventListener('load', function() {
+                          var imgs = Array.from(document.images);
+                          Promise.all(imgs.map(function(img) {
+                            if (img.complete) return Promise.resolve();
+                            return new Promise(function(resolve) {
+                              img.onload = resolve;
+                              img.onerror = resolve;
+                            });
+                          })).then(function() {
+                            setTimeout(function() {
+                              window.print();
+                            }, 200);
+                          });
+                        });
+                      </script>
+                    </body>
+                    </html>
                   `);
                   win.document.close();
-                  win.focus();
-                  win.print();
-                  win.close();
                 }}
                 className="py-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
               >
