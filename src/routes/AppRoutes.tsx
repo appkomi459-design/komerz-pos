@@ -108,12 +108,20 @@ const BusinessRoute = ({ children }: { children: React.ReactNode }) => {
 
 // ─────────────────────────────────────────────
 // Guard: wizard de configuración inicial
+// Si el usuario YA tiene un negocio → lo mandamos directo al /app
 // ─────────────────────────────────────────────
 const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { businesses, loading: bizLoading } = useBusiness();
 
-  if (loading) return <LoadingScreen />;
-  if (!user)   return <Navigate to="/login" replace />;
+  if (authLoading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" replace />;
+
+  // Esperar a que se carguen los negocios para no decidir prematuramente
+  if (bizLoading) return <LoadingScreen />;
+
+  // Si ya tiene un negocio creado no necesita pasar por el wizard
+  if (businesses.length > 0) return <Navigate to="/app" replace />;
 
   return <>{children}</>;
 };
