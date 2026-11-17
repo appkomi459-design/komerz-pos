@@ -51,6 +51,7 @@ export const PosPage: React.FC = () => {
   const [amountPaid, setAmountPaid] = useState<string>('');
   const [customerName, setCustomerName] = useState('Consumidor Final');
   const [customerNit, setCustomerNit] = useState('');
+  const [availableCustomers, setAvailableCustomers] = useState<{ id: string; name: string; identification: string | null }[]>([]);
   const [showCustomerFields, setShowCustomerFields] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -144,7 +145,7 @@ export const PosPage: React.FC = () => {
     if (!activeBusiness) return;
     try {
       setLoading(true);
-      const [prodRes, catRes] = await Promise.all([
+      const [prodRes, catRes, custRes] = await Promise.all([
         supabase
           .from('products')
           .select('*')
@@ -155,11 +156,18 @@ export const PosPage: React.FC = () => {
           .from('categories')
           .select('id, name')
           .eq('business_id', activeBusiness.id)
+          .order('name', { ascending: true }),
+        supabase
+          .from('customers')
+          .select('id, name, identification')
+          .eq('business_id', activeBusiness.id)
+          .eq('is_active', true)
           .order('name', { ascending: true })
       ]);
 
       if (prodRes.data) setProducts(prodRes.data as Product[]);
       if (catRes.data) setCategories(catRes.data);
+      if (custRes.data) setAvailableCustomers(custRes.data);
     } catch (err) {
       console.error('Error fetching POS products:', err);
     } finally {
@@ -813,31 +821,79 @@ export const PosPage: React.FC = () => {
               </button>
 
               {showCustomerFields && (
-                <div className="grid grid-cols-2 gap-2 pt-2 animate-fadeIn">
-                  <div>
-                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
-                      Nombre / Razón Social
-                    </label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      placeholder="Consumidor Final"
-                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
-                    />
+                <div className="space-y-2 pt-2 animate-fadeIn">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
+                        Nombre / Razón Social
+                      </label>
+                      <input
+                        type="text"
+                        list="pos-customers-list"
+                        value={customerName}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomerName(val);
+                          const found = availableCustomers.find(
+                            (c) => c.name.toLowerCase() === val.toLowerCase()
+                          );
+                          if (found && found.identification) {
+                            setCustomerNit(found.identification);
+                          }
+                        }}
+                        placeholder="Consumidor Final"
+                        className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
+                      />
+                      <datalist id="pos-customers-list">
+                        {availableCustomers.map((c) => (
+                          <option key={c.id} value={c.name}>
+                            {c.identification ? `NIT/CI: ${c.identification}` : ''}
+                          </option>
+                        ))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
+                        NIT / CI
+                      </label>
+                      <input
+                        type="text"
+                        value={customerNit}
+                        onChange={(e) => setCustomerNit(e.target.value)}
+                        placeholder="ej. 8493021"
+                        className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
-                      NIT / CI
-                    </label>
-                    <input
-                      type="text"
-                      value={customerNit}
-                      onChange={(e) => setCustomerNit(e.target.value)}
-                      placeholder="ej. 8493021"
-                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
-                    />
-                  </div>
+
+                  {availableCustomers.length > 0 && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px]">
+                      <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">Rápidos:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCustomerName('Consumidor Final');
+                          setCustomerNit('');
+                        }}
+                        className="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-black hover:bg-slate-300 transition-colors whitespace-nowrap cursor-pointer"
+                      >
+                        Consumidor Final
+                      </button>
+                      {availableCustomers.slice(0, 4).map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            setCustomerName(c.name);
+                            if (c.identification) setCustomerNit(c.identification);
+                          }}
+                          className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-100 transition-colors whitespace-nowrap cursor-pointer"
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
