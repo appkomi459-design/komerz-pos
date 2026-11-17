@@ -156,6 +156,22 @@ export interface Customer {
   created_at: string;
 }
 
+export interface Supplier {
+  id: string;
+  business_id: string;
+  name: string;
+  contact_person: string | null;
+  identification: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  category: string | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface Sale {
   id: string;
   business_id: string;
