@@ -184,8 +184,46 @@ export interface Sale {
   total: number;
   payment_method: string;
   status: 'completed' | 'cancelled' | 'refunded';
+  amount_received?: number;
+  change_given?: number;
   created_at: string;
   customer?: Customer;
+}
+
+export interface CashMovement {
+  id: string;
+  business_id: string;
+  session_id: string | null;
+  type: 'income' | 'expense';
+  amount: number;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface CashSession {
+  id: string;
+  business_id: string;
+  branch_id?: string | null;
+  user_id?: string | null;
+  opened_by: string | null;
+  closed_by?: string | null;
+  opening_balance: number;
+  closing_balance?: number | null;
+  expected_balance?: number | null;
+  difference?: number | null;
+  total_sales: number;
+  total_cash_sales: number;
+  total_transfer_sales: number;
+  total_change_given: number;
+  total_expenses: number;
+  sales_count: number;
+  status: 'open' | 'closed';
+  opened_at: string;
+  closed_at?: string | null;
+  notes?: string | null;
+  created_at: string;
+  movements?: CashMovement[];
 }
 
 export interface PurchaseItem {

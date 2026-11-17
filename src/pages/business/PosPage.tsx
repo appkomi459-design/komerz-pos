@@ -281,6 +281,9 @@ export const PosPage: React.FC = () => {
         (c) => c.name.trim().toLowerCase() === customerName.trim().toLowerCase()
       );
 
+      const finalAmountReceived = amountPaid ? parseFloat(amountPaid) : total;
+      const changeAmount = amountPaid && parseFloat(amountPaid) >= total ? parseFloat(amountPaid) - total : 0;
+
       // 1. Create sale
       const { data: saleData, error: saleError } = await supabase
         .from('sales')
@@ -295,6 +298,8 @@ export const PosPage: React.FC = () => {
           total,
           payment_method: paymentMethod,
           status: 'completed',
+          amount_received: finalAmountReceived,
+          change_given: changeAmount,
         })
         .select()
         .single();
@@ -341,7 +346,6 @@ export const PosPage: React.FC = () => {
         origin: { y: 0.65 },
       });
 
-      const changeAmount = amountPaid && parseFloat(amountPaid) >= total ? parseFloat(amountPaid) - total : 0;
       const cashierName = user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : 'Administrador');
 
       setCompletedSale({
