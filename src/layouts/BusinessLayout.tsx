@@ -75,7 +75,7 @@ export const BusinessLayout: React.FC = () => {
         { name: 'Proveedores', path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
         { name: 'Compras', path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
         { name: 'Caja', path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-        { name: 'Gastos', path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-[#870000] to-[#190a05] shadow-rose-950/30 text-white' },
+        { name: 'Gastos', path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
         { name: 'Reportes', path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
       ],
     },

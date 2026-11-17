@@ -258,3 +258,19 @@ export interface Purchase {
   supplier?: Supplier;
   items?: PurchaseItem[];
 }
+
+export interface Expense {
+  id: string;
+  business_id: string;
+  branch_id?: string | null;
+  user_id?: string | null;
+  category: string;
+  description: string;
+  amount: number;
+  payment_source: 'cash_register' | 'bank_account' | 'owner_funds' | string;
+  receipt_number?: string | null;
+  paid_to?: string | null;
+  expense_date: string;
+  created_at: string;
+  updated_at?: string;
+}
