@@ -276,6 +276,11 @@ export const PosPage: React.FC = () => {
       setProcessing(true);
       const invoiceNumber = `${settings?.invoice_prefix || 'FAC-'}${Date.now().toString().slice(-6)}`;
 
+      // Buscar si el cliente corresponde a un cliente registrado en la base de datos
+      const matchedCustomer = availableCustomers.find(
+        (c) => c.name.trim().toLowerCase() === customerName.trim().toLowerCase()
+      );
+
       // 1. Create sale
       const { data: saleData, error: saleError } = await supabase
         .from('sales')
@@ -283,6 +288,7 @@ export const PosPage: React.FC = () => {
           business_id: activeBusiness.id,
           branch_id: mainBranch?.id || null,
           user_id: user?.id || null,
+          customer_id: matchedCustomer?.id || null,
           invoice_number: invoiceNumber,
           subtotal,
           tax: taxAmount,
