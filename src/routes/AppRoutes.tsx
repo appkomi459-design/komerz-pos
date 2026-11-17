@@ -28,6 +28,7 @@ import { CategoriesPage }        from '@/pages/business/CategoriesPage';
 import { InventoryPage }         from '@/pages/business/InventoryPage';
 import { SalesPage }             from '@/pages/business/SalesPage';
 import { CustomersPage }         from '@/pages/business/CustomersPage';
+import { CustomerSalesPage }     from '@/pages/business/CustomerSalesPage';
 import { SuppliersPage }         from '@/pages/business/SuppliersPage';
 import { PurchasesPage }         from '@/pages/business/PurchasesPage';
 import { CashPage }              from '@/pages/business/CashPage';
@@ -169,7 +170,8 @@ export const AppRoutes: React.FC = () => (
       <Route path="categories"   element={<CategoriesPage />} />
       <Route path="inventory"    element={<Navigate to="/app/products" replace />} />
       <Route path="sales"        element={<SalesPage />} />
-      <Route path="customers"    element={<CustomersPage />} />
+      <Route path="customers"       element={<CustomersPage />} />
+      <Route path="customer-sales"  element={<CustomerSalesPage />} />
       <Route path="suppliers"    element={<SuppliersPage />} />
       <Route path="purchases"    element={<PurchasesPage />} />
       <Route path="cash"         element={<CashPage />} />
