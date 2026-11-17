@@ -187,3 +187,36 @@ export interface Sale {
   created_at: string;
   customer?: Customer;
 }
+
+export interface PurchaseItem {
+  id: string;
+  purchase_id: string;
+  product_id: string | null;
+  product_name: string;
+  quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  created_at?: string;
+  product?: Product;
+}
+
+export interface Purchase {
+  id: string;
+  business_id: string;
+  branch_id?: string | null;
+  supplier_id: string | null;
+  user_id?: string | null;
+  purchase_number: string;
+  invoice_number?: string | null;
+  subtotal: number;
+  tax: number;
+  total: number;
+  payment_method: string;
+  payment_status: 'paid' | 'pending';
+  status: 'completed' | 'cancelled';
+  notes?: string | null;
+  created_at: string;
+  updated_at?: string;
+  supplier?: Supplier;
+  items?: PurchaseItem[];
+}
