@@ -24,6 +24,14 @@ import {
   Sparkles,
   Edit2,
   Trash2,
+  Store,
+  DollarSign,
+  BarChart3,
+  Calendar,
+  ArrowUpRight,
+  PieChart,
+  Building2,
+  Percent,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { createClient } from '@supabase/supabase-js';
@@ -50,6 +58,18 @@ interface SellerWithStats {
   branchName?: string | null;
 }
 
+type TimeRange = 'today' | 'week' | 'month' | 'all';
+
+interface DetailedSale {
+  id: string;
+  user_id: string | null;
+  branch_id: string | null;
+  total: number;
+  cost: number;
+  profit: number;
+  created_at: string;
+}
+
 export const EmployeesPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
 
@@ -59,6 +79,10 @@ export const EmployeesPage: React.FC = () => {
 
   // Sucursales disponibles
   const [branches, setBranches] = useState<{ id: string; name: string; is_main: boolean }[]>([]);
+
+  // Reporte de Rendimiento y Ganancias por Sucursal
+  const [timeRange, setTimeRange] = useState<TimeRange>('today');
+  const [detailedSales, setDetailedSales] = useState<DetailedSale[]>([]);
 
   // Modal: Registrar Nuevo Vendedor
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -100,8 +124,8 @@ export const EmployeesPage: React.FC = () => {
     try {
       setLoading(true);
 
-      // 1. Obtener sucursales, miembros y ventas en paralelo
-      const [branchesRes, membersRes, salesRes] = await Promise.all([
+      // 1. Obtener sucursales, miembros, ventas y productos en paralelo
+      const [branchesRes, membersRes, salesRes, productsRes] = await Promise.all([
         supabase
           .from('branches')
           .select('id, name, is_main')
@@ -115,9 +139,14 @@ export const EmployeesPage: React.FC = () => {
           .order('created_at', { ascending: false }),
         supabase
           .from('sales')
-          .select('id, user_id, total, status')
+          .select('id, user_id, branch_id, total, status, created_at')
           .eq('business_id', activeBusiness.id)
-          .eq('status', 'completed'),
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('products')
+          .select('id, cost_price, sale_price')
+          .eq('business_id', activeBusiness.id),
       ]);
 
       const branchesData = branchesRes.data || [];
@@ -128,9 +157,57 @@ export const EmployeesPage: React.FC = () => {
       if (mainBranch && !selectedBranchId) setSelectedBranchId(mainBranch.id);
 
       const membersData = membersRes.data || [];
-      const salesData = (salesRes.data || []) as Sale[];
+      const rawSales = salesRes.data || [];
 
-      // 2. Buscar perfiles de los miembros por sus user_id (consulta separada, sin depender de FK)
+      // 2. Obtener items de las ventas para calcular costo real y ganancia
+      const saleIds = rawSales.map((s) => s.id);
+      let saleItemsBySale: Record<string, { product_id: string; quantity: number }[]> = {};
+      if (saleIds.length > 0) {
+        const { data: itemsData } = await supabase
+          .from('sale_items')
+          .select('sale_id, product_id, quantity')
+          .in('sale_id', saleIds.slice(0, 500));
+        (itemsData || []).forEach((it: any) => {
+          if (!saleItemsBySale[it.sale_id]) saleItemsBySale[it.sale_id] = [];
+          saleItemsBySale[it.sale_id].push({
+            product_id: it.product_id,
+            quantity: Number(it.quantity) || 1,
+          });
+        });
+      }
+
+      // Mapa de costo de productos
+      const productCostMap: Record<string, number> = {};
+      (productsRes.data || []).forEach((p: any) => {
+        productCostMap[p.id] = Number(p.cost_price) || 0;
+      });
+
+      // 3. Procesar ventas con ganancia
+      const processedSales: DetailedSale[] = rawSales.map((s: any) => {
+        const items = saleItemsBySale[s.id] || [];
+        let totalCost = 0;
+        if (items.length > 0) {
+          items.forEach((it) => {
+            const cost = productCostMap[it.product_id] || 0;
+            totalCost += cost * it.quantity;
+          });
+        }
+        const total = Number(s.total) || 0;
+        // Si hay costo registrado, ganancia = total - costo. Si no, tomamos margen estimado o total
+        const profit = items.length > 0 && totalCost > 0 ? Math.max(0, total - totalCost) : Math.max(0, total * 0.4);
+        return {
+          id: s.id,
+          user_id: s.user_id,
+          branch_id: s.branch_id,
+          total,
+          cost: totalCost,
+          profit,
+          created_at: s.created_at,
+        };
+      });
+      setDetailedSales(processedSales);
+
+      // 4. Buscar perfiles de los miembros por sus user_id (consulta separada, sin depender de FK)
       const userIds = membersData.map((m: any) => m.user_id).filter(Boolean);
       let profilesById: Record<string, { full_name: string; email: string }> = {};
       if (userIds.length > 0) {
@@ -143,20 +220,20 @@ export const EmployeesPage: React.FC = () => {
         });
       }
 
-      // 3. Mapa de sucursales por id
+      // 5. Mapa de sucursales por id
       const branchById: Record<string, string> = {};
       branchesData.forEach((b) => { branchById[b.id] = b.name; });
 
-      // 4. Agrupar ventas por user_id
+      // 6. Agrupar ventas por user_id
       const salesByUser: Record<string, { count: number; total: number }> = {};
-      salesData.forEach((s) => {
+      processedSales.forEach((s) => {
         if (!s.user_id) return;
         if (!salesByUser[s.user_id]) salesByUser[s.user_id] = { count: 0, total: 0 };
         salesByUser[s.user_id].count++;
         salesByUser[s.user_id].total += Number(s.total);
       });
 
-      // 5. Mapear vendedores
+      // 7. Mapear vendedores
       const mapped: SellerWithStats[] = membersData.map((m: any) => {
         const prof = profilesById[m.user_id] || { full_name: '', email: '' };
         const stats = salesByUser[m.user_id] || { count: 0, total: 0 };
@@ -429,6 +506,140 @@ export const EmployeesPage: React.FC = () => {
       return s.fullName.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
     });
   }, [sellers, search]);
+
+  /* ─────────────────── Reporte por Sucursal y Vendedor ────────────────── */
+  const branchReport = useMemo(() => {
+    const now = new Date();
+    const isToday = (dateStr: string) => {
+      const d = new Date(dateStr);
+      return d.toDateString() === now.toDateString();
+    };
+    const isThisWeek = (dateStr: string) => {
+      const d = new Date(dateStr);
+      const diffDays = (now.getTime() - d.getTime()) / (1000 * 3600 * 24);
+      return diffDays <= 7;
+    };
+    const isThisMonth = (dateStr: string) => {
+      const d = new Date(dateStr);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    };
+
+    // Filtrar ventas por rango seleccionado
+    const filtered = detailedSales.filter((s) => {
+      if (timeRange === 'today') return isToday(s.created_at);
+      if (timeRange === 'week') return isThisWeek(s.created_at);
+      if (timeRange === 'month') return isThisMonth(s.created_at);
+      return true;
+    });
+
+    const periodTotalSales = filtered.reduce((acc, s) => acc + s.total, 0);
+    const periodTotalCost = filtered.reduce((acc, s) => acc + s.cost, 0);
+    const periodTotalProfit = filtered.reduce((acc, s) => acc + s.profit, 0);
+    const periodTotalTickets = filtered.length;
+    const periodMargin = periodTotalSales > 0 ? (periodTotalProfit / periodTotalSales) * 100 : 0;
+
+    type SellerBranchStat = {
+      userId: string;
+      fullName: string;
+      email: string;
+      salesCount: number;
+      totalSold: number;
+      cost: number;
+      profit: number;
+    };
+
+    type BranchStat = {
+      branchId: string;
+      branchName: string;
+      isMain: boolean;
+      totalSales: number;
+      totalCost: number;
+      totalProfit: number;
+      salesCount: number;
+      sellers: Record<string, SellerBranchStat>;
+    };
+
+    const branchStatsMap: Record<string, BranchStat> = {};
+
+    // 1. Inicializar con las sucursales existentes
+    branches.forEach((b) => {
+      branchStatsMap[b.id] = {
+        branchId: b.id,
+        branchName: b.name,
+        isMain: b.is_main,
+        totalSales: 0,
+        totalCost: 0,
+        totalProfit: 0,
+        salesCount: 0,
+        sellers: {},
+      };
+    });
+
+    // Default branch
+    const defaultBranch = branches.find((b) => b.is_main) || branches[0];
+    const defaultBranchId = defaultBranch ? defaultBranch.id : 'principal';
+    if (!branchStatsMap[defaultBranchId]) {
+      branchStatsMap[defaultBranchId] = {
+        branchId: defaultBranchId,
+        branchName: defaultBranch ? defaultBranch.name : 'Sucursal Principal',
+        isMain: true,
+        totalSales: 0,
+        totalCost: 0,
+        totalProfit: 0,
+        salesCount: 0,
+        sellers: {},
+      };
+    }
+
+    // 2. Procesar cada venta
+    filtered.forEach((sale) => {
+      let bId = sale.branch_id;
+      if (!bId || !branchStatsMap[bId]) {
+        bId = defaultBranchId;
+      }
+      const bStat = branchStatsMap[bId];
+      if (!bStat) return;
+
+      bStat.totalSales += sale.total;
+      bStat.totalCost += sale.cost;
+      bStat.totalProfit += sale.profit;
+      bStat.salesCount += 1;
+
+      const uid = sale.user_id || 'mostrador';
+      const sellerFound = sellers.find((s) => s.userId === uid);
+      const name = sellerFound ? sellerFound.fullName : (uid === 'mostrador' ? 'Venta Directa en Caja' : 'Colaborador');
+      const email = sellerFound ? sellerFound.email : '';
+
+      if (!bStat.sellers[uid]) {
+        bStat.sellers[uid] = {
+          userId: uid,
+          fullName: name,
+          email,
+          salesCount: 0,
+          totalSold: 0,
+          cost: 0,
+          profit: 0,
+        };
+      }
+
+      bStat.sellers[uid].salesCount += 1;
+      bStat.sellers[uid].totalSold += sale.total;
+      bStat.sellers[uid].cost += sale.cost;
+      bStat.sellers[uid].profit += sale.profit;
+    });
+
+    // Convertir a lista y ordenar por ventas desc
+    const branchList = Object.values(branchStatsMap).sort((a, b) => b.totalSales - a.totalSales);
+
+    return {
+      periodTotalSales,
+      periodTotalCost,
+      periodTotalProfit,
+      periodTotalTickets,
+      periodMargin,
+      branches: branchList,
+    };
+  }, [detailedSales, timeRange, branches, sellers]);
 
   return (
     <div className="space-y-6 pb-12">
@@ -733,6 +944,299 @@ export const EmployeesPage: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* ======================================================== */}
+      {/* SECCIÓN: REPORTE DE VENTAS Y GANANCIAS POR SUCURSAL      */}
+      {/* ======================================================== */}
+      <div className="space-y-4 pt-2">
+        {/* Cabecera del Reporte y Selector de Período */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 shadow-xs">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center shadow-xs">
+                <Store className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-zinc-100">
+                  Reporte de Ventas y Ganancias por Sucursal
+                </h2>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                  Métricas de facturación, costo y ganancia neta generada por cada vendedor.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Filtro de Período */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-zinc-800/80 p-1 rounded-xl self-start sm:self-auto border border-slate-200/60 dark:border-zinc-700/60">
+            <button
+              type="button"
+              onClick={() => setTimeRange('today')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                timeRange === 'today'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              📅 Hoy
+            </button>
+            <button
+              type="button"
+              onClick={() => setTimeRange('week')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                timeRange === 'week'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              Esta Semana
+            </button>
+            <button
+              type="button"
+              onClick={() => setTimeRange('month')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                timeRange === 'month'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              Este Mes
+            </button>
+            <button
+              type="button"
+              onClick={() => setTimeRange('all')}
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                timeRange === 'all'
+                  ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                  : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+              }`}
+            >
+              Histórico
+            </button>
+          </div>
+        </div>
+
+        {/* 4 Cards de Resumen del Período */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                {timeRange === 'today' ? 'Vendido Hoy' : timeRange === 'week' ? 'Ventas de la Semana' : timeRange === 'month' ? 'Ventas del Mes' : 'Ventas Históricas'}
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">
+                <DollarSign className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-zinc-100 font-mono">
+              Bs {branchReport.periodTotalSales.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              En {branchReport.periodTotalTickets} ticket{branchReport.periodTotalTickets === 1 ? '' : 's'} emitidos
+            </p>
+          </Card>
+
+          <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Ganancia Neta
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
+                <TrendingUp className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+              Bs {branchReport.periodTotalProfit.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold mt-0.5">
+              Margen promedio: {branchReport.periodMargin.toFixed(1)}%
+            </p>
+          </Card>
+
+          <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Costo Mercadería
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center">
+                <ShoppingBag className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-lg sm:text-xl font-black text-slate-800 dark:text-zinc-200 font-mono">
+              Bs {branchReport.periodTotalCost.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              Costo de productos vendidos
+            </p>
+          </Card>
+
+          <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                Ticket Promedio
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center">
+                <BarChart3 className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <div className="text-lg sm:text-xl font-black text-purple-600 dark:text-purple-400 font-mono">
+              Bs {branchReport.periodTotalTickets > 0 ? (branchReport.periodTotalSales / branchReport.periodTotalTickets).toFixed(2) : '0.00'}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              Promedio por transacción
+            </p>
+          </Card>
+        </div>
+
+        {/* Tarjetas por Sucursal con Desglose de Vendedores */}
+        {branchReport.branches.map((b) => {
+          const sellerEntries = Object.values(b.sellers);
+          const branchMargin = b.totalSales > 0 ? ((b.totalProfit / b.totalSales) * 100) : 0;
+
+          return (
+            <Card key={b.branchId} className="overflow-hidden rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+              {/* Encabezado de la Sucursal */}
+              <div className="p-4 bg-slate-50/80 dark:bg-zinc-800/40 border-b border-slate-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 flex items-center justify-center font-bold">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-black text-slate-900 dark:text-zinc-100">
+                        {b.branchName}
+                      </h3>
+                      {b.isMain && (
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 rounded-full">
+                          Principal
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      {sellerEntries.length} vendedor{sellerEntries.length === 1 ? '' : 'es'} con actividad
+                    </p>
+                  </div>
+                </div>
+
+                {/* Subtotales de la Sucursal */}
+                <div className="flex items-center gap-4 sm:gap-6 text-right">
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-black block">Ventas</span>
+                    <span className="font-mono font-black text-slate-900 dark:text-zinc-100 text-sm">
+                      Bs {b.totalSales.toFixed(2)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-black block">Ganancia</span>
+                    <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                      Bs {b.totalProfit.toFixed(2)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-black block">Margen</span>
+                    <span className="font-mono font-black text-indigo-600 dark:text-indigo-400 text-sm">
+                      {branchMargin.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tabla de Vendedores en esta Sucursal */}
+              {sellerEntries.length === 0 ? (
+                <div className="p-6 text-center text-slate-400 text-xs">
+                  Sin ventas registradas en esta sucursal para el período seleccionado ({timeRange === 'today' ? 'hoy' : timeRange === 'week' ? 'esta semana' : timeRange === 'month' ? 'este mes' : 'histórico'}).
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-white dark:bg-zinc-900 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-zinc-800">
+                      <tr>
+                        <th className="py-2.5 px-4">Vendedor</th>
+                        <th className="py-2.5 px-3 text-center">Tickets</th>
+                        <th className="py-2.5 px-3 text-right">Facturado</th>
+                        <th className="py-2.5 px-3 text-right">Costo Mercadería</th>
+                        <th className="py-2.5 px-3 text-right">Ganancia Neta</th>
+                        <th className="py-2.5 px-3 text-center">Margen %</th>
+                        <th className="py-2.5 px-4 text-right">Aporte Sucursal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">
+                      {sellerEntries.map((seller) => {
+                        const sellerMargin = seller.totalSold > 0 ? (seller.profit / seller.totalSold) * 100 : 0;
+                        const shareOfBranch = b.totalSales > 0 ? (seller.totalSold / b.totalSales) * 100 : 0;
+
+                        return (
+                          <tr key={seller.userId} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
+                            {/* Vendedor */}
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center justify-center font-black text-[11px] shrink-0">
+                                  {seller.fullName.slice(0, 2).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="text-slate-900 dark:text-zinc-100 font-black truncate">
+                                    {seller.fullName}
+                                  </div>
+                                  {seller.email && (
+                                    <div className="text-[10px] text-slate-400 font-mono truncate">
+                                      {seller.email}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Tickets */}
+                            <td className="py-3 px-3 text-center font-mono text-slate-700 dark:text-zinc-300">
+                              {seller.salesCount}
+                            </td>
+
+                            {/* Facturado */}
+                            <td className="py-3 px-3 text-right font-mono font-black text-slate-900 dark:text-zinc-100">
+                              Bs {seller.totalSold.toFixed(2)}
+                            </td>
+
+                            {/* Costo */}
+                            <td className="py-3 px-3 text-right font-mono text-slate-500 dark:text-zinc-400">
+                              Bs {seller.cost.toFixed(2)}
+                            </td>
+
+                            {/* Ganancia */}
+                            <td className="py-3 px-3 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
+                              + Bs {seller.profit.toFixed(2)}
+                            </td>
+
+                            {/* Margen */}
+                            <td className="py-3 px-3 text-center">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                {sellerMargin.toFixed(1)}%
+                              </span>
+                            </td>
+
+                            {/* Aporte a la sucursal (Barra) */}
+                            <td className="py-3 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <div className="w-16 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                                  <div
+                                    className="bg-emerald-500 h-full rounded-full transition-all"
+                                    style={{ width: `${Math.min(100, Math.max(0, shareOfBranch))}%` }}
+                                  />
+                                </div>
+                                <span className="font-mono text-[10px] text-slate-500 w-9 text-right font-bold">
+                                  {shareOfBranch.toFixed(0)}%
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
+          );
+        })}
+      </div>
 
       {/* ======================================================== */}
       {/* MODAL: REGISTRAR NUEVO VENDEDOR (COMPACTO Y CENTRADO)    */}

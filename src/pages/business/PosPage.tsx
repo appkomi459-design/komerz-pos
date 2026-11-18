@@ -39,7 +39,7 @@ interface CartItem {
 }
 
 export const PosPage: React.FC = () => {
-  const { activeBusiness, settings, mainBranch, updateSettings } = useBusiness();
+  const { activeBusiness, settings, mainBranch, activeMembership, updateSettings } = useBusiness();
   const { user } = useAuth();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -289,7 +289,7 @@ export const PosPage: React.FC = () => {
         .from('sales')
         .insert({
           business_id: activeBusiness.id,
-          branch_id: mainBranch?.id || null,
+          branch_id: activeMembership?.branch_id || mainBranch?.id || null,
           user_id: user?.id || null,
           customer_id: matchedCustomer?.id || null,
           invoice_number: invoiceNumber,

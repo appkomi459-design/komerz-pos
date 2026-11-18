@@ -48,6 +48,7 @@ export interface BusinessMember {
   user_id: string;
   role: BusinessRole;
   is_active: boolean;
+  branch_id?: string | null;
   created_at: string;
   updated_at: string;
   business?: Business;
