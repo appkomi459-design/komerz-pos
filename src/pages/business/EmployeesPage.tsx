@@ -22,6 +22,8 @@ import {
   MessageCircle,
   Clock,
   Sparkles,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { createClient } from '@supabase/supabase-js';
@@ -79,6 +81,18 @@ export const EmployeesPage: React.FC = () => {
 
   // Estado para activación/desactivación
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+
+  // Modal: Editar Vendedor
+  const [editingSeller, setEditingSeller] = useState<SellerWithStats | null>(null);
+  const [editFullName, setEditFullName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editBranchId, setEditBranchId] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Modal: Confirmar Borrado de Vendedor
+  const [deletingSeller, setDeletingSeller] = useState<SellerWithStats | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   /* ─────────────────────────── Carga de datos ─────────────────────────── */
   const fetchData = useCallback(async () => {
@@ -314,6 +328,73 @@ export const EmployeesPage: React.FC = () => {
     }
   };
 
+  /* ─────────────────── Abrir Modal de Edición ───────────────────────── */
+  const handleOpenEdit = (seller: SellerWithStats) => {
+    setEditingSeller(seller);
+    setEditFullName(seller.fullName);
+    setEditPhone(seller.phone || '');
+    setEditBranchId(seller.branchId || '');
+    setEditError(null);
+  };
+
+  /* ─────────────────── Guardar Cambios de Vendedor ───────────────────── */
+  const handleUpdateSeller = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSeller || !activeBusiness?.id) return;
+    if (!editFullName.trim()) {
+      setEditError('El nombre es obligatorio.');
+      return;
+    }
+    try {
+      setEditSaving(true);
+      setEditError(null);
+
+      // 1. Actualizar nombre en profiles
+      await supabase
+        .from('profiles')
+        .update({ full_name: editFullName.trim() })
+        .eq('id', editingSeller.userId);
+
+      // 2. Actualizar sucursal en business_members
+      const { error: memberErr } = await supabase
+        .from('business_members')
+        .update({ branch_id: editBranchId || null })
+        .eq('id', editingSeller.memberId);
+
+      if (memberErr) throw memberErr;
+
+      setEditingSeller(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error('Error al actualizar vendedor:', err);
+      setEditError(err.message || 'Error al actualizar vendedor.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  /* ─────────────────── Eliminar Vendedor del Negocio ──────────────────── */
+  const handleDeleteSeller = async () => {
+    if (!deletingSeller || !activeBusiness?.id) return;
+    try {
+      setDeleting(true);
+      const { error: delErr } = await supabase
+        .from('business_members')
+        .delete()
+        .eq('id', deletingSeller.memberId);
+
+      if (delErr) throw delErr;
+
+      setDeletingSeller(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error('Error al eliminar vendedor:', err);
+      alert(err.message || 'Error al eliminar el vendedor.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   /* ─────────────────── Copiar Credenciales al Portapapeles ────────────── */
   const handleCopyCredentials = () => {
     if (!createdCredentials) return;
@@ -518,14 +599,12 @@ export const EmployeesPage: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 dark:bg-zinc-800/40 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400 border-b border-slate-100 dark:border-zinc-800">
                 <tr>
-                  <th className="py-3 px-4">Vendedor</th>
-                  <th className="py-3 px-4">Correo de Acceso</th>
-                  <th className="py-3 px-4">Sucursal</th>
-                  <th className="py-3 px-4">Rol / Permiso</th>
-                  <th className="py-3 px-4 text-center">Ventas Realizadas</th>
-                  <th className="py-3 px-4 text-right">Total Vendido</th>
-                  <th className="py-3 px-4 text-center">Estado de Acceso</th>
-                  <th className="py-3 px-4 text-right">Acción</th>
+                  <th className="py-3 px-3 sm:px-4">Vendedor</th>
+                  <th className="py-3 px-3">Sucursal</th>
+                  <th className="py-3 px-3">Rol</th>
+                  <th className="py-3 px-3 text-right">Vendido</th>
+                  <th className="py-3 px-3 text-center">Estado de Acceso</th>
+                  <th className="py-3 px-3 sm:px-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">
@@ -534,33 +613,28 @@ export const EmployeesPage: React.FC = () => {
                     key={seller.memberId}
                     className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40 transition-colors"
                   >
-                    {/* Vendedor */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    {/* Vendedor (Nombre + Correo debajo) */}
+                    <td className="py-3 px-3 sm:px-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-xs">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0">
                           {seller.fullName.slice(0, 2).toUpperCase()}
                         </div>
-                        <div>
-                          <div className="text-slate-900 dark:text-zinc-100 font-black">
+                        <div className="min-w-0">
+                          <div className="text-slate-900 dark:text-zinc-100 font-black truncate max-w-[140px] sm:max-w-[200px]">
                             {seller.fullName}
                           </div>
-                          <div className="text-[10px] text-slate-400 font-medium">
-                            Registrado el {formatDate(seller.createdAt)}
+                          <div className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono truncate max-w-[140px] sm:max-w-[200px]">
+                            {seller.email}
                           </div>
                         </div>
                       </div>
                     </td>
 
-                    {/* Correo */}
-                    <td className="py-3.5 px-4 whitespace-nowrap font-mono text-slate-700 dark:text-zinc-300">
-                      {seller.email}
-                    </td>
-
                     {/* Sucursal */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       {seller.branchName ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
-                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
+                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                           {seller.branchName}
                         </span>
                       ) : (
@@ -569,60 +643,85 @@ export const EmployeesPage: React.FC = () => {
                     </td>
 
                     {/* Rol */}
-                    <td className="py-3.5 px-4 whitespace-nowrap">
+                    <td className="py-3 px-3 whitespace-nowrap">
                       <Badge
                         variant={seller.role === 'owner' ? 'emerald' : seller.role === 'admin' ? 'blue' : 'gray'}
                         size="sm"
                       >
-                        {seller.role === 'owner' ? '👑 Propietario' : seller.role === 'admin' ? '🛡️ Administrador' : '🛒 Vendedor / Cajero'}
+                        {seller.role === 'owner' ? '👑 Dueño' : seller.role === 'admin' ? '🛡️ Admin' : '🛒 Vendedor'}
                       </Badge>
                     </td>
 
-                    {/* Ventas */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-center">
-                      <span className="font-mono text-slate-800 dark:text-zinc-200">
-                        {seller.salesCount} tickets
-                      </span>
+                    {/* Ventas y Total */}
+                    <td className="py-3 px-3 whitespace-nowrap text-right">
+                      <div className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                        Bs {seller.totalSold.toFixed(2)}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-normal">
+                        {seller.salesCount} ventas
+                      </div>
                     </td>
 
-                    {/* Total Vendido */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
-                      Bs {seller.totalSold.toFixed(2)}
-                    </td>
-
-                    {/* Estado */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-center">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                          seller.isActive
-                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60'
-                            : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60'
-                        }`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${seller.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                        {seller.isActive ? 'Activo (Puede entrar)' : 'Desactivado'}
-                      </span>
-                    </td>
-
-                    {/* Acción Activar/Desactivar */}
-                    <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                    {/* Estado de Acceso con botón deslizante verde / rojo */}
+                    <td className="py-3 px-3 whitespace-nowrap text-center">
                       {seller.role !== 'owner' ? (
                         <button
                           type="button"
                           disabled={updatingMemberId === seller.memberId}
                           onClick={() => handleToggleStatus(seller.memberId, seller.isActive)}
-                          className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                            seller.isActive
-                              ? 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 dark:bg-zinc-800 dark:hover:bg-rose-950/40'
-                              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40'
-                          }`}
+                          className="inline-flex items-center gap-2 group cursor-pointer focus:outline-none"
+                          title={seller.isActive ? 'Clic para bloquear acceso' : 'Clic para permitir acceso'}
                         >
-                          {updatingMemberId === seller.memberId
-                            ? 'Actualizando...'
-                            : seller.isActive
-                            ? 'Desactivar Acceso'
-                            : 'Habilitar Acceso'}
+                          <div
+                            className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${
+                              seller.isActive ? 'bg-emerald-500' : 'bg-rose-500'
+                            }`}
+                          >
+                            <span
+                              className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                                seller.isActive ? 'translate-x-4.5' : 'translate-x-1'
+                              }`}
+                            />
+                          </div>
+                          <span
+                            className={`text-[11px] font-black ${
+                              seller.isActive
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-rose-600 dark:text-rose-400'
+                            }`}
+                          >
+                            {seller.isActive ? 'Puede entrar' : 'No puede entrar'}
+                          </span>
                         </button>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          Siempre activo
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Acciones: Editar y Borrar */}
+                    <td className="py-3 px-3 sm:px-4 whitespace-nowrap text-right">
+                      {seller.role !== 'owner' ? (
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEdit(seller)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
+                            title="Editar datos del vendedor"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeletingSeller(seller)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            title="Eliminar vendedor"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       ) : (
                         <span className="text-[10px] text-slate-400 italic">Cuenta Principal</span>
                       )}
@@ -898,6 +997,144 @@ export const EmployeesPage: React.FC = () => {
               >
                 Listo
               </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: EDITAR VENDEDOR                                   */}
+      {/* ======================================================== */}
+      {editingSeller && (
+        <Modal
+          isOpen={!!editingSeller}
+          onClose={() => setEditingSeller(null)}
+          className="max-w-md p-0 overflow-hidden shadow-2xl"
+        >
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3.5 text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Edit2 className="w-4 h-4 text-blue-200" />
+              <div>
+                <h3 className="text-sm font-black">Editar Vendedor</h3>
+                <p className="text-[10px] text-blue-100">{editingSeller.email}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEditingSeller(null)}
+              className="text-white/80 hover:text-white cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <form onSubmit={handleUpdateSeller} className="p-5 space-y-3.5 bg-white dark:bg-zinc-900 text-xs">
+            {editError && (
+              <div className="p-2.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl flex items-center gap-2 text-rose-700 dark:text-rose-300 text-xs font-bold">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+                Nombre Completo <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={editFullName}
+                onChange={(e) => setEditFullName(e.target.value)}
+                placeholder="Nombre del vendedor"
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+                Sucursal Asignada
+              </label>
+              <select
+                value={editBranchId}
+                onChange={(e) => setEditBranchId(e.target.value)}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+              >
+                <option value="">— Sin sucursal asignada —</option>
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}{b.is_main ? ' (Principal)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setEditingSeller(null)}
+                className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-zinc-700 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={editSaving}
+                className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-black transition-all cursor-pointer disabled:opacity-50"
+              >
+                {editSaving ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: CONFIRMAR ELIMINACIÓN DE VENDEDOR                 */}
+      {/* ======================================================== */}
+      {deletingSeller && (
+        <Modal
+          isOpen={!!deletingSeller}
+          onClose={() => setDeletingSeller(null)}
+          className="max-w-sm p-0 overflow-hidden shadow-2xl"
+        >
+          <div className="bg-rose-600 px-5 py-3.5 text-white flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Trash2 className="w-4 h-4 text-rose-200" />
+              <h3 className="text-sm font-black">Eliminar Vendedor</h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDeletingSeller(null)}
+              className="text-white/80 hover:text-white cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="p-5 space-y-3.5 bg-white dark:bg-zinc-900 text-xs">
+            <p className="text-slate-700 dark:text-zinc-300 leading-relaxed">
+              ¿Estás seguro de que deseas eliminar a <strong>{deletingSeller.fullName}</strong> ({deletingSeller.email})?
+            </p>
+            <p className="text-[11px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-900">
+              ⚠️ Perderá el acceso de inicio de sesión a este negocio de inmediato.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setDeletingSeller(null)}
+                className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-zinc-700 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDeleteSeller}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all cursor-pointer disabled:opacity-50"
+              >
+                {deleting ? 'Eliminando...' : 'Sí, Eliminar'}
+              </button>
             </div>
           </div>
         </Modal>
