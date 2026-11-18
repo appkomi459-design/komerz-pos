@@ -231,16 +231,20 @@ export const EmployeesPage: React.FC = () => {
       const newUserId = signUpData?.user?.id;
       if (!newUserId) throw new Error('No se pudo crear la cuenta. Intenta de nuevo.');
 
-      // 2. Asegurar que el perfil exista (el trigger puede crearlo, pero hacemos upsert por seguridad)
-      await supabase.from('profiles').upsert(
-        {
-          id: newUserId,
-          full_name: fullName.trim(),
-          email: email.trim().toLowerCase(),
-          is_super_admin: false,
-        },
-        { onConflict: 'id' }
-      );
+      // 2. Asegurar perfil (el trigger handle_new_user lo crea automáticamente)
+      try {
+        await supabase.from('profiles').upsert(
+          {
+            id: newUserId,
+            full_name: fullName.trim(),
+            email: email.trim().toLowerCase(),
+            is_super_admin: false,
+          },
+          { onConflict: 'id' }
+        );
+      } catch (profileErr) {
+        console.warn('Aviso al actualizar perfil:', profileErr);
+      }
 
       // 3. Agregar al negocio como miembro con rol de cajero y sucursal asignada
       const { error: memberError } = await supabase.from('business_members').insert({
