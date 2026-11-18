@@ -96,7 +96,7 @@ export const EmployeesPage: React.FC = () => {
           .order('is_main', { ascending: false }),
         supabase
           .from('business_members')
-          .select('id, user_id, role, is_active, created_at, branch_id, branch:branches(id, name), profile:profiles(id, full_name, email)')
+          .select('id, user_id, role, is_active, created_at, branch_id')
           .eq('business_id', activeBusiness.id)
           .order('created_at', { ascending: false }),
         supabase
@@ -111,27 +111,41 @@ export const EmployeesPage: React.FC = () => {
 
       // Setear sucursal principal por defecto en el selector
       const mainBranch = branchesData.find((b) => b.is_main) || branchesData[0];
-      if (mainBranch) setSelectedBranchId(mainBranch.id);
+      if (mainBranch && !selectedBranchId) setSelectedBranchId(mainBranch.id);
 
       const membersData = membersRes.data || [];
       const salesData = (salesRes.data || []) as Sale[];
 
-      // Agrupar ventas por user_id
+      // 2. Buscar perfiles de los miembros por sus user_id (consulta separada, sin depender de FK)
+      const userIds = membersData.map((m: any) => m.user_id).filter(Boolean);
+      let profilesById: Record<string, { full_name: string; email: string }> = {};
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', userIds);
+        (profilesData || []).forEach((p: any) => {
+          profilesById[p.id] = { full_name: p.full_name, email: p.email };
+        });
+      }
+
+      // 3. Mapa de sucursales por id
+      const branchById: Record<string, string> = {};
+      branchesData.forEach((b) => { branchById[b.id] = b.name; });
+
+      // 4. Agrupar ventas por user_id
       const salesByUser: Record<string, { count: number; total: number }> = {};
       salesData.forEach((s) => {
         if (!s.user_id) return;
-        if (!salesByUser[s.user_id]) {
-          salesByUser[s.user_id] = { count: 0, total: 0 };
-        }
+        if (!salesByUser[s.user_id]) salesByUser[s.user_id] = { count: 0, total: 0 };
         salesByUser[s.user_id].count++;
         salesByUser[s.user_id].total += Number(s.total);
       });
 
-      // Mapear vendedores
+      // 5. Mapear vendedores
       const mapped: SellerWithStats[] = membersData.map((m: any) => {
-        const prof = m.profile || {};
+        const prof = profilesById[m.user_id] || { full_name: '', email: '' };
         const stats = salesByUser[m.user_id] || { count: 0, total: 0 };
-        const branch = m.branch as { id: string; name: string } | null;
         return {
           memberId: m.id,
           userId: m.user_id,
@@ -143,7 +157,7 @@ export const EmployeesPage: React.FC = () => {
           salesCount: stats.count,
           totalSold: stats.total,
           branchId: m.branch_id || null,
-          branchName: branch?.name || null,
+          branchName: m.branch_id ? (branchById[m.branch_id] || null) : null,
         };
       });
 
