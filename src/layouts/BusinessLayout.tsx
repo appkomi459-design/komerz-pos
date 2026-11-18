@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -56,40 +56,58 @@ export const BusinessLayout: React.FC = () => {
   const [businessMenuOpen, setBusinessMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-  const navSections = [
-    {
-      title: 'OPERACIONES',
-      items: [
-        { name: 'Panel', path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
-        { name: 'Venta (Caja)', path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-        { name: 'Productos / Stock', path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
-        { name: 'Categorías', path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
-      ],
-    },
-    {
-      title: 'GESTIÓN & CONTROL',
-      items: [
-        { name: 'Todas las ventas', path: '/app/sales', icon: Receipt, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
-        { name: 'Clientes', path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
-        { name: 'Ventas a Clientes', path: '/app/customer-sales', icon: UserCheck, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
-        { name: 'Proveedores', path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
-        { name: 'Compras', path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-        { name: 'Caja', path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-        { name: 'Gastos', path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
-        { name: 'Reportes', path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
-      ],
-    },
-    {
-      title: 'ADMINISTRACIÓN',
-      items: [
-        { name: 'Empleados', path: '/app/employees', icon: UserCheck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
-        { name: 'Sucursales', path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
-        { name: 'Configuración', path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
-        { name: 'Suscripción', path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
-        { name: 'Sugerencias', path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-      ],
-    },
-  ];
+  const navSections = useMemo(() => {
+    // Si el usuario es Vendedor / Cajero, mostrar únicamente sus herramientas permitidas
+    if (currentRole === 'cashier') {
+      return [
+        {
+          title: 'PUNTO DE VENTA',
+          items: [
+            { name: 'Venta (Caja)', path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+            { name: 'Mi Panel de Vendedor', path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-blue-600/30 text-white' },
+            { name: 'Consultar Stock', path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
+            { name: 'Clientes', path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+          ],
+        },
+      ];
+    }
+
+    // Menú completo para el Propietario / Administrador
+    return [
+      {
+        title: 'OPERACIONES',
+        items: [
+          { name: 'Panel', path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
+          { name: 'Venta (Caja)', path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: 'Productos / Stock', path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
+          { name: 'Categorías', path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+        ],
+      },
+      {
+        title: 'GESTIÓN & CONTROL',
+        items: [
+          { name: 'Todas las ventas', path: '/app/sales', icon: Receipt, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
+          { name: 'Clientes', path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+          { name: 'Ventas a Clientes', path: '/app/customer-sales', icon: UserCheck, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
+          { name: 'Proveedores', path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
+          { name: 'Compras', path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: 'Caja', path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: 'Gastos', path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
+          { name: 'Reportes', path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
+        ],
+      },
+      {
+        title: 'ADMINISTRACIÓN',
+        items: [
+          { name: 'Vendedores', path: '/app/employees', icon: Users, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-700 shadow-blue-600/30 text-white' },
+          { name: 'Sucursales', path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+          { name: 'Configuración', path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
+          { name: 'Suscripción', path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+          { name: 'Sugerencias', path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+        ],
+      },
+    ];
+  }, [currentRole]);
 
   const handleLogout = async () => {
     await signOut();
@@ -104,6 +122,8 @@ export const BusinessLayout: React.FC = () => {
         return 'blue';
       case 'manager':
         return 'amber';
+      case 'cashier':
+        return 'blue';
       default:
         return 'gray';
     }
@@ -118,9 +138,9 @@ export const BusinessLayout: React.FC = () => {
       case 'manager':
         return 'Gerente';
       case 'cashier':
-        return 'Cajero';
+        return 'Vendedor / Cajero';
       default:
-        return 'Miembro';
+        return 'Vendedor';
     }
   };
 

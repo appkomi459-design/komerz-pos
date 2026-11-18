@@ -25,6 +25,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate, formatFullDate } from '@/utils/formatters';
+import { SellerDashboardPage } from './SellerDashboardPage';
 
 interface DashboardMetrics {
   salesToday: number;
@@ -41,7 +42,12 @@ interface DashboardMetrics {
 }
 
 export const DashboardOverviewPage: React.FC = () => {
-  const { activeBusiness, mainBranch } = useBusiness();
+  const { activeBusiness, mainBranch, currentRole } = useBusiness();
+
+  // Si el usuario es Vendedor / Cajero, mostrar su panel personalizado
+  if (currentRole === 'cashier') {
+    return <SellerDashboardPage />;
+  }
 
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     salesToday: 0,
