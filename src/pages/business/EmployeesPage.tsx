@@ -24,6 +24,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -158,18 +159,75 @@ export const EmployeesPage: React.FC = () => {
       setSaving(true);
       setError(null);
 
-      const { data, error: rpcError } = await supabase.rpc('create_business_seller', {
-        p_business_id: activeBusiness.id,
-        p_email: email.trim().toLowerCase(),
-        p_password: password,
-        p_full_name: fullName.trim(),
-        p_phone: phone.trim() || null,
-        p_role: 'cashier',
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+      // Usar un cliente temporal con persistSession:false para NO afectar la sesion del dueno
+      const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          storageKey: `komerz-seller-temp-${Date.now()}`,
+          autoRefreshToken: false,
+          persistSession: false,
+        },
       });
 
-      if (rpcError) throw rpcError;
+      // 1. Crear el usuario en Supabase Auth
+      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            phone: phone.trim() || null,
+          },
+        },
+      });
 
-      // Guardar credenciales para mostrar en modal de éxito
+      if (signUpError) {
+        if (signUpError.message.toLowerCase().includes('already registered') ||
+            signUpError.message.toLowerCase().includes('already been registered') ||
+            signUpError.message.toLowerCase().includes('user already exists')) {
+          throw new Error('Este correo ya tiene una cuenta registrada. Usa otro correo.');
+        }
+        throw signUpError;
+      }
+
+      const newUserId = signUpData?.user?.id;
+      if (!newUserId) throw new Error('No se pudo crear la cuenta. Intenta de nuevo.');
+
+      // 2. Asegurar que el perfil exista (el trigger puede crearlo, pero hacemos upsert por seguridad)
+      await supabase.from('profiles').upsert(
+        {
+          id: newUserId,
+          full_name: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          is_super_admin: false,
+        },
+        { onConflict: 'id' }
+      );
+
+      // 3. Agregar al negocio como miembro con rol de cajero
+      const { error: memberError } = await supabase.from('business_members').insert({
+        business_id: activeBusiness.id,
+        user_id: newUserId,
+        role: 'cashier',
+        is_active: true,
+      });
+
+      if (memberError) {
+        // Si ya existe como miembro, reactivarlo
+        if (memberError.code === '23505') {
+          await supabase
+            .from('business_members')
+            .update({ is_active: true, role: 'cashier' })
+            .eq('business_id', activeBusiness.id)
+            .eq('user_id', newUserId);
+        } else {
+          throw memberError;
+        }
+      }
+
+      // Guardar credenciales para mostrar en modal de exito
       setCreatedCredentials({
         name: fullName.trim(),
         email: email.trim().toLowerCase(),
@@ -198,10 +256,10 @@ export const EmployeesPage: React.FC = () => {
       setUpdatingMemberId(memberId);
       const newStatus = !currentStatus;
 
-      const { error: rpcErr } = await supabase.rpc('toggle_business_member_status', {
-        p_member_id: memberId,
-        p_is_active: newStatus,
-      });
+      const { error: rpcErr } = await supabase
+        .from('business_members')
+        .update({ is_active: newStatus })
+        .eq('id', memberId);
 
       if (rpcErr) throw rpcErr;
 
