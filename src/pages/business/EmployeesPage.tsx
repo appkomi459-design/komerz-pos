@@ -44,6 +44,8 @@ interface SellerWithStats {
   createdAt: string;
   salesCount: number;
   totalSold: number;
+  branchId?: string | null;
+  branchName?: string | null;
 }
 
 export const EmployeesPage: React.FC = () => {
@@ -53,12 +55,16 @@ export const EmployeesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
+  // Sucursales disponibles
+  const [branches, setBranches] = useState<{ id: string; name: string; is_main: boolean }[]>([]);
+
   // Modal: Registrar Nuevo Vendedor
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,11 +86,17 @@ export const EmployeesPage: React.FC = () => {
     try {
       setLoading(true);
 
-      // 1. Obtener miembros del negocio y sus perfiles
-      const [membersRes, salesRes] = await Promise.all([
+      // 1. Obtener sucursales, miembros y ventas en paralelo
+      const [branchesRes, membersRes, salesRes] = await Promise.all([
+        supabase
+          .from('branches')
+          .select('id, name, is_main')
+          .eq('business_id', activeBusiness.id)
+          .eq('is_active', true)
+          .order('is_main', { ascending: false }),
         supabase
           .from('business_members')
-          .select('id, user_id, role, is_active, created_at, profile:profiles(id, full_name, email)')
+          .select('id, user_id, role, is_active, created_at, branch_id, branch:branches(id, name), profile:profiles(id, full_name, email)')
           .eq('business_id', activeBusiness.id)
           .order('created_at', { ascending: false }),
         supabase
@@ -93,6 +105,13 @@ export const EmployeesPage: React.FC = () => {
           .eq('business_id', activeBusiness.id)
           .eq('status', 'completed'),
       ]);
+
+      const branchesData = branchesRes.data || [];
+      setBranches(branchesData);
+
+      // Setear sucursal principal por defecto en el selector
+      const mainBranch = branchesData.find((b) => b.is_main) || branchesData[0];
+      if (mainBranch) setSelectedBranchId(mainBranch.id);
 
       const membersData = membersRes.data || [];
       const salesData = (salesRes.data || []) as Sale[];
@@ -112,6 +131,7 @@ export const EmployeesPage: React.FC = () => {
       const mapped: SellerWithStats[] = membersData.map((m: any) => {
         const prof = m.profile || {};
         const stats = salesByUser[m.user_id] || { count: 0, total: 0 };
+        const branch = m.branch as { id: string; name: string } | null;
         return {
           memberId: m.id,
           userId: m.user_id,
@@ -122,6 +142,8 @@ export const EmployeesPage: React.FC = () => {
           createdAt: m.created_at,
           salesCount: stats.count,
           totalSold: stats.total,
+          branchId: m.branch_id || null,
+          branchName: branch?.name || null,
         };
       });
 
@@ -206,20 +228,21 @@ export const EmployeesPage: React.FC = () => {
         { onConflict: 'id' }
       );
 
-      // 3. Agregar al negocio como miembro con rol de cajero
+      // 3. Agregar al negocio como miembro con rol de cajero y sucursal asignada
       const { error: memberError } = await supabase.from('business_members').insert({
         business_id: activeBusiness.id,
         user_id: newUserId,
         role: 'cashier',
         is_active: true,
+        branch_id: selectedBranchId || null,
       });
 
       if (memberError) {
-        // Si ya existe como miembro, reactivarlo
+        // Si ya existe como miembro, reactivarlo y actualizar sucursal
         if (memberError.code === '23505') {
           await supabase
             .from('business_members')
-            .update({ is_active: true, role: 'cashier' })
+            .update({ is_active: true, role: 'cashier', branch_id: selectedBranchId || null })
             .eq('business_id', activeBusiness.id)
             .eq('user_id', newUserId);
         } else {
@@ -479,6 +502,7 @@ export const EmployeesPage: React.FC = () => {
                 <tr>
                   <th className="py-3 px-4">Vendedor</th>
                   <th className="py-3 px-4">Correo de Acceso</th>
+                  <th className="py-3 px-4">Sucursal</th>
                   <th className="py-3 px-4">Rol / Permiso</th>
                   <th className="py-3 px-4 text-center">Ventas Realizadas</th>
                   <th className="py-3 px-4 text-right">Total Vendido</th>
@@ -512,6 +536,18 @@ export const EmployeesPage: React.FC = () => {
                     {/* Correo */}
                     <td className="py-3.5 px-4 whitespace-nowrap font-mono text-slate-700 dark:text-zinc-300">
                       {seller.email}
+                    </td>
+
+                    {/* Sucursal */}
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      {seller.branchName ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
+                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
+                          {seller.branchName}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 text-[10px]">— Sin asignar</span>
+                      )}
                     </td>
 
                     {/* Rol */}
@@ -677,6 +713,32 @@ export const EmployeesPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Sucursal asignada */}
+            {branches.length > 0 && (
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400 mb-1">
+                  Sucursal Asignada <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <svg className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <select
+                    value={selectedBranchId}
+                    onChange={(e) => setSelectedBranchId(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}{b.is_main ? ' (Principal)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-zinc-500 mt-1">
+                  El vendedor verá el inventario y podrá cobrar desde esta sucursal.
+                </p>
+              </div>
+            )}
 
             {/* Contraseña de Acceso */}
             <div>
