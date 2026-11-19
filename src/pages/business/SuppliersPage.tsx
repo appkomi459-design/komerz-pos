@@ -29,9 +29,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/utils/formatters';
 import type { Supplier } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const SuppliersPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
+  const { t } = useLanguage();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -249,11 +251,11 @@ export const SuppliersPage: React.FC = () => {
               <Truck className="w-5 h-5" />
             </span>
             <h1 className="text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Directorio de Proveedores
+              {t('suppliers.title', 'Proveedores')}
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 pl-10">
-            Administra a tus abastecedores comerciales, contactos de preventa, NIT y pedidos directos por WhatsApp
+            {t('suppliers.subtitle', 'Gestión de proveedores y contactos de abastecimiento')}
           </p>
         </div>
 
@@ -263,7 +265,7 @@ export const SuppliersPage: React.FC = () => {
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-600/20 font-black cursor-pointer"
           icon={<Plus className="w-4 h-4" />}
         >
-          Nuevo Proveedor
+          {t('suppliers.new', 'Nuevo Proveedor')}
         </Button>
       </div>
 
@@ -272,13 +274,13 @@ export const SuppliersPage: React.FC = () => {
         <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Total Proveedores
+              {t('suppliers.total', 'Total Proveedores')}
             </p>
             <p className="text-2xl font-black text-slate-900 dark:text-zinc-100 mt-0.5 font-mono">
               {stats.total}
             </p>
             <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              Empresas y distribuidoras
+              {t('suppliers.title', 'Empresas y distribuidoras')}
             </p>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">

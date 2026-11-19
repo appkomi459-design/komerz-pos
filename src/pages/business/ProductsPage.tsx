@@ -29,9 +29,11 @@ import { Modal } from '@/components/ui/Modal';
 import { formatCurrency } from '@/utils/formatters';
 import type { Product, Category } from '@/types';
 import { QRCodeSVG } from 'qrcode.react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const ProductsPage: React.FC = () => {
   const { activeBusiness, settings, currentRole } = useBusiness();
+  const { t } = useLanguage();
   const isCashier = currentRole === 'cashier';
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -354,10 +356,10 @@ export const ProductsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 dark:text-zinc-100 tracking-tight">
-            Productos / Stock
+            {t('products.title', 'Productos / Stock')}
           </h1>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Gestiona los artículos, precios de venta, costos y existencias de tu inventario
+            {t('products.subtitle', 'Gestión de catálogo e inventario')}
           </p>
         </div>
 
@@ -411,7 +413,7 @@ export const ProductsPage: React.FC = () => {
             title="Imprimir lista e inventario de productos"
           >
             <Printer className="w-4 h-4 text-slate-600 dark:text-zinc-400" />
-            <span>Imprimir</span>
+            <span>{t('common.print', 'Imprimir')}</span>
           </button>
 
           {/* Botón Nuevo Producto */}
@@ -424,7 +426,7 @@ export const ProductsPage: React.FC = () => {
               className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer whitespace-nowrap active:scale-95"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
-              <span>Nuevo Producto</span>
+              <span>{t('products.new', 'Nuevo Producto')}</span>
             </button>
           )}
         </div>

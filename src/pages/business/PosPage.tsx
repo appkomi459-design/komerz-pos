@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency, formatFullDate } from '@/utils/formatters';
 import type { Product } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CartItem {
   product: Product;
@@ -41,6 +42,7 @@ interface CartItem {
 export const PosPage: React.FC = () => {
   const { activeBusiness, settings, mainBranch, activeMembership, updateSettings } = useBusiness();
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -474,10 +476,10 @@ export const PosPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Punto de Venta (POS)
+              {t('pos.title', 'Punto de Venta (POS)')}
             </h1>
             <p className="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
-              Registro ágil de pedidos, cálculo de cobros y emisión de facturas
+              {t('pos.subtitle', 'Registro ágil de pedidos, cálculo de cobros y emisión de facturas')}
             </p>
           </div>
         </div>
@@ -500,7 +502,7 @@ export const PosPage: React.FC = () => {
               <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar por nombre, código de barra o SKU..."
+                placeholder={t('pos.search_placeholder', 'Buscar por nombre, código de barra o SKU...')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-sm font-bold pl-11 pr-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 shadow-xs transition-all"
@@ -520,7 +522,7 @@ export const PosPage: React.FC = () => {
               className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition-all cursor-pointer whitespace-nowrap active:scale-95"
             >
               <Plus className="w-4 h-4 stroke-[3]" />
-              <span>Nuevo Producto</span>
+              <span>{t('pos.new_product', 'Nuevo Producto')}</span>
             </button>
           </div>
 
@@ -536,7 +538,7 @@ export const PosPage: React.FC = () => {
                     : 'bg-white dark:bg-[#181615] text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800 hover:border-slate-300'
                 }`}
               >
-                Todos ({products.length})
+                {t('pos.all_categories', 'Todos')} ({products.length})
               </button>
               {categories.map((c) => {
                 const count = products.filter((p) => p.category_id === c.id).length;
@@ -562,23 +564,23 @@ export const PosPage: React.FC = () => {
           {loading ? (
             <div className="py-24 text-center">
               <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              <p className="text-xs font-black text-slate-500">Cargando productos...</p>
+              <p className="text-xs font-black text-slate-500">{t('pos.loading', 'Cargando productos...')}</p>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="bg-white dark:bg-[#181615] rounded-3xl border-2 border-dashed border-slate-300 dark:border-zinc-800 p-12 text-center">
               <Package className="w-12 h-12 text-slate-300 dark:text-zinc-600 mx-auto mb-3 opacity-60" />
               <h3 className="text-base font-black text-slate-800 dark:text-zinc-200">
-                No se encontraron productos
+                {t('pos.no_products', 'No se encontraron productos')}
               </h3>
               <p className="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-1">
-                {search ? 'Intenta con otro término de búsqueda' : 'Registra tus primeros artículos con el botón "+ Nuevo Producto"'}
+                {search ? t('pos.no_products', 'Intenta con otro término de búsqueda') : t('pos.no_products_hint', 'Agrega productos a tu catálogo para poder vender')}
               </p>
               <button
                 onClick={() => setIsNewProductModalOpen(true)}
                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-md hover:bg-emerald-500 transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                Crear Producto Ahora
+                {t('pos.create_now', 'Crear Producto Ahora')}
               </button>
             </div>
           ) : (
@@ -638,7 +640,7 @@ export const PosPage: React.FC = () => {
                               : 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
                           }`}
                         >
-                          Stock: {product.stock}
+                          {t('pos.stock', 'Stock:')} {product.stock}
                         </span>
                       </div>
 
@@ -662,9 +664,9 @@ export const PosPage: React.FC = () => {
                           setStockToAdd('10');
                         }}
                         className="px-2 py-1.5 text-[11px] font-black rounded-lg border-2 border-slate-300 dark:border-zinc-700 hover:border-slate-500 dark:hover:border-zinc-500 text-slate-700 dark:text-zinc-300 bg-slate-50 dark:bg-zinc-800 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap flex-shrink-0"
-                        title="Ajustar o agregar stock"
+                        title={t('pos.adjust_stock', '+Stock')}
                       >
-                        + Stock
+                        {t('pos.adjust_stock', '+Stock')}
                       </button>
 
                       {inCartItem ? (
@@ -675,7 +677,7 @@ export const PosPage: React.FC = () => {
                           title="Añadir una unidad más al carrito"
                         >
                           <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span className="truncate">Carrito +{inCartItem.quantity}</span>
+                          <span className="truncate">{t('pos.cart_in', 'Carrito +')}{inCartItem.quantity}</span>
                         </button>
                       ) : (
                         <button
@@ -689,7 +691,7 @@ export const PosPage: React.FC = () => {
                           }`}
                         >
                           <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span>Vender</span>
+                          <span>{t('pos.sell', 'Vender')}</span>
                         </button>
                       )}
                     </div>
@@ -711,13 +713,13 @@ export const PosPage: React.FC = () => {
                 <ShoppingCart className="w-4 h-4" />
               </div>
               <h3 className="text-sm font-black text-white tracking-tight">
-                Carrito de Venta
+                {t('pos.cart_title', 'Carrito de Venta')}
               </h3>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 text-xs font-black px-2.5 py-0.5 rounded-full">
-                {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
+                {totalItemsCount} {t('pos.items', 'items')}
               </span>
               {cart.length > 0 && (
                 <button
@@ -725,7 +727,7 @@ export const PosPage: React.FC = () => {
                   onClick={() => setCart([])}
                   className="text-xs font-black text-rose-400 hover:text-rose-300 hover:underline transition-colors cursor-pointer"
                 >
-                  Vaciar
+                  {t('pos.cart_empty_btn', 'Vaciar')}
                 </button>
               )}
             </div>
@@ -737,10 +739,10 @@ export const PosPage: React.FC = () => {
               <div className="py-14 text-center text-slate-400 dark:text-zinc-500">
                 <Receipt className="w-12 h-12 mx-auto mb-2 opacity-30 text-slate-400" />
                 <p className="text-xs font-black text-slate-700 dark:text-zinc-300">
-                  El carrito está vacío
+                  {t('pos.cart_empty', 'El carrito está vacío')}
                 </p>
                 <p className="text-[11px] font-bold text-slate-400 mt-0.5">
-                  Toca los productos para agregarlos a la venta
+                  {t('pos.cart_empty_hint', 'Toca los productos para agregarlos a la venta')}
                 </p>
               </div>
             ) : (
@@ -823,10 +825,10 @@ export const PosPage: React.FC = () => {
               >
                 <span className="flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Cliente: <strong className="text-slate-900 dark:text-zinc-100">{customerName}</strong></span>
+                  <span>{t('pos.customer', 'Cliente')}: <strong className="text-slate-900 dark:text-zinc-100">{customerName}</strong></span>
                 </span>
                 <span className="text-[10px] text-emerald-600 font-bold underline">
-                  {showCustomerFields ? 'Ocultar' : 'Editar / Factura'}
+                  {showCustomerFields ? t('common.hide', 'Ocultar') : `${t('common.edit', 'Editar')} / ${t('settings.billing_title', 'Factura')}`}
                 </span>
               </button>
 
@@ -835,7 +837,7 @@ export const PosPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
-                        Nombre / Razón Social
+                        {t('pos.customer_name', 'Nombre / Razón Social')}
                       </label>
                       <input
                         type="text"
@@ -851,7 +853,7 @@ export const PosPage: React.FC = () => {
                             setCustomerNit(found.identification);
                           }
                         }}
-                        placeholder="Consumidor Final"
+                        placeholder={t('pos.consumer', 'Consumidor Final')}
                         className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
                       />
                       <datalist id="pos-customers-list">
@@ -864,7 +866,7 @@ export const PosPage: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
-                        NIT / CI
+                        {t('pos.tax_id', 'NIT / CI')}
                       </label>
                       <input
                         type="text"
@@ -878,7 +880,7 @@ export const PosPage: React.FC = () => {
 
                   {availableCustomers.length > 0 && (
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px]">
-                      <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">Rápidos:</span>
+                      <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">{t('pos.quick_discounts', 'Rápidos:')}</span>
                       <button
                         type="button"
                         onClick={() => {
@@ -887,7 +889,7 @@ export const PosPage: React.FC = () => {
                         }}
                         className="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-black hover:bg-slate-300 transition-colors whitespace-nowrap cursor-pointer"
                       >
-                        Consumidor Final
+                        {t('pos.consumer', 'Consumidor Final')}
                       </button>
                       {availableCustomers.slice(0, 4).map((c) => (
                         <button
@@ -915,7 +917,7 @@ export const PosPage: React.FC = () => {
             {/* Desglose de Subtotal y Selector de Impuesto / IVA Configurable */}
             <div className="space-y-1.5 text-xs">
               <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 font-bold">
-                <span>Subtotal ({totalItemsCount} unid.):</span>
+                <span>{t('pos.subtotal', 'Subtotal')} ({totalItemsCount} {t('common.units', 'unid.')}):</span>
                 <span className="font-mono text-slate-800 dark:text-zinc-200 font-black">
                   {formatCurrency(subtotal, currency)}
                 </span>
@@ -926,7 +928,7 @@ export const PosPage: React.FC = () => {
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1.5">
                     <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
-                      Impuesto (IVA):
+                      {t('pos.tax', 'Impuesto (IVA):')}
                     </span>
                     <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
                       <button
@@ -939,7 +941,7 @@ export const PosPage: React.FC = () => {
                         }`}
                         title="Sin impuesto / Exento (0%)"
                       >
-                        Sin IVA (0%)
+                        {t('pos.without_tax', 'Sin IVA (0%)')}
                       </button>
                       <button
                         type="button"
@@ -953,7 +955,7 @@ export const PosPage: React.FC = () => {
                         }`}
                         title="Aplicar IVA con porcentaje configurable"
                       >
-                        Con IVA ({taxPercentage}%)
+                        {t('pos.with_tax', 'Con IVA')} ({taxPercentage}%)
                       </button>
                     </div>
                   </div>
@@ -1045,7 +1047,7 @@ export const PosPage: React.FC = () => {
                 {/* Label + Toggle Tipo */}
                 <div className="flex items-center gap-1.5">
                   <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
-                    Descuento:
+                    {t('pos.discount', 'Descuento:')}
                   </span>
                   <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
                     <button
@@ -1070,7 +1072,7 @@ export const PosPage: React.FC = () => {
                       }`}
                       title="Descuento en monto fijo"
                     >
-                      Monto fijo
+                      {t('pos.fixed_amount', 'Monto fijo')}
                     </button>
                   </div>
                 </div>
@@ -1146,7 +1148,7 @@ export const PosPage: React.FC = () => {
               )}
               <div className="flex items-baseline justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
-                  Total a cobrar:
+                  {t('pos.total', 'TOTAL A COBRAR:')}
                 </span>
                 <span className="text-2xl font-black text-slate-950 dark:text-white">
                   {formatCurrency(total, currency)}
@@ -1157,9 +1159,9 @@ export const PosPage: React.FC = () => {
             {/* Selector de Método de Pago Compacto */}
             <div className="grid grid-cols-3 gap-1.5">
               {[
-                { id: 'cash', label: 'Efectivo', icon: Banknote },
-                { id: 'transfer', label: 'QR / Trans.', icon: Smartphone },
-                { id: 'card', label: 'Tarjeta', icon: CreditCard },
+                { id: 'cash', label: t('pos.cash', 'Efectivo'), icon: Banknote },
+                { id: 'transfer', label: t('pos.transfer', 'QR / Trans.'), icon: Smartphone },
+                { id: 'card', label: t('pos.card', 'Tarjeta'), icon: CreditCard },
               ].map((m) => {
                 const Icon = m.icon;
                 const isSelected = paymentMethod === m.id;
@@ -1219,7 +1221,7 @@ export const PosPage: React.FC = () => {
 
                 {amountPaid && parseFloat(amountPaid) >= total && (
                   <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-black">
-                    <span>Cambio / Vuelto:</span>
+                    <span>{t('pos.change', 'Cambio / Vuelto:')}</span>
                     <span className="text-sm font-black">
                       {formatCurrency(parseFloat(amountPaid) - total, currency)}
                     </span>
@@ -1242,10 +1244,10 @@ export const PosPage: React.FC = () => {
               <CheckCircle2 className="w-4 h-4" />
               <span>
                 {processing
-                  ? 'Procesando Venta...'
+                  ? t('common.loading', 'Procesando Venta...')
                   : cart.length === 0
-                  ? 'Carrito Vacío'
-                  : `Cobrar ${formatCurrency(total, currency)}`}
+                  ? t('pos.cart_empty', 'Carrito Vacío')
+                  : `${t('pos.process_sale', 'Cobrar')} ${formatCurrency(total, currency)}`}
               </span>
             </button>
           </div>

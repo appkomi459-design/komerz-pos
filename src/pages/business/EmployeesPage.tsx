@@ -42,6 +42,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { formatDate, formatCurrency } from '@/utils/formatters';
 import type { BusinessMember, Profile, Sale } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SellerWithStats {
   memberId: string;
@@ -60,6 +61,7 @@ interface SellerWithStats {
 
 export const EmployeesPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
+  const { t } = useLanguage();
 
   const [sellers, setSellers] = useState<SellerWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -451,10 +453,10 @@ export const EmployeesPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Vendedores y Equipo
+              {t('employees.title', 'Vendedores y Equipo')}
             </h1>
             <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Crea usuarios con acceso directo a venta en caja y consulta de stock
+              {t('employees.subtitle', 'Crea usuarios con acceso directo a venta en caja y consulta de stock')}
             </p>
           </div>
         </div>
@@ -467,7 +469,7 @@ export const EmployeesPage: React.FC = () => {
           className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-600/20 rounded-xl px-4 py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer transition-all"
         >
           <Plus className="w-4 h-4" />
-          <span>Registrar Nuevo Vendedor</span>
+          <span>{t('employees.new', 'Registrar Nuevo Vendedor')}</span>
         </Button>
       </div>
 
@@ -479,7 +481,7 @@ export const EmployeesPage: React.FC = () => {
         <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Total Vendedores
+              {t('employees.total', 'TOTAL VENDEDORES')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center">
               <Users className="w-4 h-4" />
@@ -490,7 +492,7 @@ export const EmployeesPage: React.FC = () => {
               {metrics.totalSellers}
             </div>
             <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              Usuarios registrados
+              {t('employees.users_registered', 'Usuarios registrados')}
             </p>
           </div>
         </Card>
@@ -499,7 +501,7 @@ export const EmployeesPage: React.FC = () => {
         <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Vendedores Activos
+              {t('employees.active', 'VENDEDORES ACTIVOS')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
@@ -510,7 +512,7 @@ export const EmployeesPage: React.FC = () => {
               {metrics.activeCount}
             </div>
             <p className="text-[10px] text-emerald-600 font-bold mt-0.5">
-              Con acceso habilitado al POS
+              {t('employees.access_enabled', 'Con acceso habilitado al POS')}
             </p>
           </div>
         </Card>
@@ -519,7 +521,7 @@ export const EmployeesPage: React.FC = () => {
         <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Vendido por el Equipo
+              {t('employees.sold_by_team', 'Vendido por el Equipo')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
@@ -527,10 +529,10 @@ export const EmployeesPage: React.FC = () => {
           </div>
           <div className="mt-2">
             <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-              Bs {metrics.totalSalesByTeam.toLocaleString('es-BO', { minimumFractionDigits: 2 })}
+              {formatCurrency(metrics.totalSalesByTeam, activeBusiness?.currency || 'USD')}
             </div>
             <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              Total acumulado en caja
+              {t('panel.total_sales_sub', 'Total acumulado en caja')}
             </p>
           </div>
         </Card>
@@ -539,18 +541,18 @@ export const EmployeesPage: React.FC = () => {
         <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Vendedor Estrella
+              {t('employees.star_seller', 'Vendedor Estrella')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
               <Award className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 truncate">
-            <div className="text-sm sm:text-base font-black text-slate-900 dark:text-zinc-100 truncate" title={metrics.starSeller?.fullName || 'Sin ventas aún'}>
-              {metrics.starSeller ? metrics.starSeller.fullName : 'Sin ventas aún'}
+            <div className="text-sm sm:text-base font-black text-slate-900 dark:text-zinc-100 truncate" title={metrics.starSeller?.fullName || t('employees.no_sales_yet', 'Sin ventas aún')}>
+              {metrics.starSeller ? metrics.starSeller.fullName : t('employees.no_sales_yet', 'Sin ventas aún')}
             </div>
             <p className="text-[10px] text-amber-600 font-bold mt-0.5 font-mono">
-              {metrics.starSeller ? `Bs ${metrics.starSeller.totalSold.toFixed(2)} (${metrics.starSeller.salesCount} ventas)` : 'Esperando ventas'}
+              {metrics.starSeller ? `${formatCurrency(metrics.starSeller.totalSold, activeBusiness?.currency || 'USD')} (${metrics.starSeller.salesCount} ${t('employees.tickets', 'ventas')})` : t('employees.waiting', 'Esperando ventas')}
             </p>
           </div>
         </Card>
@@ -566,7 +568,7 @@ export const EmployeesPage: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar vendedor por nombre o correo de acceso..."
+            placeholder={t('employees.search', 'Buscar vendedor por nombre o correo de acceso...')}
             className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
           />
         </div>
@@ -608,12 +610,12 @@ export const EmployeesPage: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50/80 dark:bg-zinc-800/40 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400 border-b border-slate-100 dark:border-zinc-800">
                 <tr>
-                  <th className="py-3 px-3 sm:px-4">Vendedor</th>
-                  <th className="py-3 px-3">Sucursal</th>
-                  <th className="py-3 px-3">Rol</th>
-                  <th className="py-3 px-3 text-right">Vendido</th>
-                  <th className="py-3 px-3 text-center">Estado de Acceso</th>
-                  <th className="py-3 px-3 sm:px-4 text-right">Acciones</th>
+                  <th className="py-3 px-3 sm:px-4">{t('employees.seller_col', 'Vendedor')}</th>
+                  <th className="py-3 px-3">{t('employees.branch_col', 'Sucursal')}</th>
+                  <th className="py-3 px-3">{t('employees.role_col', 'Rol')}</th>
+                  <th className="py-3 px-3 text-right">{t('employees.total_col', 'Vendido')}</th>
+                  <th className="py-3 px-3 text-center">{t('employees.access_col', 'Estado de Acceso')}</th>
+                  <th className="py-3 px-3 sm:px-4 text-right">{t('employees.actions_col', 'Acciones')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">
@@ -647,7 +649,7 @@ export const EmployeesPage: React.FC = () => {
                           {seller.branchName}
                         </span>
                       ) : (
-                        <span className="text-slate-400 text-[10px]">— Sin asignar</span>
+                        <span className="text-slate-400 text-[10px]">— {t('employees.unassigned', 'Sin asignar')}</span>
                       )}
                     </td>
 
@@ -657,17 +659,17 @@ export const EmployeesPage: React.FC = () => {
                         variant={seller.role === 'owner' ? 'emerald' : seller.role === 'admin' ? 'blue' : 'gray'}
                         size="sm"
                       >
-                        {seller.role === 'owner' ? '👑 Dueño' : seller.role === 'admin' ? '🛡️ Admin' : '🛒 Vendedor'}
+                        {seller.role === 'owner' ? `👑 ${t('role.owner', 'Dueño')}` : seller.role === 'admin' ? `🛡️ ${t('role.admin', 'Admin')}` : `🛒 ${t('role.cashier', 'Vendedor')}`}
                       </Badge>
                     </td>
 
                     {/* Ventas y Total */}
                     <td className="py-3 px-3 whitespace-nowrap text-right">
                       <div className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
-                        Bs {seller.totalSold.toFixed(2)}
+                        {formatCurrency(seller.totalSold, activeBusiness?.currency || 'USD')}
                       </div>
                       <div className="text-[10px] text-slate-400 font-normal">
-                        {seller.salesCount} ventas
+                        {seller.salesCount} {t('employees.tickets', 'ventas')}
                       </div>
                     </td>
 
@@ -679,7 +681,7 @@ export const EmployeesPage: React.FC = () => {
                           disabled={updatingMemberId === seller.memberId}
                           onClick={() => handleToggleStatus(seller.memberId, seller.isActive)}
                           className="inline-flex items-center gap-2 group cursor-pointer focus:outline-none"
-                          title={seller.isActive ? 'Clic para bloquear acceso' : 'Clic para permitir acceso'}
+                          title={seller.isActive ? t('employees.deactivate', 'Desactivar Acceso') : t('employees.activate', 'Activar Acceso')}
                         >
                           <div
                             className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${
@@ -699,13 +701,13 @@ export const EmployeesPage: React.FC = () => {
                                 : 'text-rose-600 dark:text-rose-400'
                             }`}
                           >
-                            {seller.isActive ? 'Puede entrar' : 'No puede entrar'}
+                            {seller.isActive ? t('employees.can_enter', 'Puede entrar') : t('employees.no_access', 'Sin acceso')}
                           </span>
                         </button>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
                           <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                          Siempre activo
+                          {t('employees.always_active', 'Siempre activo')}
                         </span>
                       )}
                     </td>
@@ -718,7 +720,7 @@ export const EmployeesPage: React.FC = () => {
                             type="button"
                             onClick={() => handleOpenEdit(seller)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors cursor-pointer"
-                            title="Editar datos del vendedor"
+                            title={t('employees.edit', 'Editar')}
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -726,13 +728,13 @@ export const EmployeesPage: React.FC = () => {
                             type="button"
                             onClick={() => setDeletingSeller(seller)}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
-                            title="Eliminar vendedor"
+                            title={t('employees.delete', 'Eliminar')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ) : (
-                        <span className="text-[10px] text-slate-400 italic">Cuenta Principal</span>
+                        <span className="text-[10px] text-slate-400 italic">{t('employees.main_account', 'Cuenta Principal')}</span>
                       )}
                     </td>
                   </tr>

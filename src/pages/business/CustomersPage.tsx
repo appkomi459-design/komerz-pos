@@ -30,9 +30,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Customer, Sale } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const CustomersPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
+  const { t } = useLanguage();
   const currency = activeBusiness?.currency || 'BOB';
   const navigate = useNavigate();
 
@@ -266,11 +268,11 @@ export const CustomersPage: React.FC = () => {
               <Users className="w-5 h-5" />
             </span>
             <h1 className="text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Directorio de Clientes
+              {t('customers.title', 'Clientes')}
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 pl-10">
-            Gestiona la cartera de clientes, datos para facturación (NIT / CI) y compras acumuladas
+            {t('customers.subtitle', 'Registro y gestión de clientes')}
           </p>
         </div>
 
@@ -282,7 +284,7 @@ export const CustomersPage: React.FC = () => {
             className="px-3.5 py-2 rounded-xl border border-emerald-300 dark:border-emerald-800 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <ShoppingBag className="w-4 h-4 text-emerald-600" />
-            <span>Ver Registro de Ventas</span>
+            <span>{t('customer_sales.title', 'Ventas a Clientes')}</span>
           </button>
 
           {/* Botón Nuevo Cliente */}
@@ -292,7 +294,7 @@ export const CustomersPage: React.FC = () => {
             className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md shadow-amber-600/20 font-black cursor-pointer"
             icon={<UserPlus className="w-4 h-4" />}
           >
-            Nuevo Cliente
+            {t('customers.new', 'Nuevo Cliente')}
           </Button>
         </div>
       </div>
@@ -302,13 +304,13 @@ export const CustomersPage: React.FC = () => {
         <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Total Clientes
+              {t('customers.total', 'Total Clientes')}
             </p>
             <p className="text-2xl font-black text-slate-900 dark:text-zinc-100 mt-0.5 font-mono">
               {customerStats.total}
             </p>
             <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              Registrados en tu negocio
+              {t('panel.customers_registered', 'Registrados')}
             </p>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center">
@@ -319,7 +321,7 @@ export const CustomersPage: React.FC = () => {
         <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Para Facturación (NIT / CI)
+              {t('customers.tax_id', 'NIT / CI')}
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className="text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
@@ -330,7 +332,7 @@ export const CustomersPage: React.FC = () => {
               </span>
             </div>
             <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              Listos para facturas fiscales
+              {t('settings.billing_title', 'Facturación')}
             </p>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">
@@ -341,7 +343,7 @@ export const CustomersPage: React.FC = () => {
         <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
           <div>
             <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Con WhatsApp / Celular
+              {t('customers.phone', 'Teléfono')} / WhatsApp
             </p>
             <div className="flex items-baseline gap-2 mt-0.5">
               <span className="text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
@@ -352,7 +354,7 @@ export const CustomersPage: React.FC = () => {
               </span>
             </div>
             <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              Contacto directo habilitado
+              {t('common.active', 'Contacto')}
             </p>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 flex items-center justify-center">

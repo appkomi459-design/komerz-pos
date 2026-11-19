@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate, formatFullDate } from '@/utils/formatters';
 import { SellerDashboardPage } from './SellerDashboardPage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DashboardMetrics {
   salesToday: number;
@@ -43,6 +44,7 @@ interface DashboardMetrics {
 
 export const DashboardOverviewPage: React.FC = () => {
   const { activeBusiness, mainBranch, currentRole } = useBusiness();
+  const { t } = useLanguage();
 
   // Si el usuario es Vendedor / Cajero, mostrar su panel personalizado
   if (currentRole === 'cashier') {
@@ -211,10 +213,10 @@ export const DashboardOverviewPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-zinc-400">
             <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 px-2.5 py-1 rounded-lg uppercase tracking-wider text-[10px]">
-              Operaciones
+              {t('nav.operations', 'OPERACIONES')}
             </span>
             <span>›</span>
-            <span className="text-gray-900 dark:text-zinc-100 font-extrabold">Panel</span>
+            <span className="text-gray-900 dark:text-zinc-100 font-extrabold">{t('nav.panel', 'Panel')}</span>
           </div>
         </div>
         <div className="text-xs font-semibold text-gray-500 dark:text-zinc-400 flex items-center gap-1.5">
@@ -227,10 +229,10 @@ export const DashboardOverviewPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-zinc-100 tracking-tight">
-            Panel General
+            {t('panel.title', 'Panel General')}
           </h1>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
-            {activeBusiness?.name} • Sucursal {mainBranch?.name || 'Principal'}
+            {activeBusiness?.name} • {t('common.branch', 'Sucursal')} {mainBranch?.name || t('common.main_branch', 'Sucursal Principal')}
           </p>
         </div>
 
@@ -241,12 +243,12 @@ export const DashboardOverviewPage: React.FC = () => {
               className="bg-rose-600 hover:bg-rose-700 text-white font-bold shadow-lg shadow-rose-600/30"
               icon={<ShoppingCart className="w-4 h-4" />}
             >
-              Abrir Punto de Venta
+              {t('panel.open_pos', 'Abrir Punto de Venta')}
             </Button>
           </Link>
           <Link to="/app/products">
             <Button variant="outline" size="sm" icon={<Plus className="w-4 h-4" />}>
-              Nuevo Producto
+              {t('panel.new_product', 'Nuevo Producto')}
             </Button>
           </Link>
         </div>
@@ -263,7 +265,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <ShoppingCart className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Hoy</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.today', 'Hoy')}</span>
           </div>
           {/* Ilustración: carrito animado */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -278,9 +280,9 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10">
             {metrics.salesTodayCount}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Ventas Hoy</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.sales_today', 'Ventas Hoy')}</p>
           <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">
-            {formatCurrency(metrics.salesToday, currency)} recaudados
+            {formatCurrency(metrics.salesToday, currency)} {t('panel.collected', 'recaudados')}
           </p>
         </div>
 
@@ -290,7 +292,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <TrendingUp className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Día</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.day', 'Día')}</span>
           </div>
           {/* Ilustración: gráfica de tendencia */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -304,8 +306,8 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs truncate relative z-10">
             {formatCurrency(metrics.salesToday, currency)}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Ingresos Hoy</p>
-          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">Total del día</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.income_today', 'Ingresos Hoy')}</p>
+          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">{t('panel.income_today_sub', 'Total del día')}</p>
         </div>
 
         {/* 3. STOCK BAJO (Azul-Verde Alerta) */}
@@ -314,7 +316,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <AlertTriangle className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Alerta</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.alert', 'Alerta')}</span>
           </div>
           {/* Ilustración: caja con exclamación */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -329,9 +331,9 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10">
             {metrics.lowStockCount}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Stock Bajo</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.low_stock', 'Stock Bajo')}</p>
           <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">
-            {metrics.lowStockCount > 0 ? 'Requieren reabastecer' : 'Inventario OK'}
+            {metrics.lowStockCount > 0 ? `${metrics.lowStockCount} ${t('panel.low_stock_items', 'productos con stock bajo')}` : t('panel.low_stock_ok', 'Inventario OK')}
           </p>
         </div>
 
@@ -341,7 +343,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <Users className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Equipo</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.team', 'Equipo')}</span>
           </div>
           {/* Ilustración: equipo de personas */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -358,8 +360,8 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10">
             {metrics.employeesCount}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Empleados</p>
-          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">Personal activo</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.employees', 'Empleados')}</p>
+          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">{t('panel.employees_sub', 'Personal activo')}</p>
         </div>
 
         {/* 5. CLIENTES (Ámbar Dorado) */}
@@ -368,7 +370,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <UserCheck className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Cartera</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.wallet_badge', 'Cartera')}</span>
           </div>
           {/* Ilustración: persona con estrella */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -382,8 +384,8 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10">
             {metrics.customersCount}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Clientes</p>
-          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">Registrados</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.customers', 'Clientes')}</p>
+          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">{t('panel.customers_registered', 'Registrados')}</p>
         </div>
 
         {/* 6. VENTAS DEL MES (Púrpura Violeta) */}
@@ -392,7 +394,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <CreditCard className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Mes</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.month_badge', 'Mes')}</span>
           </div>
           {/* Ilustración: billete con monedas */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -408,9 +410,9 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs truncate relative z-10">
             {formatCurrency(metrics.salesMonth, currency)}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Ventas del Mes</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.sales_month', 'Ventas del Mes')}</p>
           <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">
-            {metrics.transactionsMonth} tickets este mes
+            {metrics.transactionsMonth} {t('common.tickets', 'tickets')} {t('panel.month_badge', 'este mes')}
           </p>
         </div>
 
@@ -420,7 +422,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <Package className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Stock</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.stock_badge', 'Stock')}</span>
           </div>
           {/* Ilustración: caja de producto */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -434,8 +436,8 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10">
             {metrics.productsCount}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Productos</p>
-          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">En inventario</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.products', 'Productos')}</p>
+          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">{t('panel.products_sub', 'En inventario')}</p>
         </div>
 
         {/* 8. TOTAL HISTORIAL (Vino Borgoña) */}
@@ -444,7 +446,7 @@ export const DashboardOverviewPage: React.FC = () => {
             <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <Receipt className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">Historial</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.history_badge', 'Historial')}</span>
           </div>
           {/* Ilustración: recibo/ticket */}
           <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
@@ -458,8 +460,8 @@ export const DashboardOverviewPage: React.FC = () => {
           <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10">
             {metrics.totalSalesCount}
           </p>
-          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">Total Ventas</p>
-          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">Historial acumulado</p>
+          <p className="text-xs font-black uppercase tracking-wider text-white/95 mt-1.5 relative z-10">{t('panel.total_sales', 'Total Ventas')}</p>
+          <p className="text-[11px] text-white/75 font-medium truncate mt-0.5 relative z-10">{t('panel.total_sales_sub', 'Historial acumulado')}</p>
         </div>
       </div>
 
@@ -476,9 +478,9 @@ export const DashboardOverviewPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-black text-white tracking-tight">
-                  Ingresos — últimos 7 días
+                  {t('panel.week_billing', 'Facturación últimos 7 días')}
                 </h3>
-                <p className="text-xs font-bold text-slate-300">Rendimiento de facturación diaria</p>
+                <p className="text-xs font-bold text-slate-300">{t('panel.billing_chart', 'Rendimiento de facturación diaria')}</p>
               </div>
             </div>
 
@@ -538,9 +540,9 @@ export const DashboardOverviewPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-black text-white tracking-tight">
-                  Actividad reciente
+                  {t('panel.recent_sales', 'Últimos tickets de venta')}
                 </h3>
-                <p className="text-xs font-bold text-slate-300">Últimos tickets de venta</p>
+                <p className="text-xs font-bold text-slate-300">{t('panel.recent_sales', 'Actividad reciente')}</p>
               </div>
             </div>
 
@@ -549,13 +551,13 @@ export const DashboardOverviewPage: React.FC = () => {
                 <div className="text-center py-10">
                   <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-zinc-600 mx-auto mb-2 opacity-50" />
                   <p className="text-xs font-bold text-slate-600 dark:text-zinc-400">
-                    Aún no hay ventas registradas
+                    {t('panel.no_recent_sales', 'Sin ventas recientes')}
                   </p>
                   <Link
                     to="/app/pos"
                     className="inline-block mt-3 text-xs font-black text-rose-600 dark:text-rose-400 hover:underline"
                   >
-                    Hacer mi primera venta →
+                    {t('panel.open_pos', 'Hacer mi primera venta')} →
                   </Link>
                 </div>
               ) : (
@@ -573,7 +575,7 @@ export const DashboardOverviewPage: React.FC = () => {
                           {sale.invoice_number}
                         </p>
                         <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 truncate">
-                          {sale.customer?.name || 'Cliente Ocasional'} • {formatDate(sale.created_at)}
+                          {sale.customer?.name || t('sales.consumer', 'Consumidor Final')} • {formatDate(sale.created_at)}
                         </p>
                       </div>
                     </div>
@@ -591,7 +593,7 @@ export const DashboardOverviewPage: React.FC = () => {
               to="/app/sales"
               className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition-colors shadow-md"
             >
-              Ver todas las ventas <ArrowRight className="w-3.5 h-3.5" />
+              {t('panel.view_all', 'Ver todas las ventas')} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>

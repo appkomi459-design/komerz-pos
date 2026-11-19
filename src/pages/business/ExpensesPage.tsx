@@ -32,6 +32,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/utils/formatters';
 import type { Expense, CashSession } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Categorías predefinidas comunes para retail/minimarket/carnicería
 const PRESET_CATEGORIES = [
@@ -48,6 +49,7 @@ const PRESET_CATEGORIES = [
 export const ExpensesPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
   const { profile } = useAuth();
+  const { t } = useLanguage();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -289,10 +291,10 @@ export const ExpensesPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Control de Gastos Operativos
+              {t('expenses.title', 'Gastos')}
             </h1>
             <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Registra costos de servicios, alquiler, bolsas e insumos del negocio
+              {t('expenses.subtitle', 'Control de egresos y gastos operativos')}
             </p>
           </div>
         </div>
@@ -305,7 +307,7 @@ export const ExpensesPage: React.FC = () => {
           className="bg-gradient-to-r from-rose-600 via-rose-700 to-rose-800 hover:from-rose-700 hover:to-rose-800 text-white shadow-md shadow-rose-600/20 rounded-xl px-4 py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer transition-all"
         >
           <Plus className="w-4 h-4" />
-          <span>Registrar Nuevo Gasto</span>
+          <span>{t('expenses.new', 'Nuevo Gasto')}</span>
         </Button>
       </div>
 
@@ -317,7 +319,7 @@ export const ExpensesPage: React.FC = () => {
         <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Gastos del Mes
+              {t('expenses.month', 'Gastos del Mes')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
@@ -328,7 +330,7 @@ export const ExpensesPage: React.FC = () => {
               Bs {metrics.totalMonth.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              {metrics.countMonth} gastos registrados
+              {metrics.countMonth} {t('expenses.title', 'gastos')}
             </p>
           </div>
         </Card>
@@ -337,7 +339,7 @@ export const ExpensesPage: React.FC = () => {
         <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Gastos de Hoy
+              {t('expenses.today', 'Gastos de Hoy')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
               <Calendar className="w-4 h-4" />

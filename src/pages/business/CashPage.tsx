@@ -27,10 +27,12 @@ import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { formatDate } from '@/utils/formatters';
 import type { CashSession, CashMovement, Sale } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const CashPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
   const { profile } = useAuth();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [activeSession, setActiveSession] = useState<CashSession | null>(null);
@@ -213,7 +215,7 @@ export const CashPage: React.FC = () => {
             <Wallet className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-900 dark:text-zinc-100">Control de Caja</h1>
+            <h1 className="text-xl font-black text-slate-900 dark:text-zinc-100">{t('cash.title', 'Control de Caja')}</h1>
             <p className="text-xs text-slate-400 font-medium">
               {new Date().toLocaleDateString('es-BO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </p>
@@ -236,12 +238,12 @@ export const CashPage: React.FC = () => {
                 <Minus className="w-3.5 h-3.5" /><span>Salida</span>
               </button>
               <button type="button" onClick={() => setIsCloseSessionModal(true)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs">
-                <StopCircle className="w-3.5 h-3.5" /><span>Cerrar Turno</span>
+                <StopCircle className="w-3.5 h-3.5" /><span>{t('cash.close', 'Cerrar Turno')}</span>
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setIsOpenSessionModal(true)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs">
-              <PlayCircle className="w-3.5 h-3.5" /><span>Abrir Turno</span>
+              <PlayCircle className="w-3.5 h-3.5" /><span>{t('cash.open', 'Abrir Turno')}</span>
             </button>
           )}
         </div>
@@ -253,7 +255,7 @@ export const CashPage: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
             <div>
-              <span className="text-sm font-black text-emerald-800 dark:text-emerald-300">Turno Abierto</span>
+              <span className="text-sm font-black text-emerald-800 dark:text-emerald-300">{t('cash.open_now', 'Turno Abierto')}</span>
               <p className="text-[11px] text-slate-500 dark:text-zinc-400">
                 Abierto por <strong>{activeSession.opened_by}</strong> · Desde las {new Date(activeSession.opened_at).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
               </p>

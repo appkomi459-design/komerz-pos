@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/Input';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
 import type { Branch } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const BranchesPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
+  const { t } = useLanguage();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,10 +76,10 @@ export const BranchesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 dark:text-zinc-100 tracking-tight">
-            Sucursales del Negocio
+            {t('branches.title', 'Sucursales')}
           </h1>
           <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-            Administra los locales físicos, almacenes y puntos de venta independientes
+            {t('branches.subtitle', 'Gestión de puntos de venta y ubicaciones')}
           </p>
         </div>
 
@@ -86,7 +88,7 @@ export const BranchesPage: React.FC = () => {
           size="sm"
           icon={<Plus className="w-4 h-4" />}
         >
-          Nueva Sucursal
+          {t('branches.new', 'Nueva Sucursal')}
         </Button>
       </div>
 

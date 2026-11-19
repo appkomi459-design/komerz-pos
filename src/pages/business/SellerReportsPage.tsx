@@ -16,7 +16,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { formatDate } from '@/utils/formatters';
+import { formatDate, formatCurrency } from '@/utils/formatters';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type TimeRange = 'today' | 'week' | 'month' | 'all';
 
@@ -40,6 +41,7 @@ interface SellerInfo {
 
 export const SellerReportsPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<TimeRange>('today');
@@ -341,10 +343,10 @@ export const SellerReportsPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Reporte de Ventas por Sucursal
+              {t('seller_report.title', 'Reporte de Ventas por Sucursal')}
             </h1>
             <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Controla las ventas, ganancias netas y productividad de cada vendedor por sucursal
+              {t('seller_report.subtitle', 'Controla las ventas, ganancias netas y productividad de cada vendedor por sucursal')}
             </p>
           </div>
         </div>
@@ -360,7 +362,7 @@ export const SellerReportsPage: React.FC = () => {
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
-            📅 Hoy
+            📅 {t('seller_report.today', 'Hoy')}
           </button>
           <button
             type="button"
@@ -371,7 +373,7 @@ export const SellerReportsPage: React.FC = () => {
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
-            Esta Semana
+            {t('seller_report.week', 'Esta Semana')}
           </button>
           <button
             type="button"
@@ -382,7 +384,7 @@ export const SellerReportsPage: React.FC = () => {
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
-            Este Mes
+            {t('seller_report.month', 'Este Mes')}
           </button>
           <button
             type="button"
@@ -393,7 +395,7 @@ export const SellerReportsPage: React.FC = () => {
                 : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
             }`}
           >
-            Todo el Histórico
+            {t('seller_report.historical', 'Histórico')}
           </button>
         </div>
       </div>
@@ -405,68 +407,68 @@ export const SellerReportsPage: React.FC = () => {
         <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              {timeRange === 'today' ? 'Vendido Hoy' : timeRange === 'week' ? 'Ventas de la Semana' : timeRange === 'month' ? 'Ventas del Mes' : 'Total Histórico'}
+              {t('seller_report.sold_today', 'Vendido')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-            Bs {report.periodTotalSales.toFixed(2)}
+            {formatCurrency(report.periodTotalSales, activeBusiness?.currency || 'USD')}
           </div>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            En {report.periodTotalTickets} ticket{report.periodTotalTickets === 1 ? '' : 's'} emitidos
+            {report.periodTotalTickets} {t('seller_report.tickets_issued', 'tickets emitidos')}
           </p>
         </Card>
 
         <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Ganancia Neta
+              {t('seller_report.net_profit', 'Ganancia Neta')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-            Bs {report.periodTotalProfit.toFixed(2)}
+            {formatCurrency(report.periodTotalProfit, activeBusiness?.currency || 'USD')}
           </div>
           <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold mt-0.5">
-            Margen promedio: {report.periodMargin.toFixed(1)}%
+            {t('seller_report.margin', 'Margen promedio')}: {report.periodMargin.toFixed(1)}%
           </p>
         </Card>
 
         <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Costo Mercadería
+              {t('seller_report.cost', 'Costo Mercadería')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center">
               <ShoppingBag className="w-4 h-4" />
             </div>
           </div>
           <div className="text-xl sm:text-2xl font-black text-slate-800 dark:text-zinc-200 font-mono">
-            Bs {report.periodTotalCost.toFixed(2)}
+            {formatCurrency(report.periodTotalCost, activeBusiness?.currency || 'USD')}
           </div>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            Costo de reposición estimado
+            {t('seller_report.cost_sub', 'Costo de reposición estimado')}
           </p>
         </Card>
 
         <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              Vendedor Destacado
+              {t('employees.star_seller', 'Vendedor Estrella')}
             </span>
             <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center">
               <Award className="w-4 h-4" />
             </div>
           </div>
           <div className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 truncate">
-            {report.topSeller ? report.topSeller.fullName : 'Esperando ventas'}
+            {report.topSeller ? report.topSeller.fullName : t('employees.waiting', 'Esperando ventas')}
           </div>
           <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-            {report.topSeller ? `+ Bs ${report.topSeller.profit.toFixed(2)} ganancia` : 'Sin datos en el período'}
+            {report.topSeller ? `+ ${formatCurrency(report.topSeller.profit, activeBusiness?.currency || 'USD')} ${t('seller_report.profit', 'ganancia')}` : t('reports.no_data', 'Sin datos')}
           </p>
         </Card>
       </div>
@@ -572,13 +574,13 @@ export const SellerReportsPage: React.FC = () => {
                     <table className="w-full text-left text-xs">
                       <thead className="bg-white dark:bg-zinc-900 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-zinc-800">
                         <tr>
-                          <th className="py-2.5 px-4">Vendedor</th>
-                          <th className="py-2.5 px-3 text-center">Tickets</th>
-                          <th className="py-2.5 px-3 text-right">Total Vendido</th>
-                          <th className="py-2.5 px-3 text-right">Costo</th>
-                          <th className="py-2.5 px-3 text-right">Ganancia Neta</th>
-                          <th className="py-2.5 px-3 text-center">Margen %</th>
-                          <th className="py-2.5 px-4 text-right">Aporte Sucursal</th>
+                          <th className="py-2.5 px-4">{t('seller_report.seller', 'Vendedor')}</th>
+                          <th className="py-2.5 px-3 text-center">{t('common.tickets', 'Tickets')}</th>
+                          <th className="py-2.5 px-3 text-right">{t('seller_report.sales', 'Total Vendido')}</th>
+                          <th className="py-2.5 px-3 text-right">{t('seller_report.cost', 'Costo')}</th>
+                          <th className="py-2.5 px-3 text-right">{t('seller_report.profit', 'Ganancia Neta')}</th>
+                          <th className="py-2.5 px-3 text-center">{t('seller_report.margin_col', 'Margen %')}</th>
+                          <th className="py-2.5 px-4 text-right">Aporte</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">

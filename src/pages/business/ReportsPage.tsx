@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatDate } from '@/utils/formatters';
 import type { Sale, Purchase, Expense, Product } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExtendedSaleItem {
   id: string;
@@ -45,6 +46,7 @@ interface ExtendedSaleItem {
 
 export const ReportsPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'last_month' | 'all'>('month');
@@ -369,10 +371,10 @@ export const ReportsPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Reportes y Analíticas
+              {t('reports.title', 'Reportes')}
             </h1>
             <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
-              Estado financiero real, productos más vendidos y rendimiento de tu negocio
+              {t('reports.subtitle', 'Análisis de ventas, inventario y finanzas')}
             </p>
           </div>
         </div>
@@ -394,7 +396,7 @@ export const ReportsPage: React.FC = () => {
             className="text-xs font-bold rounded-xl px-3 py-2 flex items-center gap-1.5 cursor-pointer border-slate-200 dark:border-zinc-700"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>Exportar CSV</span>
+            <span>{t('common.export', 'Exportar')} CSV</span>
           </Button>
 
           <Button
@@ -402,7 +404,7 @@ export const ReportsPage: React.FC = () => {
             className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl px-4 py-2 flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <Printer className="w-4 h-4" />
-            <span>Imprimir Reporte</span>
+            <span>{t('common.print', 'Imprimir Reporte')}</span>
           </Button>
         </div>
       </div>
@@ -411,16 +413,16 @@ export const ReportsPage: React.FC = () => {
       <div className="flex items-center justify-between bg-white dark:bg-zinc-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-zinc-800 shadow-xs flex-wrap gap-2 print:hidden">
         <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-3 flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-indigo-500" />
-          <span>Período:</span>
+          <span>{t('common.date', 'Período')}:</span>
         </span>
 
         <div className="flex items-center gap-1 flex-wrap">
           {[
-            { id: 'today', label: 'Hoy' },
-            { id: 'week', label: 'Últimos 7 días' },
-            { id: 'month', label: 'Este Mes' },
-            { id: 'last_month', label: 'Mes Anterior' },
-            { id: 'all', label: 'Todo el Historial' },
+            { id: 'today', label: t('reports.today', 'Hoy') },
+            { id: 'week', label: t('reports.week', 'Esta Semana') },
+            { id: 'month', label: t('reports.month', 'Este Mes') },
+            { id: 'last_month', label: t('reports.month', 'Mes Anterior') },
+            { id: 'all', label: t('reports.historical', 'Histórico') },
           ].map((tab) => (
             <button
               key={tab.id}

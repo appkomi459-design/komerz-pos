@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Sale } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SaleItemWithProduct {
   id: string;
@@ -50,6 +51,7 @@ interface SaleWithItems extends Sale {
 
 export const SalesPage: React.FC = () => {
   const { activeBusiness, settings } = useBusiness();
+  const { t } = useLanguage();
   const [sales, setSales] = useState<SaleWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -861,17 +863,17 @@ export const SalesPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              Historial de Ventas
+              {t('sales.title', 'Historial de Ventas')}
             </h1>
             <p className="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
-              Registro de todas las facturas y comprobantes emitidos en el negocio
+              {t('sales.subtitle', 'Registro de todas las facturas y comprobantes emitidos en el negocio')}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400 bg-white dark:bg-[#181615] px-4 py-2 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm">
           <Calendar className="w-4 h-4 text-emerald-600" />
-          <span>{sales.length} Comprobantes Emitidos</span>
+          <span>{sales.length} {t('common.tickets', 'comprobantes')}</span>
         </div>
       </div>
 
@@ -881,7 +883,7 @@ export const SalesPage: React.FC = () => {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar por número de factura, cliente o producto..."
+            placeholder={t('sales.search', 'Buscar por número de factura, cliente o producto...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500 shadow-xs transition-all"
@@ -902,14 +904,14 @@ export const SalesPage: React.FC = () => {
         {loading ? (
           <div className="py-20 text-center">
             <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs font-black text-slate-500">Cargando historial de ventas...</p>
+            <p className="text-xs font-black text-slate-500">{t('sales.loading', 'Cargando historial de ventas...')}</p>
           </div>
         ) : filteredSales.length === 0 ? (
           <div className="py-20 text-center text-slate-400 dark:text-zinc-500">
             <Receipt className="w-12 h-12 mx-auto mb-2 opacity-30 text-slate-400" />
-            <p className="text-sm font-black text-slate-700 dark:text-zinc-300">No se encontraron ventas.</p>
+            <p className="text-sm font-black text-slate-700 dark:text-zinc-300">{t('sales.no_sales', 'No se encontraron ventas.')}</p>
             <p className="text-xs font-bold mt-1 text-slate-400">
-              {search ? 'Intenta con otro término de búsqueda.' : 'Realiza tu primera venta desde el Punto de Venta (Caja).'}
+              {search ? t('sales.no_sales', 'Intenta con otro término de búsqueda.') : t('sales.no_sales', 'Realiza tu primera venta desde el Punto de Venta (Caja).')}
             </p>
           </div>
         ) : (
@@ -917,14 +919,14 @@ export const SalesPage: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-zinc-850 uppercase tracking-wider text-slate-500 dark:text-zinc-400 border-b-2 border-slate-200 dark:border-zinc-800 font-black text-[10px]">
                 <tr>
-                  <th className="px-4 py-3.5 whitespace-nowrap">Nº Factura</th>
-                  <th className="px-4 py-3.5 whitespace-nowrap">Fecha & Hora</th>
-                  <th className="px-4 py-3.5">Productos Vendidos</th>
-                  <th className="px-4 py-3.5 whitespace-nowrap">Cliente</th>
-                  <th className="px-4 py-3.5 text-center whitespace-nowrap">Método</th>
-                  <th className="px-4 py-3.5 text-right whitespace-nowrap">Total</th>
-                  <th className="px-4 py-3.5 text-center whitespace-nowrap">Estado</th>
-                  <th className="px-4 py-3.5 text-right whitespace-nowrap">Acciones</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">{t('sales.ticket', 'Nº Factura')}</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">{t('sales.date', 'Fecha & Hora')}</th>
+                  <th className="px-4 py-3.5">{t('sales.products', 'Productos Vendidos')}</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">{t('sales.customer', 'Cliente')}</th>
+                  <th className="px-4 py-3.5 text-center whitespace-nowrap">{t('sales.payment', 'Método')}</th>
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">{t('sales.total', 'Total')}</th>
+                  <th className="px-4 py-3.5 text-center whitespace-nowrap">{t('common.status', 'Estado')}</th>
+                  <th className="px-4 py-3.5 text-right whitespace-nowrap">{t('common.actions', 'Acciones')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">
