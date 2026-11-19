@@ -75,7 +75,7 @@ export const PosPage: React.FC = () => {
   const [taxMode, setTaxMode] = useState<'included' | 'added' | 'none'>(() => {
     const saved = localStorage.getItem('komipos_tax_mode');
     if (saved === 'none' || saved === 'included' || saved === 'added') return saved;
-    return 'included';
+    return 'none';
   });
 
   // Porcentaje (%) de IVA configurable por el comerciante:
@@ -935,179 +935,237 @@ export const PosPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Fila Pills Compactos de IVA y Descuento (Abren subpaneles sin saturar) */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowTaxDrawer((prev) => !prev);
-                  setShowDiscountDrawer(false);
-                }}
-                className={`flex-1 px-2 py-1 rounded-lg border text-[11px] font-black flex items-center justify-between transition-all cursor-pointer ${
-                  taxMode !== 'none'
-                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
-                    : 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
-                }`}
-              >
-                <span className="flex items-center gap-1 truncate">
-                  <span>{t('pos.tax', 'IVA')}:</span>
-                  <span className="font-bold">{taxMode === 'none' ? '0%' : `${taxPercentage}%`}</span>
-                </span>
-                <span className="font-mono text-[10px]">
-                  {taxMode === 'added'
-                    ? `+${formatCurrency(taxAmount, currency)}`
-                    : taxMode === 'included' && taxAmount > 0
-                    ? `(${formatCurrency(taxAmount, currency)} inc.)`
-                    : formatCurrency(0, currency)}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDiscountDrawer((prev) => !prev);
-                  setShowTaxDrawer(false);
-                }}
-                className={`flex-1 px-2 py-1 rounded-lg border text-[11px] font-black flex items-center justify-between transition-all cursor-pointer ${
-                  discountAmount > 0
-                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300'
-                    : 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
-                }`}
-              >
-                <span className="flex items-center gap-1 truncate">
-                  <span>{t('pos.discount', 'Desc.')}:</span>
-                  <span className="font-bold">
-                    {discountAmount > 0 ? (discountType === 'percent' ? `${discountValue}%` : 'Fijo') : '0%'}
+            {/* Fila de Impuesto Activo (si fue habilitado) */}
+            {taxMode !== 'none' && (
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/80 text-xs animate-fadeIn">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[11px] font-black text-emerald-800 dark:text-emerald-300 truncate">
+                    {t('pos.tax', 'IVA')} ({taxPercentage}% {taxMode === 'included' ? 'inc.' : 'adic.'})
                   </span>
-                </span>
-                <span className="font-mono text-[10px]">
-                  {discountAmount > 0 ? `-${formatCurrency(discountAmount, currency)}` : formatCurrency(0, currency)}
-                </span>
-              </button>
-            </div>
-
-            {/* Subpanel Desplegable de IVA */}
-            {showTaxDrawer && (
-              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800/90 border border-emerald-300 dark:border-emerald-700 text-xs space-y-2 animate-fadeIn">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase text-slate-500">{t('pos.tax', 'Configurar IVA')}</span>
                   <button
                     type="button"
-                    onClick={() => setShowTaxDrawer(false)}
-                    className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
+                    onClick={() => setShowTaxDrawer((prev) => !prev)}
+                    className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 underline cursor-pointer hover:text-emerald-900"
                   >
-                    {t('common.close', 'Cerrar')} ✕
+                    {showTaxDrawer ? t('common.close', 'Cerrar') : t('common.edit', 'Ajustar')}
                   </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[11px] font-black text-emerald-800 dark:text-emerald-300">
+                    {taxMode === 'added'
+                      ? `+${formatCurrency(taxAmount, currency)}`
+                      : `(${formatCurrency(taxAmount, currency)})`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTaxMode('none');
+                      setShowTaxDrawer(false);
+                    }}
+                    className="p-1 rounded-md text-emerald-600 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
+                    title="Desactivar IVA"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Fila de Descuento Activo (si fue aplicado) */}
+            {discountAmount > 0 && (
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700/80 text-xs animate-fadeIn">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[11px] font-black text-rose-800 dark:text-rose-300 truncate">
+                    {t('pos.discount', 'Descuento')} ({discountType === 'percent' ? `${discountValue}%` : 'Fijo'})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDiscountDrawer((prev) => !prev)}
+                    className="text-[10px] font-bold text-rose-700 dark:text-rose-400 underline cursor-pointer hover:text-rose-900"
+                  >
+                    {showDiscountDrawer ? t('common.close', 'Cerrar') : t('common.edit', 'Ajustar')}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[11px] font-black text-rose-700 dark:text-rose-300">
+                    -{formatCurrency(discountAmount, currency)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDiscountValue('');
+                      setShowDiscountDrawer(false);
+                    }}
+                    className="p-1 rounded-md text-rose-500 hover:text-rose-700 hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
+                    title="Quitar descuento"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Botones Opcionales: Aparecen si NO están activos para permitir habilitarlos */}
+            {(taxMode === 'none' || discountAmount === 0) && (
+              <div className="flex items-center gap-1.5">
+                {taxMode === 'none' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTaxMode('included');
+                      setShowTaxDrawer(true);
+                      setShowDiscountDrawer(false);
+                    }}
+                    className="flex-1 py-1.5 px-2 rounded-xl border border-dashed border-slate-300 dark:border-zinc-700 hover:border-emerald-500 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/30 text-[11px] font-black text-slate-600 dark:text-zinc-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                    <span>{t('pos.add_tax', '+ IVA')}</span>
+                  </button>
+                )}
+
+                {discountAmount === 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDiscountDrawer(true);
+                      setShowTaxDrawer(false);
+                    }}
+                    className="flex-1 py-1.5 px-2 rounded-xl border border-dashed border-slate-300 dark:border-zinc-700 hover:border-rose-400 hover:bg-rose-50/60 dark:hover:bg-rose-950/30 text-[11px] font-black text-slate-600 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-300 transition-all flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                    <span>{t('pos.add_discount', '+ Descuento')}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Subpanel Desplegable de IVA (Configuración de Tasa y Modo) */}
+            {showTaxDrawer && (
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/90 border border-emerald-300 dark:border-emerald-700 text-xs space-y-2 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-emerald-800 dark:text-emerald-300">
+                    {t('pos.tax', 'Configurar IVA')}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTaxMode('none');
+                        setShowTaxDrawer(false);
+                      }}
+                      className="text-[10px] font-bold text-rose-500 hover:underline cursor-pointer"
+                    >
+                      {t('pos.disable_tax', 'Desactivar')} ✕
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowTaxDrawer(false)}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
+                    >
+                      {t('common.close', 'Cerrar')}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-1">
                   <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
                     <button
                       type="button"
-                      onClick={() => setTaxMode('none')}
+                      onClick={() => setTaxMode('included')}
                       className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                        taxMode === 'none'
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400'
+                        taxMode === 'included'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-300'
                       }`}
+                      title="IVA ya incluido en el precio de venta"
                     >
-                      {t('pos.without_tax', 'Sin IVA (0%)')}
+                      IVA Incluido
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (taxMode === 'none') setTaxMode('included');
-                      }}
+                      onClick={() => setTaxMode('added')}
                       className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                        taxMode !== 'none'
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400'
+                        taxMode === 'added'
+                          ? 'bg-amber-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-300'
                       }`}
+                      title="Sumar IVA adicional encima del precio"
                     >
-                      {t('pos.with_tax', 'Con IVA')}
+                      + Sumar Adicional
                     </button>
                   </div>
 
-                  {taxMode !== 'none' && (
-                    <div className="inline-flex rounded-md p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px]">
-                      <button
-                        type="button"
-                        onClick={() => setTaxMode('included')}
-                        className={`px-1.5 py-0.5 rounded font-black transition-all cursor-pointer ${
-                          taxMode === 'included'
-                            ? 'bg-emerald-600 text-white'
-                            : 'text-slate-600 dark:text-zinc-300'
-                        }`}
-                        title="IVA ya incluido en el precio"
-                      >
-                        Inc.
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTaxMode('added')}
-                        className={`px-1.5 py-0.5 rounded font-black transition-all cursor-pointer ${
-                          taxMode === 'added'
-                            ? 'bg-amber-600 text-white'
-                            : 'text-slate-600 dark:text-zinc-300'
-                        }`}
-                        title="+ Sumar IVA adicional"
-                      >
-                        + Adicional
-                      </button>
-                    </div>
-                  )}
+                  <span className="font-mono text-xs font-black text-emerald-700 dark:text-emerald-300">
+                    {taxMode === 'added' ? `+${formatCurrency(taxAmount, currency)}` : `(${formatCurrency(taxAmount, currency)} inc.)`}
+                  </span>
                 </div>
 
-                {taxMode !== 'none' && (
-                  <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-200 dark:border-zinc-700">
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] font-bold text-slate-500">Tasa:</span>
-                      <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded px-1.5 py-0.5">
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={taxPercentage}
-                          onChange={(e) => handleTaxPercentageChange(parseFloat(e.target.value) || 0)}
-                          className="w-7 text-center text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none"
-                        />
-                        <span className="text-xs font-black text-emerald-600">%</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      {[13, 16, 18, 19].map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => handleTaxPercentageChange(p)}
-                          className={`px-1.5 py-0.5 text-[10px] font-black rounded border cursor-pointer ${
-                            taxPercentage === p
-                              ? 'bg-emerald-600 text-white border-emerald-600'
-                              : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700'
-                          }`}
-                        >
-                          {p}%
-                        </button>
-                      ))}
+                <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-200 dark:border-zinc-700">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-bold text-slate-500">Tasa:</span>
+                    <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded-md px-1.5 py-0.5 shadow-2xs">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={taxPercentage}
+                        onChange={(e) => handleTaxPercentageChange(parseFloat(e.target.value) || 0)}
+                        className="w-8 text-center text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none"
+                      />
+                      <span className="text-xs font-black text-emerald-600">%</span>
                     </div>
                   </div>
-                )}
+
+                  <div className="flex items-center gap-1">
+                    {[13, 16, 18, 19].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => handleTaxPercentageChange(p)}
+                        className={`px-1.5 py-0.5 text-[10px] font-black rounded border cursor-pointer transition-all ${
+                          taxPercentage === p
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700 hover:border-emerald-500'
+                        }`}
+                      >
+                        {p}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* Subpanel Desplegable de Descuento */}
+            {/* Subpanel Desplegable de Descuento (Porcentaje o Monto Fijo) */}
             {showDiscountDrawer && (
-              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800/90 border border-rose-300 dark:border-rose-700 text-xs space-y-2 animate-fadeIn">
+              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/90 border border-rose-300 dark:border-rose-700 text-xs space-y-2 animate-fadeIn">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase text-slate-500">{t('pos.discount', 'Aplicar Descuento')}</span>
-                  <button
-                    type="button"
-                    onClick={() => setShowDiscountDrawer(false)}
-                    className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
-                  >
-                    {t('common.close', 'Cerrar')} ✕
-                  </button>
+                  <span className="text-[10px] font-black uppercase text-rose-800 dark:text-rose-300">
+                    {t('pos.discount', 'Aplicar Descuento')}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {discountAmount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDiscountValue('');
+                          setShowDiscountDrawer(false);
+                        }}
+                        className="text-[10px] font-bold text-rose-500 hover:underline cursor-pointer"
+                      >
+                        {t('pos.remove_discount', 'Quitar')} ✕
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowDiscountDrawer(false)}
+                      className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
+                    >
+                      {t('common.close', 'Cerrar')}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-2">
@@ -1121,7 +1179,7 @@ export const PosPage: React.FC = () => {
                           : 'text-slate-600 dark:text-zinc-400'
                       }`}
                     >
-                      %
+                      % Porcentaje
                     </button>
                     <button
                       type="button"
@@ -1149,22 +1207,13 @@ export const PosPage: React.FC = () => {
                         placeholder={discountType === 'percent' ? '0' : '0.00'}
                         value={discountValue}
                         onChange={(e) => setDiscountValue(e.target.value)}
-                        className="w-14 text-right text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none bg-transparent"
+                        className="w-14 text-right text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none bg-transparent font-mono"
+                        autoFocus
                       />
                       {discountType === 'percent' && (
                         <span className="text-[10px] font-black text-rose-600">%</span>
                       )}
                     </div>
-                    {discountAmount > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setDiscountValue('')}
-                        className="text-slate-400 hover:text-rose-500 cursor-pointer"
-                        title="Quitar descuento"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                   </div>
                 </div>
 
@@ -1176,10 +1225,10 @@ export const PosPage: React.FC = () => {
                         key={p}
                         type="button"
                         onClick={() => setDiscountValue(String(p))}
-                        className={`px-1.5 py-0.5 text-[9px] font-black rounded border cursor-pointer ${
+                        className={`px-1.5 py-0.5 text-[9px] font-black rounded border cursor-pointer transition-all ${
                           discountValue === String(p)
                             ? 'bg-rose-600 text-white border-rose-600'
-                            : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700'
+                            : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700 hover:border-rose-400'
                         }`}
                       >
                         {p}%
