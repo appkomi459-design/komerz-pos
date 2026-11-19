@@ -35,6 +35,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Badge } from '@/components/ui/Badge';
 import { NotificationsBell } from '@/components/common/NotificationsBell';
 
@@ -49,6 +50,7 @@ export const BusinessLayout: React.FC = () => {
     setActiveBusinessId,
   } = useBusiness();
   const { theme, toggleTheme } = useTheme();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -62,12 +64,12 @@ export const BusinessLayout: React.FC = () => {
     if (currentRole === 'cashier') {
       return [
         {
-          title: 'PUNTO DE VENTA',
+          title: t('nav.pos_section', 'PUNTO DE VENTA'),
           items: [
-            { name: 'Venta (Caja)', path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-            { name: 'Mi Panel de Vendedor', path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-blue-600/30 text-white' },
-            { name: 'Consultar Stock', path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
-            { name: 'Clientes', path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+            { name: t('nav.pos', 'Venta (Caja)'), path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+            { name: t('nav.seller_panel', 'Mi Panel de Vendedor'), path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-blue-600/30 text-white' },
+            { name: t('nav.stock_check', 'Consultar Stock'), path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
+            { name: t('nav.customers', 'Clientes'), path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
           ],
         },
       ];
@@ -76,40 +78,40 @@ export const BusinessLayout: React.FC = () => {
     // Menú completo para el Propietario / Administrador
     return [
       {
-        title: 'OPERACIONES',
+        title: t('nav.operations', 'OPERACIONES'),
         items: [
-          { name: 'Panel', path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
-          { name: 'Venta (Caja)', path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-          { name: 'Productos / Stock', path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
-          { name: 'Categorías', path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+          { name: t('nav.panel', 'Panel'), path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
+          { name: t('nav.pos', 'Venta (Caja)'), path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.products', 'Productos / Stock'), path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
+          { name: t('nav.categories', 'Categorías'), path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
         ],
       },
       {
-        title: 'GESTIÓN & CONTROL',
+        title: t('nav.management', 'GESTIÓN & CONTROL'),
         items: [
-          { name: 'Todas las ventas', path: '/app/sales', icon: Receipt, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
-          { name: 'Clientes', path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
-          { name: 'Ventas a Clientes', path: '/app/customer-sales', icon: UserCheck, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
-          { name: 'Proveedores', path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
-          { name: 'Compras', path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-          { name: 'Caja', path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-          { name: 'Gastos', path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
-          { name: 'Reportes', path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
+          { name: t('nav.sales', 'Todas las ventas'), path: '/app/sales', icon: Receipt, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
+          { name: t('nav.customers', 'Clientes'), path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+          { name: t('nav.customer_sales', 'Ventas a Clientes'), path: '/app/customer-sales', icon: UserCheck, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.suppliers', 'Proveedores'), path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
+          { name: t('nav.purchases', 'Compras'), path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.cash', 'Caja'), path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.expenses', 'Gastos'), path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
+          { name: t('nav.reports', 'Reportes'), path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
         ],
       },
       {
-        title: 'ADMINISTRACIÓN',
+        title: t('nav.admin', 'ADMINISTRACIÓN'),
         items: [
-          { name: 'Vendedores', path: '/app/employees', icon: Users, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-700 shadow-blue-600/30 text-white' },
-          { name: 'Reporte Vendedores', path: '/app/seller-reports', icon: TrendingUp, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
-          { name: 'Sucursales', path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
-          { name: 'Configuración', path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
-          { name: 'Suscripción', path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
-          { name: 'Sugerencias', path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.employees', 'Vendedores'), path: '/app/employees', icon: Users, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-700 shadow-blue-600/30 text-white' },
+          { name: t('nav.seller_reports', 'Reporte Vendedores'), path: '/app/seller-reports', icon: TrendingUp, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.branches', 'Sucursales'), path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+          { name: t('nav.settings', 'Configuración'), path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
+          { name: t('nav.subscription', 'Suscripción'), path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+          { name: t('nav.suggestions', 'Sugerencias'), path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
         ],
       },
     ];
-  }, [currentRole]);
+  }, [currentRole, language, t]);
 
   const handleLogout = async () => {
     await signOut();
@@ -134,15 +136,15 @@ export const BusinessLayout: React.FC = () => {
   const getRoleName = (role: string | null) => {
     switch (role) {
       case 'owner':
-        return 'Propietario';
+        return t('role.owner', 'Propietario');
       case 'admin':
-        return 'Administrador';
+        return t('role.admin', 'Administrador');
       case 'manager':
-        return 'Gerente';
+        return t('role.manager', 'Gerente');
       case 'cashier':
-        return 'Vendedor / Cajero';
+        return t('role.cashier', 'Vendedor / Cajero');
       default:
-        return 'Vendedor';
+        return t('role.seller', 'Vendedor');
     }
   };
 

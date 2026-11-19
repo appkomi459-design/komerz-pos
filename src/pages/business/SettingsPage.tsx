@@ -18,6 +18,8 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { CountrySelect } from '@/components/ui/CountrySelect';
 import { CurrencySelect } from '@/components/ui/CurrencySelect';
+import { LanguageSelect } from '@/components/ui/LanguageSelect';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { BUSINESS_TYPES, COUNTRIES } from '@/utils/formatters';
 
 export const SettingsPage: React.FC = () => {
@@ -28,6 +30,7 @@ export const SettingsPage: React.FC = () => {
     updateActiveBusiness,
     updateSettings,
   } = useBusiness();
+  const { language, setLanguage, t } = useLanguage();
 
   // Business state
   const [name, setName] = useState('');
@@ -83,6 +86,9 @@ export const SettingsPage: React.FC = () => {
     if (found) {
       setCurrency(found.currency);
       setTimezone(found.timezone);
+      if (found.defaultLanguage) {
+        setLanguage(found.defaultLanguage);
+      }
     }
   };
 
@@ -161,10 +167,10 @@ export const SettingsPage: React.FC = () => {
     <div className="space-y-6 max-w-5xl">
       <div>
         <h1 className="text-2xl font-extrabold text-gray-900 dark:text-zinc-100 tracking-tight">
-          Configuración del Negocio
+          {t('settings.title', 'Configuración del Negocio')}
         </h1>
         <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1">
-          Administra la identidad corporativa, impuestos y parámetros de facturación
+          {t('settings.subtitle', 'Administra la identidad corporativa, impuestos y parámetros de facturación')}
         </p>
       </div>
 
@@ -263,14 +269,14 @@ export const SettingsPage: React.FC = () => {
         {/* Información Comercial */}
         <Card>
           <CardHeader>
-            <CardTitle>Información Comercial</CardTitle>
-            <CardDescription>Datos principales del establecimiento</CardDescription>
+            <CardTitle>{t('settings.commercial_info', 'Información Comercial')}</CardTitle>
+            <CardDescription>{t('settings.commercial_desc', 'Datos principales del establecimiento')}</CardDescription>
           </CardHeader>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Nombre Comercial"
+                label={t('settings.name', 'Nombre Comercial')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={!canEdit}
@@ -278,7 +284,7 @@ export const SettingsPage: React.FC = () => {
               />
 
               <Select
-                label="Giro o Rubro Comercial"
+                label={t('settings.business_type', 'Giro o Rubro Comercial')}
                 value={businessType}
                 onChange={(e) => setBusinessType(e.target.value)}
                 options={BUSINESS_TYPES}
@@ -288,14 +294,14 @@ export const SettingsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <CountrySelect
-                label="País"
+                label={t('settings.country', 'País')}
                 value={country}
                 onChange={handleCountryChange}
                 disabled={!canEdit}
               />
 
               <Input
-                label="Ciudad"
+                label={t('settings.city', 'Ciudad')}
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 disabled={!canEdit}
@@ -304,30 +310,37 @@ export const SettingsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Dirección"
+                label={t('settings.address', 'Dirección')}
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 disabled={!canEdit}
               />
 
               <Input
-                label="Teléfono / Contacto"
+                label={t('settings.phone', 'Teléfono / Contacto')}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={!canEdit}
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <CurrencySelect
-                label="Moneda"
+                label={t('settings.currency', 'Moneda')}
                 value={currency}
                 onChange={(cCode) => setCurrency(cCode)}
                 disabled={!canEdit}
               />
 
+              <LanguageSelect
+                label={t('settings.language', 'Idioma del Sistema')}
+                value={language}
+                onChange={(langCode) => setLanguage(langCode)}
+                disabled={!canEdit}
+              />
+
               <Input
-                label="Zona Horaria"
+                label={t('settings.timezone', 'Zona Horaria')}
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
                 disabled={!canEdit}
@@ -396,7 +409,7 @@ export const SettingsPage: React.FC = () => {
               loading={saving}
               icon={<Save className="w-4 h-4" />}
             >
-              Guardar Cambios
+              {saving ? t('settings.saving', 'Guardando...') : t('settings.save_changes', 'Guardar Cambios')}
             </Button>
           </div>
         )}
