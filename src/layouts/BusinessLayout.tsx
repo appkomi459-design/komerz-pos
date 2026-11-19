@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   Wallet,
   TrendingDown,
+  TrendingUp,
   BarChart3,
   UserCheck,
   Building2,
@@ -100,6 +101,7 @@ export const BusinessLayout: React.FC = () => {
         title: 'ADMINISTRACIÓN',
         items: [
           { name: 'Vendedores', path: '/app/employees', icon: Users, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-700 shadow-blue-600/30 text-white' },
+          { name: 'Reporte Vendedores', path: '/app/seller-reports', icon: TrendingUp, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
           { name: 'Sucursales', path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
           { name: 'Configuración', path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
           { name: 'Suscripción', path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },

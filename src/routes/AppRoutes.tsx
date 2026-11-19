@@ -35,6 +35,7 @@ import { CashPage }              from '@/pages/business/CashPage';
 import { ExpensesPage }          from '@/pages/business/ExpensesPage';
 import { ReportsPage }           from '@/pages/business/ReportsPage';
 import { EmployeesPage }         from '@/pages/business/EmployeesPage';
+import { SellerReportsPage }     from '@/pages/business/SellerReportsPage';
 import { BranchesPage }          from '@/pages/business/BranchesPage';
 import { SettingsPage }          from '@/pages/business/SettingsPage';
 import { SubscriptionPage }      from '@/pages/business/SubscriptionPage';
@@ -186,6 +187,7 @@ export const AppRoutes: React.FC = () => (
       <Route path="expenses"     element={<ExpensesPage />} />
       <Route path="reports"      element={<ReportsPage />} />
       <Route path="employees"    element={<EmployeesPage />} />
+      <Route path="seller-reports" element={<SellerReportsPage />} />
       <Route path="branches"     element={<BranchesPage />} />
       <Route path="settings"     element={<SettingsPage />} />
       <Route path="subscription" element={<SubscriptionPage />} />
