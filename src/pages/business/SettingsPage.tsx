@@ -16,6 +16,8 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/Ca
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { CountrySelect } from '@/components/ui/CountrySelect';
+import { CurrencySelect } from '@/components/ui/CurrencySelect';
 import { BUSINESS_TYPES, COUNTRIES } from '@/utils/formatters';
 
 export const SettingsPage: React.FC = () => {
@@ -74,6 +76,15 @@ export const SettingsPage: React.FC = () => {
   }, [activeBusiness, settings]);
 
   const canEdit = currentRole === 'owner' || currentRole === 'admin';
+
+  const handleCountryChange = (cCode: string) => {
+    setCountry(cCode);
+    const found = COUNTRIES.find((c) => c.code === cCode);
+    if (found) {
+      setCurrency(found.currency);
+      setTimezone(found.timezone);
+    }
+  };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -276,11 +287,10 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Select
+              <CountrySelect
                 label="País"
                 value={country}
-                onChange={(e) => setCountry(e.target.value)}
-                options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
+                onChange={handleCountryChange}
                 disabled={!canEdit}
               />
 
@@ -309,20 +319,10 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Select
+              <CurrencySelect
                 label="Moneda"
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                options={[
-                  { value: 'USD', label: 'USD ($)' },
-                  { value: 'DOP', label: 'DOP (RD$)' },
-                  { value: 'MXN', label: 'MXN ($)' },
-                  { value: 'COP', label: 'COP ($)' },
-                  { value: 'EUR', label: 'EUR (€)' },
-                  { value: 'PEN', label: 'PEN (S/.)' },
-                  { value: 'CLP', label: 'CLP ($)' },
-                  { value: 'ARS', label: 'ARS ($)' },
-                ]}
+                onChange={(cCode) => setCurrency(cCode)}
                 disabled={!canEdit}
               />
 

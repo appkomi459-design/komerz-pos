@@ -7,6 +7,7 @@ interface CountrySelectProps {
   value: string;
   onChange: (countryCode: string) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 export const CountrySelect: React.FC<CountrySelectProps> = ({
@@ -14,6 +15,7 @@ export const CountrySelect: React.FC<CountrySelectProps> = ({
   value,
   onChange,
   error,
+  disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -55,10 +57,15 @@ export const CountrySelect: React.FC<CountrySelectProps> = ({
       {/* Botón trigger principal */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 text-sm rounded-xl border ${
-          error ? 'border-rose-500' : 'border-gray-200 dark:border-zinc-800'
-        } hover:border-emerald-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 flex items-center justify-between transition-all cursor-pointer shadow-sm`}
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full text-left text-sm rounded-xl border ${
+          disabled
+            ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border-gray-200 dark:border-zinc-700 cursor-not-allowed opacity-75'
+            : error
+            ? 'bg-white dark:bg-zinc-900 border-rose-500 cursor-pointer shadow-sm'
+            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-emerald-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-sm'
+        } px-3.5 py-2.5 flex items-center justify-between transition-all`}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
           <img

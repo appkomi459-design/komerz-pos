@@ -9,22 +9,32 @@ export interface CurrencyItem {
 }
 
 export const CURRENCY_OPTIONS: CurrencyItem[] = [
-  { code: 'BOB', symbol: 'Bs', name: 'Boliviano', countryCode: 'bo' },
-  { code: 'USD', symbol: '$', name: 'Dólar Estadounidense', countryCode: 'us' },
-  { code: 'BRL', symbol: 'R$', name: 'Real Brasileño', countryCode: 'br' },
-  { code: 'PYG', symbol: '₲', name: 'Guaraní Paraguayo', countryCode: 'py' },
-  { code: 'UYU', symbol: '$U', name: 'Peso Uruguayo', countryCode: 'uy' },
-  { code: 'PEN', symbol: 'S/.', name: 'Sol Peruano', countryCode: 'pe' },
-  { code: 'COP', symbol: '$', name: 'Peso Colombiano', countryCode: 'co' },
-  { code: 'MXN', symbol: '$', name: 'Peso Mexicano', countryCode: 'mx' },
-  { code: 'CLP', symbol: '$', name: 'Peso Chileno', countryCode: 'cl' },
-  { code: 'ARS', symbol: '$', name: 'Peso Argentino', countryCode: 'ar' },
-  { code: 'DOP', symbol: 'RD$', name: 'Peso Dominicano', countryCode: 'do' },
-  { code: 'GTQ', symbol: 'Q', name: 'Quetzal Guatemalteco', countryCode: 'gt' },
-  { code: 'CRC', symbol: '₡', name: 'Colón Costarricense', countryCode: 'cr' },
-  { code: 'HNL', symbol: 'L', name: 'Lempira Hondureño', countryCode: 'hn' },
-  { code: 'NIO', symbol: 'C$', name: 'Córdoba Nicaragüense', countryCode: 'ni' },
-  { code: 'EUR', symbol: '€', name: 'Euro', countryCode: 'eu' },
+  { code: 'BOB', symbol: 'Bs', name: 'Boliviano (Bolivia)', countryCode: 'bo' },
+  { code: 'USD', symbol: '$', name: 'Dólar Estadounidense (EE.UU. / Ecuador / Panamá / El Salvador)', countryCode: 'us' },
+  { code: 'EUR', symbol: '€', name: 'Euro (España / Unión Europea / Francia / Alemania / Italia / Portugal)', countryCode: 'eu' },
+  { code: 'BRL', symbol: 'R$', name: 'Real Brasileño (Brasil)', countryCode: 'br' },
+  { code: 'PYG', symbol: '₲', name: 'Guaraní Paraguayo (Paraguay)', countryCode: 'py' },
+  { code: 'UYU', symbol: '$U', name: 'Peso Uruguayo (Uruguay)', countryCode: 'uy' },
+  { code: 'PEN', symbol: 'S/.', name: 'Sol Peruano (Perú)', countryCode: 'pe' },
+  { code: 'COP', symbol: '$', name: 'Peso Colombiano (Colombia)', countryCode: 'co' },
+  { code: 'MXN', symbol: '$', name: 'Peso Mexicano (México)', countryCode: 'mx' },
+  { code: 'CLP', symbol: '$', name: 'Peso Chileno (Chile)', countryCode: 'cl' },
+  { code: 'ARS', symbol: '$', name: 'Peso Argentino (Argentina)', countryCode: 'ar' },
+  { code: 'DOP', symbol: 'RD$', name: 'Peso Dominicano (Rep. Dominicana)', countryCode: 'do' },
+  { code: 'GTQ', symbol: 'Q', name: 'Quetzal Guatemalteco (Guatemala)', countryCode: 'gt' },
+  { code: 'CRC', symbol: '₡', name: 'Colón Costarricense (Costa Rica)', countryCode: 'cr' },
+  { code: 'HNL', symbol: 'L', name: 'Lempira Hondureño (Honduras)', countryCode: 'hn' },
+  { code: 'NIO', symbol: 'C$', name: 'Córdoba Nicaragüense (Nicaragua)', countryCode: 'ni' },
+  { code: 'GBP', symbol: '£', name: 'Libra Esterlina (Reino Unido / Gran Bretaña)', countryCode: 'gb' },
+  { code: 'CHF', symbol: 'CHF', name: 'Franco Suizo (Suiza / Liechtenstein)', countryCode: 'ch' },
+  { code: 'SEK', symbol: 'kr', name: 'Corona Sueca (Suecia)', countryCode: 'se' },
+  { code: 'NOK', symbol: 'kr', name: 'Corona Noruega (Noruega)', countryCode: 'no' },
+  { code: 'DKK', symbol: 'kr', name: 'Corona Danesa (Dinamarca)', countryCode: 'dk' },
+  { code: 'PLN', symbol: 'zł', name: 'Zloty Polaco (Polonia)', countryCode: 'pl' },
+  { code: 'CZK', symbol: 'Kč', name: 'Corona Checa (República Checa)', countryCode: 'cz' },
+  { code: 'HUF', symbol: 'Ft', name: 'Florín Húngaro (Hungría)', countryCode: 'hu' },
+  { code: 'RON', symbol: 'lei', name: 'Leu Rumano (Rumania)', countryCode: 'ro' },
+  { code: 'TRY', symbol: '₺', name: 'Lira Turca (Turquía)', countryCode: 'tr' },
 ];
 
 interface CurrencySelectProps {
@@ -32,6 +42,7 @@ interface CurrencySelectProps {
   value: string;
   onChange: (currencyCode: string) => void;
   error?: string;
+  disabled?: boolean;
 }
 
 export const CurrencySelect: React.FC<CurrencySelectProps> = ({
@@ -39,6 +50,7 @@ export const CurrencySelect: React.FC<CurrencySelectProps> = ({
   value,
   onChange,
   error,
+  disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -81,10 +93,15 @@ export const CurrencySelect: React.FC<CurrencySelectProps> = ({
       {/* Botón trigger principal */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 text-sm rounded-xl border ${
-          error ? 'border-rose-500' : 'border-gray-200 dark:border-zinc-800'
-        } hover:border-emerald-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 px-3.5 py-2.5 flex items-center justify-between transition-all cursor-pointer shadow-sm`}
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full text-left text-sm rounded-xl border ${
+          disabled
+            ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500 border-gray-200 dark:border-zinc-700 cursor-not-allowed opacity-75'
+            : error
+            ? 'bg-white dark:bg-zinc-900 border-rose-500 cursor-pointer shadow-sm'
+            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 hover:border-emerald-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 cursor-pointer shadow-sm'
+        } px-3.5 py-2.5 flex items-center justify-between transition-all`}
       >
         <div className="flex items-center gap-2.5 overflow-hidden">
           <img
