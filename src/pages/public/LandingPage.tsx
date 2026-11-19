@@ -33,6 +33,7 @@ import { BusinessAdaptiveShowcase } from '@/components/common/BusinessAdaptiveSh
 
 export const LandingPage: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   const features = [
     {
@@ -72,6 +73,7 @@ export const LandingPage: React.FC = () => {
       name: 'Gratis / Prueba',
       price: '$0',
       period: 'por 14 días',
+      savings: null,
       description: 'Ideal para poner en marcha tu negocio y probar toda la plataforma.',
       features: [
         '1 Sucursal comercial',
@@ -86,8 +88,9 @@ export const LandingPage: React.FC = () => {
     },
     {
       name: 'Profesional',
-      price: '$29',
-      period: 'mes / negocio',
+      price: billingCycle === 'yearly' ? '$250' : '$25',
+      period: billingCycle === 'yearly' ? 'USD / año' : 'USD / mes',
+      savings: billingCycle === 'yearly' ? 'Ahorras $50 USD al año (2 meses gratis)' : null,
       description: 'El plan preferido por negocios en crecimiento que demandan más potencia.',
       features: [
         'Hasta 3 sucursales activas',
@@ -103,8 +106,9 @@ export const LandingPage: React.FC = () => {
     },
     {
       name: 'Empresarial',
-      price: '$79',
-      period: 'mes / negocio',
+      price: billingCycle === 'yearly' ? '$750' : '$75',
+      period: billingCycle === 'yearly' ? 'USD / año' : 'USD / mes',
+      savings: billingCycle === 'yearly' ? 'Ahorras $150 USD al año (2 meses gratis)' : null,
       description: 'Para cadenas comerciales y empresas con operaciones de gran volumen.',
       features: [
         'Hasta 10 sucursales',
@@ -287,7 +291,7 @@ export const LandingPage: React.FC = () => {
 
       {/* Planes de suscripción */}
       <section id="planes" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-black uppercase tracking-wider mb-3">
             Precios Claros y Transparentes
           </div>
@@ -297,6 +301,39 @@ export const LandingPage: React.FC = () => {
           <p className="mt-4 text-base text-slate-400">
             Comienza sin costo y escala tus recursos a medida que aumentan tus ventas.
           </p>
+
+          {/* Toggle Facturación Mensual / Anual */}
+          <div className="mt-8 inline-flex items-center p-1 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
+            <button
+              type="button"
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                billingCycle === 'monthly'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              Facturación Mensual
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingCycle('yearly')}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+                billingCycle === 'yearly'
+                  ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <span>Facturación Anual</span>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                billingCycle === 'yearly'
+                  ? 'bg-slate-950 text-emerald-400'
+                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              }`}>
+                🎁 2 MESES GRATIS
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
@@ -321,9 +358,16 @@ export const LandingPage: React.FC = () => {
                 <h3 className="text-xl font-black text-white">{p.name}</h3>
                 <p className="text-xs text-slate-400 mt-1 min-h-[32px]">{p.description}</p>
 
-                <div className="mt-6 mb-6 pb-6 border-b border-slate-800 flex items-baseline gap-1.5">
-                  <span className="text-4xl font-black text-white">{p.price}</span>
-                  <span className="text-xs text-slate-400 font-bold">{p.period}</span>
+                <div className="mt-6 mb-6 pb-6 border-b border-slate-800">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-white">{p.price}</span>
+                    <span className="text-xs text-slate-400 font-bold">{p.period}</span>
+                  </div>
+                  {p.savings && (
+                    <p className="text-[11px] font-black text-emerald-400 mt-2">
+                      ✨ {p.savings}
+                    </p>
+                  )}
                 </div>
 
                 <ul className="space-y-3 mb-8">

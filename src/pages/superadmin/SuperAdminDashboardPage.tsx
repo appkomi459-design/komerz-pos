@@ -482,12 +482,12 @@ export const SuperAdminDashboardPage: React.FC = () => {
                             item.planCode === 'enterprise' ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950">
                                 <Crown className="w-3 h-3 fill-slate-950 text-slate-950" />
-                                EMPRESARIAL ($79/m)
+                                EMPRESARIAL ($75/m)
                               </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
                                 <Star className="w-3 h-3 fill-white text-white" />
-                                PRO ($29/m)
+                                PRO ($25/m)
                               </span>
                             )
                           ) : (

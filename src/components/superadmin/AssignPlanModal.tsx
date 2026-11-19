@@ -148,7 +148,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
 
     const diffMs = end.getTime() - now.getTime();
     const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
-    const pricePerMonth = activePlanObj ? Number(activePlanObj.price_monthly) : 29;
+    const pricePerMonth = activePlanObj ? Number(activePlanObj.price_monthly) : 25;
     const cost = pricePerMonth * months;
 
     return {
@@ -369,7 +369,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
                     Plan Profesional
                   </h4>
                   <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-                    $29.00 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">USD / mes</span>
+                    $25.00 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">USD / mes</span>
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-medium">
                     Ideal para negocios en crecimiento y sucursales.
@@ -413,7 +413,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
                     Plan Empresarial
                   </h4>
                   <p className="text-2xl font-black text-amber-500 dark:text-amber-400 mt-1">
-                    $79.00 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">USD / mes</span>
+                    $75.00 <span className="text-xs font-bold text-slate-500 dark:text-slate-400">USD / mes</span>
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-medium">
                     Para cadenas comerciales con múltiples sedes y alto volumen.
