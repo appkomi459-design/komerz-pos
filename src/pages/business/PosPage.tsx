@@ -23,6 +23,8 @@ import {
   Image as ImageIcon,
   Dices,
   Printer,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,6 +57,8 @@ export const PosPage: React.FC = () => {
   const [customerNit, setCustomerNit] = useState('');
   const [availableCustomers, setAvailableCustomers] = useState<{ id: string; name: string; identification: string | null }[]>([]);
   const [showCustomerFields, setShowCustomerFields] = useState(false);
+  const [showTaxDrawer, setShowTaxDrawer] = useState(false);
+  const [showDiscountDrawer, setShowDiscountDrawer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [completedSale, setCompletedSale] = useState<any | null>(null);
@@ -705,9 +709,9 @@ export const PosPage: React.FC = () => {
         {/* ======================================================== */}
         {/* LADO DERECHO: PANEL CARRITO DE VENTA ERGONÓMICO          */}
         {/* ======================================================== */}
-        <div className="w-full lg:w-[380px] xl:w-[410px] bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col h-[calc(100vh-95px)] sticky top-3 flex-shrink-0">
+        <div className="w-full lg:w-[380px] xl:w-[410px] bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col h-[calc(100vh-120px)] max-h-[820px] min-h-[480px] sticky top-3 flex-shrink-0">
           {/* 1. Cabecera Fija del Carrito */}
-          <div className="bg-slate-900 text-white px-4 py-3 border-b-2 border-slate-950 flex items-center justify-between flex-shrink-0">
+          <div className="bg-slate-900 text-white px-4 py-2.5 border-b-2 border-slate-950 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
                 <ShoppingCart className="w-4 h-4" />
@@ -733,15 +737,115 @@ export const PosPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Cuerpo Scrollable: Lista de Productos y Datos de Cliente */}
-          <div className="flex-1 overflow-y-auto p-3.5 space-y-3 min-h-0">
+          {/* 2. Barra de Cliente Compacta (Fija arriba, accesible y no compite con la lista de productos) */}
+          <div className="bg-slate-100/90 dark:bg-zinc-800/90 px-3.5 py-1.5 border-b border-slate-200 dark:border-zinc-700/80 flex items-center justify-between text-xs flex-shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <User className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+              <span className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 truncate">
+                {t('pos.customer', 'Cliente')}: <strong className="text-slate-900 dark:text-zinc-100 font-black">{customerName}</strong>
+                {customerNit ? ` (${customerNit})` : ''}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCustomerFields((prev) => !prev)}
+              className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:underline ml-2 flex-shrink-0 cursor-pointer"
+            >
+              {showCustomerFields ? t('common.hide', 'Ocultar') : `${t('common.edit', 'Cambiar')}`}
+            </button>
+          </div>
+
+          {/* Desplegable de Cliente (si se activa) */}
+          {showCustomerFields && (
+            <div className="p-3 bg-slate-50 dark:bg-zinc-850 border-b border-slate-200 dark:border-zinc-700/80 animate-fadeIn space-y-2 flex-shrink-0">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
+                    {t('pos.customer_name', 'Nombre / Razón')}
+                  </label>
+                  <input
+                    type="text"
+                    list="pos-customers-list"
+                    value={customerName}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCustomerName(val);
+                      const found = availableCustomers.find(
+                        (c) => c.name.toLowerCase() === val.toLowerCase()
+                      );
+                      if (found && found.identification) {
+                        setCustomerNit(found.identification);
+                      }
+                    }}
+                    placeholder={t('pos.consumer', 'Consumidor Final')}
+                    className="w-full bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
+                  />
+                  <datalist id="pos-customers-list">
+                    {availableCustomers.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.identification ? `NIT: ${c.identification}` : ''}
+                      </option>
+                    ))}
+                  </datalist>
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
+                    {t('pos.tax_id', 'NIT / CI')}
+                  </label>
+                  <input
+                    type="text"
+                    value={customerNit}
+                    onChange={(e) => setCustomerNit(e.target.value)}
+                    placeholder="ej. 8493021"
+                    className="w-full bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              {availableCustomers.length > 0 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-[10px]">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">{t('pos.quick_discounts', 'Rápidos:')}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomerName('Consumidor Final');
+                      setCustomerNit('');
+                      setShowCustomerFields(false);
+                    }}
+                    className="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-black hover:bg-slate-300 transition-colors whitespace-nowrap cursor-pointer"
+                  >
+                    {t('pos.consumer', 'Consumidor Final')}
+                  </button>
+                  {availableCustomers.slice(0, 3).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setCustomerName(c.name);
+                        if (c.identification) setCustomerNit(c.identification);
+                        setShowCustomerFields(false);
+                      }}
+                      className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-100 transition-colors whitespace-nowrap cursor-pointer"
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 3. Cuerpo de Productos Seleccionados (Prioridad de Espacio y Gran Claridad) */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0 bg-slate-50/60 dark:bg-zinc-900/40">
             {cart.length === 0 ? (
-              <div className="py-14 text-center text-slate-400 dark:text-zinc-500">
-                <Receipt className="w-12 h-12 mx-auto mb-2 opacity-30 text-slate-400" />
+              <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-center text-slate-400 dark:text-zinc-500 py-8 px-4">
+                <div className="w-14 h-14 rounded-2xl bg-slate-200/60 dark:bg-zinc-800 flex items-center justify-center mb-2.5">
+                  <ShoppingCart className="w-7 h-7 text-slate-400 dark:text-zinc-500" />
+                </div>
                 <p className="text-xs font-black text-slate-700 dark:text-zinc-300">
                   {t('pos.cart_empty', 'El carrito está vacío')}
                 </p>
-                <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                <p className="text-[11px] font-bold text-slate-400 mt-1 max-w-[200px]">
                   {t('pos.cart_empty_hint', 'Toca los productos para agregarlos a la venta')}
                 </p>
               </div>
@@ -750,10 +854,10 @@ export const PosPage: React.FC = () => {
                 {cart.map((item) => (
                   <div
                     key={item.product.id}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 flex items-center gap-2.5"
+                    className="p-2.5 rounded-2xl bg-white dark:bg-zinc-850 border border-slate-200/90 dark:border-zinc-700/80 shadow-xs hover:border-slate-300 dark:hover:border-zinc-600 transition-all flex items-center gap-3"
                   >
-                    {/* Miniatura */}
-                    <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {/* Miniatura del Producto */}
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200/80 dark:border-zinc-700 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                       {item.product.image_url ? (
                         <img
                           src={item.product.image_url}
@@ -761,32 +865,34 @@ export const PosPage: React.FC = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <Package className="w-4 h-4 text-slate-400" />
+                        <Package className="w-5 h-5 text-slate-400" />
                       )}
                     </div>
 
-                    {/* Detalle y Cantidad */}
+                    {/* Título, Precios y Controles de Cantidad */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-1">
-                        <p className="text-xs font-black text-slate-900 dark:text-zinc-100 truncate">
-                          {item.product.name}
-                        </p>
-                        <span className="text-xs font-black text-slate-950 dark:text-white whitespace-nowrap">
+                      <div className="flex items-start justify-between gap-1.5">
+                        <div className="min-w-0 pr-1">
+                          <h4 className="text-xs font-black text-slate-900 dark:text-zinc-100 leading-tight truncate" title={item.product.name}>
+                            {item.product.name}
+                          </h4>
+                          <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-400 mt-0.5">
+                            {formatCurrency(item.product.sale_price, currency)} c/u
+                          </p>
+                        </div>
+                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono whitespace-nowrap">
                           {formatCurrency(item.product.sale_price * item.quantity, currency)}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between mt-1 pt-1 border-t border-slate-200/60 dark:border-zinc-700/60">
-                        <p className="text-[10px] font-bold text-slate-400">
-                          {formatCurrency(item.product.sale_price, currency)} c/u
-                        </p>
-
-                        {/* Stepper de Cantidad */}
-                        <div className="flex items-center gap-1">
+                      {/* Barra de Stepper y Botón Eliminar */}
+                      <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t border-slate-100 dark:border-zinc-800">
+                        <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-zinc-800 p-0.5 rounded-lg border border-slate-200/80 dark:border-zinc-700">
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.product.id, -1)}
-                            className="w-5 h-5 rounded bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 flex items-center justify-center font-black text-xs transition-colors cursor-pointer"
+                            className="w-5 h-5 rounded-md bg-white dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600 text-slate-800 dark:text-zinc-200 flex items-center justify-center font-black text-xs transition-colors cursor-pointer shadow-2xs"
+                            title="Restar 1"
                           >
                             <Minus className="w-2.5 h-2.5 stroke-[3]" />
                           </button>
@@ -796,259 +902,215 @@ export const PosPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.product.id, 1)}
-                            className="w-5 h-5 rounded bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center font-black text-xs transition-colors cursor-pointer"
+                            className="w-5 h-5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center font-black text-xs transition-colors cursor-pointer shadow-2xs"
+                            title="Sumar 1"
                           >
                             <Plus className="w-2.5 h-2.5 stroke-[3]" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => removeFromCart(item.product.id)}
-                            className="p-1 text-slate-400 hover:text-rose-500 transition-colors ml-0.5 cursor-pointer"
-                            title="Quitar producto"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
                         </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(item.product.id)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          title="Quitar producto"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             )}
+          </div>
 
-            {/* Datos de Cliente (Compacto y Desplegable para no robar espacio) */}
-            <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800">
+          {/* 4. Footer Fijo de Cobro: Ultra Compacto, Inteligente y SIEMPRE 100% VISIBLE */}
+          <div className="p-3 border-t-2 border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex-shrink-0 space-y-2 shadow-lg">
+            {/* Fila Subtotal */}
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-zinc-400">
+              <span>{t('pos.subtotal', 'Subtotal')} ({totalItemsCount} {t('common.units', 'unid.')}):</span>
+              <span className="font-mono text-slate-900 dark:text-zinc-100 font-black">
+                {formatCurrency(subtotal, currency)}
+              </span>
+            </div>
+
+            {/* Fila Pills Compactos de IVA y Descuento (Abren subpaneles sin saturar) */}
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => setShowCustomerFields((prev) => !prev)}
-                className="w-full flex items-center justify-between text-left text-[11px] font-black text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 py-1 cursor-pointer"
+                onClick={() => {
+                  setShowTaxDrawer((prev) => !prev);
+                  setShowDiscountDrawer(false);
+                }}
+                className={`flex-1 px-2 py-1 rounded-lg border text-[11px] font-black flex items-center justify-between transition-all cursor-pointer ${
+                  taxMode !== 'none'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
+                }`}
               >
-                <span className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{t('pos.customer', 'Cliente')}: <strong className="text-slate-900 dark:text-zinc-100">{customerName}</strong></span>
+                <span className="flex items-center gap-1 truncate">
+                  <span>{t('pos.tax', 'IVA')}:</span>
+                  <span className="font-bold">{taxMode === 'none' ? '0%' : `${taxPercentage}%`}</span>
                 </span>
-                <span className="text-[10px] text-emerald-600 font-bold underline">
-                  {showCustomerFields ? t('common.hide', 'Ocultar') : `${t('common.edit', 'Editar')} / ${t('settings.billing_title', 'Factura')}`}
+                <span className="font-mono text-[10px]">
+                  {taxMode === 'added'
+                    ? `+${formatCurrency(taxAmount, currency)}`
+                    : taxMode === 'included' && taxAmount > 0
+                    ? `(${formatCurrency(taxAmount, currency)} inc.)`
+                    : formatCurrency(0, currency)}
                 </span>
               </button>
 
-              {showCustomerFields && (
-                <div className="space-y-2 pt-2 animate-fadeIn">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
-                        {t('pos.customer_name', 'Nombre / Razón Social')}
-                      </label>
-                      <input
-                        type="text"
-                        list="pos-customers-list"
-                        value={customerName}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setCustomerName(val);
-                          const found = availableCustomers.find(
-                            (c) => c.name.toLowerCase() === val.toLowerCase()
-                          );
-                          if (found && found.identification) {
-                            setCustomerNit(found.identification);
-                          }
-                        }}
-                        placeholder={t('pos.consumer', 'Consumidor Final')}
-                        className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500"
-                      />
-                      <datalist id="pos-customers-list">
-                        {availableCustomers.map((c) => (
-                          <option key={c.id} value={c.name}>
-                            {c.identification ? `NIT/CI: ${c.identification}` : ''}
-                          </option>
-                        ))}
-                      </datalist>
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-black uppercase text-slate-500 mb-0.5">
-                        {t('pos.tax_id', 'NIT / CI')}
-                      </label>
-                      <input
-                        type="text"
-                        value={customerNit}
-                        onChange={(e) => setCustomerNit(e.target.value)}
-                        placeholder="ej. 8493021"
-                        className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-lg border border-slate-300 dark:border-zinc-700 px-2 py-1.5 focus:outline-none focus:border-emerald-500 font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  {availableCustomers.length > 0 && (
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px]">
-                      <span className="text-[9px] text-slate-400 font-bold uppercase whitespace-nowrap">{t('pos.quick_discounts', 'Rápidos:')}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setCustomerName('Consumidor Final');
-                          setCustomerNit('');
-                        }}
-                        className="px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-black hover:bg-slate-300 transition-colors whitespace-nowrap cursor-pointer"
-                      >
-                        {t('pos.consumer', 'Consumidor Final')}
-                      </button>
-                      {availableCustomers.slice(0, 4).map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => {
-                            setCustomerName(c.name);
-                            if (c.identification) setCustomerNit(c.identification);
-                          }}
-                          className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold hover:bg-emerald-100 transition-colors whitespace-nowrap cursor-pointer"
-                        >
-                          {c.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* 3. Footer Fijo de Cobro: Totales, Métodos y Botón SIEMPRE VISIBLE */}
-          <div className="p-3.5 border-t-2 border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 flex-shrink-0 space-y-2">
-            
-            {/* Desglose de Subtotal y Selector de Impuesto / IVA Configurable */}
-            <div className="space-y-1.5 text-xs">
-              <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 font-bold">
-                <span>{t('pos.subtotal', 'Subtotal')} ({totalItemsCount} {t('common.units', 'unid.')}):</span>
-                <span className="font-mono text-slate-800 dark:text-zinc-200 font-black">
-                  {formatCurrency(subtotal, currency)}
-                </span>
-              </div>
-
-              {/* Fila de Impuesto / IVA: Opción SI TIENE O NO + Edición del Porciento */}
-              <div className="bg-slate-100/90 dark:bg-zinc-800/80 rounded-xl p-2 border border-slate-200 dark:border-zinc-700/80 space-y-1.5">
-                <div className="flex items-center justify-between gap-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
-                      {t('pos.tax', 'Impuesto (IVA):')}
-                    </span>
-                    <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
-                      <button
-                        type="button"
-                        onClick={() => setTaxMode('none')}
-                        className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                          taxMode === 'none'
-                            ? 'bg-slate-900 text-white shadow-xs'
-                            : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
-                        }`}
-                        title="Sin impuesto / Exento (0%)"
-                      >
-                        {t('pos.without_tax', 'Sin IVA (0%)')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (taxMode === 'none') setTaxMode('included');
-                        }}
-                        className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                          taxMode !== 'none'
-                            ? 'bg-emerald-600 text-white shadow-xs'
-                            : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
-                        }`}
-                        title="Aplicar IVA con porcentaje configurable"
-                      >
-                        {t('pos.with_tax', 'Con IVA')} ({taxPercentage}%)
-                      </button>
-                    </div>
-                  </div>
-
-                  <span className="font-mono text-[11px] font-black text-slate-800 dark:text-zinc-200">
-                    {taxMode === 'added'
-                      ? `+${formatCurrency(taxAmount, currency)}`
-                      : taxMode === 'included' && taxAmount > 0
-                      ? `(${formatCurrency(taxAmount, currency)} inc.)`
-                      : formatCurrency(0, currency)}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDiscountDrawer((prev) => !prev);
+                  setShowTaxDrawer(false);
+                }}
+                className={`flex-1 px-2 py-1 rounded-lg border text-[11px] font-black flex items-center justify-between transition-all cursor-pointer ${
+                  discountAmount > 0
+                    ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-700 text-rose-700 dark:text-rose-300'
+                    : 'bg-slate-100 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300'
+                }`}
+              >
+                <span className="flex items-center gap-1 truncate">
+                  <span>{t('pos.discount', 'Desc.')}:</span>
+                  <span className="font-bold">
+                    {discountAmount > 0 ? (discountType === 'percent' ? `${discountValue}%` : 'Fijo') : '0%'}
                   </span>
+                </span>
+                <span className="font-mono text-[10px]">
+                  {discountAmount > 0 ? `-${formatCurrency(discountAmount, currency)}` : formatCurrency(0, currency)}
+                </span>
+              </button>
+            </div>
+
+            {/* Subpanel Desplegable de IVA */}
+            {showTaxDrawer && (
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800/90 border border-emerald-300 dark:border-emerald-700 text-xs space-y-2 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-slate-500">{t('pos.tax', 'Configurar IVA')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowTaxDrawer(false)}
+                    className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
+                  >
+                    {t('common.close', 'Cerrar')} ✕
+                  </button>
                 </div>
 
-                {/* Subpanel cuando SÍ TIENE IVA: Ajuste de Porcentaje y Modo (Incluido / Adicional) */}
-                {taxMode !== 'none' && (
-                  <div className="pt-1.5 border-t border-slate-200 dark:border-zinc-700/60 flex items-center justify-between gap-1 text-[10px] animate-fadeIn">
-                    {/* Modo: Incluido en precio vs Sumado adicional */}
-                    <div className="inline-flex rounded-md p-0.5 bg-slate-200/80 dark:bg-zinc-700/80">
+                <div className="flex items-center justify-between gap-1">
+                  <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
+                    <button
+                      type="button"
+                      onClick={() => setTaxMode('none')}
+                      className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                        taxMode === 'none'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      {t('pos.without_tax', 'Sin IVA (0%)')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (taxMode === 'none') setTaxMode('included');
+                      }}
+                      className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                        taxMode !== 'none'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-zinc-400'
+                      }`}
+                    >
+                      {t('pos.with_tax', 'Con IVA')}
+                    </button>
+                  </div>
+
+                  {taxMode !== 'none' && (
+                    <div className="inline-flex rounded-md p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px]">
                       <button
                         type="button"
                         onClick={() => setTaxMode('included')}
                         className={`px-1.5 py-0.5 rounded font-black transition-all cursor-pointer ${
                           taxMode === 'included'
-                            ? 'bg-emerald-600 text-white shadow-xs'
+                            ? 'bg-emerald-600 text-white'
                             : 'text-slate-600 dark:text-zinc-300'
                         }`}
-                        title="El precio fijado ya incluye el impuesto (no recarga al cliente)"
+                        title="IVA ya incluido en el precio"
                       >
-                        IVA Inc.
+                        Inc.
                       </button>
                       <button
                         type="button"
                         onClick={() => setTaxMode('added')}
                         className={`px-1.5 py-0.5 rounded font-black transition-all cursor-pointer ${
                           taxMode === 'added'
-                            ? 'bg-amber-600 text-white shadow-xs'
+                            ? 'bg-amber-600 text-white'
                             : 'text-slate-600 dark:text-zinc-300'
                         }`}
-                        title="Suma el impuesto encima del precio"
+                        title="+ Sumar IVA adicional"
                       >
                         + Adicional
                       </button>
                     </div>
+                  )}
+                </div>
 
-                    {/* Editor de Porcentaje (%) */}
+                {taxMode !== 'none' && (
+                  <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-200 dark:border-zinc-700">
                     <div className="flex items-center gap-1">
-                      <span className="text-slate-500 dark:text-zinc-400 font-bold">Porciento:</span>
-                      <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded-md px-1.5 py-0.5 shadow-2xs">
+                      <span className="text-[10px] font-bold text-slate-500">Tasa:</span>
+                      <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded px-1.5 py-0.5">
                         <input
                           type="number"
                           min="0"
                           max="100"
-                          step="1"
                           value={taxPercentage}
                           onChange={(e) => handleTaxPercentageChange(parseFloat(e.target.value) || 0)}
-                          className="w-8 text-center text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none"
-                          title="Escribe aquí el porcentaje de IVA para tu negocio"
+                          className="w-7 text-center text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none"
                         />
                         <span className="text-xs font-black text-emerald-600">%</span>
                       </div>
+                    </div>
 
-                      {/* Chips de porcentajes rápidos comunes */}
-                      <div className="flex items-center gap-0.5">
-                        {[13, 16, 18, 19].map((p) => (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => handleTaxPercentageChange(p)}
-                            className={`px-1 py-0.5 text-[9px] font-black rounded border cursor-pointer ${
-                              taxPercentage === p
-                                ? 'bg-emerald-600 text-white border-emerald-600'
-                                : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700 hover:border-emerald-500'
-                            }`}
-                            title={`Fijar IVA al ${p}%`}
-                          >
-                            {p}%
-                          </button>
-                        ))}
-                      </div>
+                    <div className="flex items-center gap-1">
+                      {[13, 16, 18, 19].map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => handleTaxPercentageChange(p)}
+                          className={`px-1.5 py-0.5 text-[10px] font-black rounded border cursor-pointer ${
+                            taxPercentage === p
+                              ? 'bg-emerald-600 text-white border-emerald-600'
+                              : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700'
+                          }`}
+                        >
+                          {p}%
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* ── DESCUENTO ── */}
-            <div className="bg-slate-100/90 dark:bg-zinc-800/80 rounded-xl p-2 border border-slate-200 dark:border-zinc-700/80">
-              <div className="flex items-center justify-between gap-1.5">
-                {/* Label + Toggle Tipo */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] font-black text-slate-700 dark:text-zinc-300">
-                    {t('pos.discount', 'Descuento:')}
-                  </span>
+            {/* Subpanel Desplegable de Descuento */}
+            {showDiscountDrawer && (
+              <div className="p-2 rounded-xl bg-slate-50 dark:bg-zinc-800/90 border border-rose-300 dark:border-rose-700 text-xs space-y-2 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-slate-500">{t('pos.discount', 'Aplicar Descuento')}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowDiscountDrawer(false)}
+                    className="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer"
+                  >
+                    {t('common.close', 'Cerrar')} ✕
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
                   <div className="inline-flex rounded-lg p-0.5 bg-slate-200 dark:bg-zinc-700 text-[10px] font-black">
                     <button
                       type="button"
@@ -1056,9 +1118,8 @@ export const PosPage: React.FC = () => {
                       className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
                         discountType === 'percent'
                           ? 'bg-rose-600 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                          : 'text-slate-600 dark:text-zinc-400'
                       }`}
-                      title="Descuento en porcentaje (%)"
                     >
                       %
                     </button>
@@ -1068,89 +1129,74 @@ export const PosPage: React.FC = () => {
                       className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
                         discountType === 'fixed'
                           ? 'bg-rose-600 text-white shadow-xs'
-                          : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900'
+                          : 'text-slate-600 dark:text-zinc-400'
                       }`}
-                      title="Descuento en monto fijo"
                     >
                       {t('pos.fixed_amount', 'Monto fijo')}
                     </button>
                   </div>
-                </div>
 
-                {/* Input de Descuento + botón limpiar */}
-                <div className="flex items-center gap-1">
-                  <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded-lg px-2 py-0.5 shadow-xs focus-within:border-rose-500 transition-colors">
-                    {discountType === 'fixed' && (
-                      <span className="text-[10px] font-black text-slate-400 mr-0.5">{currency === 'BOB' ? 'Bs' : currency === 'USD' ? '$' : currency}</span>
-                    )}
-                    <input
-                      type="number"
-                      min="0"
-                      max={discountType === 'percent' ? '100' : rawCartSum.toFixed(2)}
-                      step="any"
-                      placeholder={discountType === 'percent' ? '0' : '0.00'}
-                      value={discountValue}
-                      onChange={(e) => setDiscountValue(e.target.value)}
-                      className="w-14 text-right text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none bg-transparent"
-                      title={discountType === 'percent' ? 'Porcentaje de descuento' : 'Monto fijo de descuento'}
-                    />
-                    {discountType === 'percent' && (
-                      <span className="text-[10px] font-black text-rose-600">%</span>
+                  <div className="flex items-center gap-1">
+                    <div className="flex items-center bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-600 rounded-lg px-2 py-0.5 shadow-xs">
+                      {discountType === 'fixed' && (
+                        <span className="text-[10px] font-black text-slate-400 mr-0.5">{currency === 'BOB' ? 'Bs' : currency === 'USD' ? '$' : currency}</span>
+                      )}
+                      <input
+                        type="number"
+                        min="0"
+                        max={discountType === 'percent' ? '100' : rawCartSum.toFixed(2)}
+                        step="any"
+                        placeholder={discountType === 'percent' ? '0' : '0.00'}
+                        value={discountValue}
+                        onChange={(e) => setDiscountValue(e.target.value)}
+                        className="w-14 text-right text-xs font-black text-slate-900 dark:text-zinc-100 focus:outline-none bg-transparent"
+                      />
+                      {discountType === 'percent' && (
+                        <span className="text-[10px] font-black text-rose-600">%</span>
+                      )}
+                    </div>
+                    {discountAmount > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setDiscountValue('')}
+                        className="text-slate-400 hover:text-rose-500 cursor-pointer"
+                        title="Quitar descuento"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     )}
                   </div>
-                  {discountAmount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setDiscountValue('')}
-                      className="text-slate-400 hover:text-rose-500 transition-colors cursor-pointer"
-                      title="Quitar descuento"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
                 </div>
 
-                {/* Monto ahorrado */}
-                <span className={`font-mono text-[11px] font-black ${discountAmount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`}>
-                  {discountAmount > 0 ? `-${formatCurrency(discountAmount, currency)}` : formatCurrency(0, currency)}
-                </span>
+                {discountType === 'percent' && (
+                  <div className="flex items-center gap-1 pt-1 border-t border-slate-200 dark:border-zinc-700">
+                    <span className="text-[9px] font-black text-slate-400 mr-1">Rápido:</span>
+                    {[5, 10, 15, 20, 25, 50].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setDiscountValue(String(p))}
+                        className={`px-1.5 py-0.5 text-[9px] font-black rounded border cursor-pointer ${
+                          discountValue === String(p)
+                            ? 'bg-rose-600 text-white border-rose-600'
+                            : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700'
+                        }`}
+                      >
+                        {p}%
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+            )}
 
-              {/* Chips rápidos de descuento en % */}
-              {discountType === 'percent' && (
-                <div className="flex items-center gap-0.5 mt-1.5 pt-1.5 border-t border-slate-200 dark:border-zinc-700/60">
-                  <span className="text-[9px] font-black text-slate-400 mr-1">Rápido:</span>
-                  {[5, 10, 15, 20, 25, 50].map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setDiscountValue(String(p))}
-                      className={`px-1.5 py-0.5 text-[9px] font-black rounded border cursor-pointer transition-all ${
-                        discountValue === String(p)
-                          ? 'bg-rose-600 text-white border-rose-600'
-                          : 'bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 border-slate-300 dark:border-zinc-700 hover:border-rose-400'
-                      }`}
-                    >
-                      {p}%
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Total Destacado a Cobrar */}
-            <div className="pt-1.5 border-t border-slate-200 dark:border-zinc-700/80">
-              {discountAmount > 0 && (
-                <div className="flex items-center justify-between text-[10px] font-black text-slate-400 mb-1">
-                  <span>Precio original:</span>
-                  <span className="line-through font-mono">{formatCurrency(rawCartSum, currency)}</span>
-                </div>
-              )}
+            {/* Fila Total a Cobrar */}
+            <div className="pt-1 border-t border-slate-200 dark:border-zinc-800">
               <div className="flex items-baseline justify-between">
-                <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
                   {t('pos.total', 'TOTAL A COBRAR:')}
                 </span>
-                <span className="text-2xl font-black text-slate-950 dark:text-white">
+                <span className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white font-mono">
                   {formatCurrency(total, currency)}
                 </span>
               </div>
@@ -1170,23 +1216,23 @@ export const PosPage: React.FC = () => {
                     key={m.id}
                     type="button"
                     onClick={() => setPaymentMethod(m.id as any)}
-                    className={`py-1.5 px-2 rounded-xl border-2 flex items-center justify-center gap-1.5 transition-all cursor-pointer font-black text-xs ${
+                    className={`py-1.5 px-1.5 rounded-xl border-2 flex items-center justify-center gap-1 transition-all cursor-pointer font-black text-xs ${
                       isSelected
                         ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 shadow-xs'
                         : 'border-slate-200 dark:border-zinc-700 text-slate-600 dark:text-zinc-400 hover:border-slate-300 bg-white dark:bg-zinc-800'
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span className="text-[11px]">{m.label}</span>
+                    <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="text-[10px] sm:text-[11px] truncate">{m.label}</span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Calculadora de Efectivo, Billetes Rápidos y Vuelto */}
+            {/* Calculadora de Efectivo y Vuelto */}
             {paymentMethod === 'cash' && cart.length > 0 && (
-              <div className="bg-white dark:bg-zinc-850 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-1.5">
-                <div className="flex items-center gap-2">
+              <div className="bg-slate-50 dark:bg-zinc-800/80 p-2 rounded-xl border border-slate-200 dark:border-zinc-700 space-y-1.5">
+                <div className="flex items-center gap-1.5">
                   <div className="flex-1 relative">
                     <input
                       type="number"
@@ -1194,19 +1240,18 @@ export const PosPage: React.FC = () => {
                       placeholder={total.toFixed(2)}
                       value={amountPaid}
                       onChange={(e) => setAmountPaid(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-black px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-zinc-600 focus:outline-none focus:border-emerald-500 text-right pr-2"
+                      className="w-full bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 text-xs font-black px-2 py-1.5 rounded-lg border border-slate-300 dark:border-zinc-600 focus:outline-none focus:border-emerald-500 text-right pr-2"
                     />
                   </div>
 
                   <button
                     type="button"
                     onClick={() => setAmountPaid(total.toFixed(2))}
-                    className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 text-[11px] font-black rounded-lg transition-colors cursor-pointer"
+                    className="px-2.5 py-1.5 bg-slate-200 dark:bg-zinc-700 hover:bg-slate-300 text-slate-800 dark:text-zinc-200 text-[10px] font-black rounded-lg transition-colors cursor-pointer whitespace-nowrap"
                   >
                     Exacto
                   </button>
 
-                  {/* Billetes rápidos */}
                   {[50, 100, 200].filter(v => v >= total).slice(0, 2).map((bill) => (
                     <button
                       key={bill}
@@ -1220,9 +1265,9 @@ export const PosPage: React.FC = () => {
                 </div>
 
                 {amountPaid && parseFloat(amountPaid) >= total && (
-                  <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-xs font-black">
+                  <div className="flex items-center justify-between px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200 text-[11px] font-black">
                     <span>{t('pos.change', 'Cambio / Vuelto:')}</span>
-                    <span className="text-sm font-black">
+                    <span className="text-xs font-black font-mono">
                       {formatCurrency(parseFloat(amountPaid) - total, currency)}
                     </span>
                   </div>
@@ -1230,19 +1275,19 @@ export const PosPage: React.FC = () => {
               </div>
             )}
 
-            {/* Botón Principal: Cobrar Venta (SIEMPRE VISIBLE) */}
+            {/* Botón Principal: Cobrar Venta (SIEMPRE 100% VISIBLE) */}
             <button
               type="button"
               disabled={cart.length === 0 || processing}
               onClick={handleCheckout}
-              className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
+              className={`w-full py-2.5 sm:py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
                 cart.length === 0 || processing
                   ? 'bg-slate-300 dark:bg-zinc-800 text-slate-500 cursor-not-allowed shadow-none'
                   : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/30 active:scale-98'
               }`}
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">
                 {processing
                   ? t('common.loading', 'Procesando Venta...')
                   : cart.length === 0
