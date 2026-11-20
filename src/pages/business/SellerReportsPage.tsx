@@ -401,76 +401,125 @@ export const SellerReportsPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* 4 CARDS DE RESUMEN EJECUTIVO                             */}
+      {/* 4 CARDS DE RESUMEN EJECUTIVO (DISEÑO COLOR GRADIENT)      */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              {t('seller_report.sold_today', 'Vendido')}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* 1. TOTAL VENDIDO (Rojo / Coral) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#ff416c] to-[#ff4b2b] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <DollarSign className="w-5 h-5" />
             </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              {timeRange === 'today' ? 'Hoy' : timeRange === 'week' ? 'Semana' : timeRange === 'month' ? 'Mes' : 'Histórico'}
+            </span>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-            {formatCurrency(report.periodTotalSales, activeBusiness?.currency || 'USD')}
+          {/* Watermark SVG decorativo de fondo */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <path d="M24 24H28L32 46H48L52 30H30" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="34" cy="52" r="3" fill="white"/>
+              <circle cx="46" cy="52" r="3" fill="white"/>
+            </svg>
           </div>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            {formatCurrency(report.periodTotalSales, activeBusiness?.currency || 'BOB')}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('seller_report.sold_today', 'TOTAL VENDIDO')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
             {report.periodTotalTickets} {t('seller_report.tickets_issued', 'tickets emitidos')}
           </p>
-        </Card>
+        </div>
 
-        <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              {t('seller_report.net_profit', 'Ganancia Neta')}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
+        {/* 2. GANANCIA NETA (Verde Esmeralda) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <TrendingUp className="w-5 h-5" />
             </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              {report.periodMargin.toFixed(1)}% Margen
+            </span>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-            {formatCurrency(report.periodTotalProfit, activeBusiness?.currency || 'USD')}
+          {/* Watermark SVG decorativo de fondo */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <polyline points="18,50 28,38 38,42 54,22" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <polyline points="44,22 54,22 54,32" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+            </svg>
           </div>
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-300 font-bold mt-0.5">
-            {t('seller_report.margin', 'Margen promedio')}: {report.periodMargin.toFixed(1)}%
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            {formatCurrency(report.periodTotalProfit, activeBusiness?.currency || 'BOB')}
           </p>
-        </Card>
-
-        <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              {t('seller_report.cost', 'Costo Mercadería')}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-xl sm:text-2xl font-black text-slate-800 dark:text-zinc-200 font-mono">
-            {formatCurrency(report.periodTotalCost, activeBusiness?.currency || 'USD')}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-0.5">
-            {t('seller_report.cost_sub', 'Costo de reposición estimado')}
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('seller_report.net_profit', 'GANANCIA NETA')}
           </p>
-        </Card>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Rendimiento neto generado
+          </p>
+        </div>
 
-        <Card className="p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
-              {t('employees.star_seller', 'Vendedor Estrella')}
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 flex items-center justify-center">
-              <Award className="w-4 h-4" />
+        {/* 3. COSTO MERCADERÍA (Azul Cian / Océano) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#4facfe] to-[#00f2fe] text-white shadow-xl shadow-cyan-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <ShoppingBag className="w-5 h-5" />
             </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Inversión
+            </span>
           </div>
-          <div className="text-sm sm:text-base font-black text-purple-600 dark:text-purple-400 truncate">
+          {/* Watermark SVG decorativo de fondo */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <path d="M22 28L26 50H46L50 28H22Z" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M30 28V22C30 18.7 32.7 16 36 16C39.3 16 42 18.7 42 22V28" stroke="white" strokeWidth="3" fill="none"/>
+            </svg>
+          </div>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            {formatCurrency(report.periodTotalCost, activeBusiness?.currency || 'BOB')}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('seller_report.cost', 'COSTO MERCADERÍA')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            {t('seller_report.cost_sub', 'Costo de productos vendidos')}
+          </p>
+        </div>
+
+        {/* 4. VENDEDOR ESTRELLA (Púrpura / Índigo) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#8e2de2] to-[#4a00e0] text-white shadow-xl shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Award className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Líder
+            </span>
+          </div>
+          {/* Watermark SVG decorativo de fondo */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <circle cx="36" cy="30" r="10" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M30 40L24 56L36 50L48 56L42 40" stroke="white" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
+            </svg>
+          </div>
+          <p className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-xs truncate relative z-10">
             {report.topSeller ? report.topSeller.fullName : t('employees.waiting', 'Esperando ventas')}
-          </div>
-          <p className="text-[11px] text-slate-400 mt-0.5 font-mono">
-            {report.topSeller ? `+ ${formatCurrency(report.topSeller.profit, activeBusiness?.currency || 'USD')} ${t('seller_report.profit', 'ganancia')}` : t('reports.no_data', 'Sin datos')}
           </p>
-        </Card>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('employees.star_seller', 'VENDEDOR ESTRELLA')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10 font-mono">
+            {report.topSeller ? `+ ${formatCurrency(report.topSeller.profit, activeBusiness?.currency || 'BOB')} ganancia` : t('reports.no_data', 'Sin datos para el período')}
+          </p>
+        </div>
       </div>
 
       {/* ======================================================== */}
@@ -570,17 +619,17 @@ export const SellerReportsPage: React.FC = () => {
                     Sin ventas registradas en esta sucursal para el período seleccionado.
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
+                  <div className="w-full">
+                    <table className="w-full text-left table-fixed text-xs">
                       <thead className="bg-white dark:bg-zinc-900 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-zinc-800">
                         <tr>
-                          <th className="py-2.5 px-4">{t('seller_report.seller', 'Vendedor')}</th>
-                          <th className="py-2.5 px-3 text-center">{t('common.tickets', 'Tickets')}</th>
-                          <th className="py-2.5 px-3 text-right">{t('seller_report.sales', 'Total Vendido')}</th>
-                          <th className="py-2.5 px-3 text-right">{t('seller_report.cost', 'Costo')}</th>
-                          <th className="py-2.5 px-3 text-right">{t('seller_report.profit', 'Ganancia Neta')}</th>
-                          <th className="py-2.5 px-3 text-center">{t('seller_report.margin_col', 'Margen %')}</th>
-                          <th className="py-2.5 px-4 text-right">Aporte</th>
+                          <th className="py-2.5 px-3 w-[26%]">{t('seller_report.seller', 'Vendedor')}</th>
+                          <th className="py-2.5 px-2 text-center w-[10%]">{t('common.tickets', 'Tickets')}</th>
+                          <th className="py-2.5 px-2 text-right w-[17%]">{t('seller_report.sales', 'Total Vendido')}</th>
+                          <th className="py-2.5 px-2 text-right w-[15%]">{t('seller_report.cost', 'Costo')}</th>
+                          <th className="py-2.5 px-2 text-right w-[16%]">{t('seller_report.profit', 'Ganancia Neta')}</th>
+                          <th className="py-2.5 px-2 text-center w-[8%]">{t('seller_report.margin_col', 'Margen %')}</th>
+                          <th className="py-2.5 px-3 text-right w-[8%]">Aporte</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-bold">
@@ -591,17 +640,17 @@ export const SellerReportsPage: React.FC = () => {
                           return (
                             <tr key={seller.userId} className="hover:bg-slate-50/60 dark:hover:bg-zinc-800/40">
                               {/* Vendedor */}
-                              <td className="py-3 px-4">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 flex items-center justify-center font-black text-[11px] shrink-0">
+                              <td className="py-2.5 px-3">
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-[11px] shrink-0 shadow-xs">
                                     {seller.fullName.slice(0, 2).toUpperCase()}
                                   </div>
-                                  <div className="min-w-0">
-                                    <div className="text-slate-900 dark:text-zinc-100 font-black truncate">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-slate-900 dark:text-zinc-100 font-black text-xs truncate" title={seller.fullName}>
                                       {seller.fullName}
                                     </div>
                                     {seller.email && (
-                                      <div className="text-[10px] text-slate-400 font-mono truncate">
+                                      <div className="text-[10px] text-slate-400 font-mono truncate" title={seller.email}>
                                         {seller.email}
                                       </div>
                                     )}
@@ -610,42 +659,42 @@ export const SellerReportsPage: React.FC = () => {
                               </td>
 
                               {/* Tickets */}
-                              <td className="py-3 px-3 text-center font-mono text-slate-700 dark:text-zinc-300">
+                              <td className="py-2.5 px-2 text-center font-mono text-slate-700 dark:text-zinc-300 text-xs">
                                 {seller.salesCount}
                               </td>
 
                               {/* Facturado */}
-                              <td className="py-3 px-3 text-right font-mono font-black text-slate-900 dark:text-zinc-100">
-                                Bs {seller.totalSold.toFixed(2)}
+                              <td className="py-2.5 px-2 text-right font-mono font-black text-slate-900 dark:text-zinc-100 text-xs truncate">
+                                {formatCurrency(seller.totalSold, activeBusiness?.currency || 'BOB')}
                               </td>
 
                               {/* Costo */}
-                              <td className="py-3 px-3 text-right font-mono text-slate-500 dark:text-zinc-400">
-                                Bs {seller.cost.toFixed(2)}
+                              <td className="py-2.5 px-2 text-right font-mono text-slate-500 dark:text-zinc-400 text-xs truncate">
+                                {formatCurrency(seller.cost, activeBusiness?.currency || 'BOB')}
                               </td>
 
                               {/* Ganancia */}
-                              <td className="py-3 px-3 text-right font-mono font-black text-emerald-600 dark:text-emerald-400">
-                                + Bs {seller.profit.toFixed(2)}
+                              <td className="py-2.5 px-2 text-right font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs truncate">
+                                + {formatCurrency(seller.profit, activeBusiness?.currency || 'BOB')}
                               </td>
 
                               {/* Margen */}
-                              <td className="py-3 px-3 text-center">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                              <td className="py-2.5 px-2 text-center">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                   {sellerMargin.toFixed(1)}%
                                 </span>
                               </td>
 
                               {/* Aporte */}
-                              <td className="py-3 px-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <div className="w-16 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                              <td className="py-2.5 px-3 text-right">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <div className="w-12 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
                                     <div
                                       className="bg-emerald-500 h-full rounded-full transition-all"
                                       style={{ width: `${Math.min(100, Math.max(0, shareOfBranch))}%` }}
                                     />
                                   </div>
-                                  <span className="font-mono text-[10px] text-slate-500 w-9 text-right font-bold">
+                                  <span className="font-mono text-[10px] text-slate-500 font-bold shrink-0">
                                     {shareOfBranch.toFixed(0)}%
                                   </span>
                                 </div>
