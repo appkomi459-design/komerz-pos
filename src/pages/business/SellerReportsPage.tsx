@@ -11,6 +11,7 @@ import {
   ArrowUpRight,
   Calendar,
   Percent,
+  Printer,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -19,7 +20,7 @@ import { Badge } from '@/components/ui/Badge';
 import { formatDate, formatCurrency } from '@/utils/formatters';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-type TimeRange = 'today' | 'week' | 'month' | 'all';
+type TimeRange = 'today' | 'week' | 'month' | 'all' | 'custom';
 
 interface DetailedSale {
   id: string;
@@ -45,7 +46,44 @@ export const SellerReportsPage: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<TimeRange>('today');
+  const [dateFrom, setDateFrom] = useState<string>(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
+  const [dateTo, setDateTo] = useState<string>(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
   const [search, setSearch] = useState('');
+
+  // Color de impresión del reporte — sincronizado con la configuración global
+  const [printColor, setPrintColor] = useState<string>(() => {
+    return localStorage.getItem('komi_print_color') || '#6d28d9';
+  });
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  const PRINT_COLORS = [
+    { hex: '#6d28d9', label: 'Púrpura Real',      gradient: 'linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)' },
+    { hex: '#be123c', label: 'Rojo Carmesí',      gradient: 'linear-gradient(135deg, #be123c 0%, #9f1239 100%)' },
+    { hex: '#0369a1', label: 'Azul Oceánico',     gradient: 'linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%)' },
+    { hex: '#047857', label: 'Verde Esmeralda',   gradient: 'linear-gradient(135deg, #047857 0%, #064e3b 100%)' },
+    { hex: '#c2410c', label: 'Naranja Volcánico', gradient: 'linear-gradient(135deg, #c2410c 0%, #9a3412 100%)' },
+    { hex: '#db2777', label: 'Rosa Fucsia',       gradient: 'linear-gradient(135deg, #db2777 0%, #9d174d 100%)' },
+    { hex: '#0f766e', label: 'Teal Profundo',     gradient: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)' },
+    { hex: '#7c2d12', label: 'Marrón Vino',       gradient: 'linear-gradient(135deg, #7c2d12 0%, #431407 100%)' },
+    { hex: '#1d4ed8', label: 'Azul Zafiro',       gradient: 'linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)' },
+    { hex: '#b45309', label: 'Ámbar Dorado',      gradient: 'linear-gradient(135deg, #b45309 0%, #78350f 100%)' },
+    { hex: '#7e22ce', label: 'Violeta Neon',      gradient: 'linear-gradient(135deg, #7e22ce 0%, #581c87 100%)' },
+    { hex: '#0f172a', label: 'Negro Elegante',    gradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' },
+  ];
+
+  const activePrintColor = PRINT_COLORS.find((c) => c.hex === printColor) || PRINT_COLORS[0];
+
+  const handleSelectPrintColor = (hex: string) => {
+    setPrintColor(hex);
+    localStorage.setItem('komi_print_color', hex);
+    setShowColorPicker(false);
+  };
 
   const [branches, setBranches] = useState<{ id: string; name: string; is_main: boolean }[]>([]);
   const [sellers, setSellers] = useState<SellerInfo[]>([]);
@@ -194,6 +232,19 @@ export const SellerReportsPage: React.FC = () => {
       if (timeRange === 'today') return isToday(s.created_at);
       if (timeRange === 'week') return isThisWeek(s.created_at);
       if (timeRange === 'month') return isThisMonth(s.created_at);
+      if (timeRange === 'custom') {
+        if (!dateFrom && !dateTo) return true;
+        const saleDate = new Date(s.created_at);
+        if (dateFrom) {
+          const from = new Date(dateFrom + 'T00:00:00');
+          if (saleDate < from) return false;
+        }
+        if (dateTo) {
+          const to = new Date(dateTo + 'T23:59:59.999');
+          if (saleDate > to) return false;
+        }
+        return true;
+      }
       return true;
     });
 
@@ -316,7 +367,7 @@ export const SellerReportsPage: React.FC = () => {
       topSeller,
       branches: branchList,
     };
-  }, [detailedSales, timeRange, branches, sellers]);
+  }, [detailedSales, timeRange, dateFrom, dateTo, branches, sellers]);
 
   // Filtrado por buscador
   const filteredBranches = useMemo(() => {
@@ -331,10 +382,243 @@ export const SellerReportsPage: React.FC = () => {
     });
   }, [report.branches, search]);
 
+  /* ─────────────────── Función de Impresión de Reporte ─────────────────── */
+  const handlePrintReport = () => {
+    const win = window.open('', '_blank', 'width=950,height=850');
+    if (!win) return;
+
+    const now = new Date();
+    const emissionDate = now.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
+    const emissionTime = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    let periodLabel = '';
+    if (timeRange === 'today') {
+      periodLabel = `Hoy (${emissionDate})`;
+    } else if (timeRange === 'week') {
+      periodLabel = 'Últimos 7 días';
+    } else if (timeRange === 'month') {
+      periodLabel = `Mes de ${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
+    } else if (timeRange === 'all') {
+      periodLabel = 'Histórico completo';
+    } else if (timeRange === 'custom') {
+      periodLabel = `Rango personalizado: ${dateFrom || 'Inicio'} hasta ${dateTo || 'Hoy'}`;
+    }
+
+    const currency = activeBusiness?.currency || 'BOB';
+    const businessName = activeBusiness?.name || 'Mi Negocio';
+
+    const branchListHtml = filteredBranches.map(b => {
+      const sellersArr = Object.values(b.sellers);
+      const branchMargin = b.totalSales > 0 ? ((b.totalProfit / b.totalSales) * 100).toFixed(1) : '0.0';
+
+      const sellersRowsHtml = sellersArr.map(s => {
+        const margin = s.totalSold > 0 ? ((s.profit / s.totalSold) * 100).toFixed(1) : '0.0';
+        const share = b.totalSales > 0 ? ((s.totalSold / b.totalSales) * 100).toFixed(0) : '0';
+        const roleText = s.role === 'owner' ? 'Propietario' : s.role === 'admin' ? 'Administrador' : 'Vendedor / Cajero';
+
+        return `
+          <tr>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0;">
+              <div style="font-weight: 800; color: #0f172a;">${s.fullName}</div>
+              <div style="font-size: 9px; color: #64748b;">${s.email || roleText}</div>
+            </td>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: center; font-weight: 700;">
+              ${s.salesCount}
+            </td>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-family: monospace; font-weight: 800; color: #0f172a;">
+              ${currency} ${s.totalSold.toFixed(2)}
+            </td>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-family: monospace; color: #64748b;">
+              ${currency} ${s.cost.toFixed(2)}
+            </td>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-family: monospace; font-weight: 900; color: #059669;">
+              + ${currency} ${s.profit.toFixed(2)}
+            </td>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">
+              <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 9px; font-weight: 800; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0;">
+                ${margin}%
+              </span>
+            </td>
+            <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 800; color: #475569;">
+              ${share}%
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div style="margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; page-break-inside: avoid;">
+          <div style="background: #f8fafc; padding: 9px 12px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 12px; font-weight: 900; color: #0f172a;">🏢 ${b.branchName}</span>
+              ${b.isMain ? '<span style="margin-left: 6px; padding: 2px 6px; font-size: 9px; font-weight: 900; background: #d1fae5; color: #065f46; border-radius: 4px;">PRINCIPAL</span>' : ''}
+              <span style="font-size: 10px; color: #64748b; margin-left: 8px;">(${sellersArr.length} vendedor${sellersArr.length === 1 ? '' : 'es'})</span>
+            </div>
+            <div style="font-size: 10.5px; display: flex; gap: 12px;">
+              <span>Facturado: <strong>${currency} ${b.totalSales.toFixed(2)}</strong></span>
+              <span style="color: #059669;">Ganancia: <strong>${currency} ${b.totalProfit.toFixed(2)}</strong></span>
+              <span style="color: #4f46e5;">Margen: <strong>${branchMargin}%</strong></span>
+            </div>
+          </div>
+
+          <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+            <thead>
+              <tr style="background: #ffffff; text-transform: uppercase; font-size: 9px; font-weight: 900; color: #64748b; border-bottom: 1px solid #e2e8f0;">
+                <th style="padding: 7px 10px; text-align: left;">Vendedor</th>
+                <th style="padding: 7px 10px; text-align: center;">Tickets</th>
+                <th style="padding: 7px 10px; text-align: right;">Total Vendido</th>
+                <th style="padding: 7px 10px; text-align: right;">Costo</th>
+                <th style="padding: 7px 10px; text-align: right;">Ganancia Neta</th>
+                <th style="padding: 7px 10px; text-align: center;">Margen</th>
+                <th style="padding: 7px 10px; text-align: right;">Aporte</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sellersArr.length > 0 ? sellersRowsHtml : '<tr><td colspan="7" style="padding: 14px; text-align: center; color: #94a3b8;">Sin actividad registrada en esta sucursal.</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }).join('');
+
+    win.document.write(`
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <title>Reporte de Ventas y Vendedores - ${businessName}</title>
+        <style>
+          @page { size: letter portrait; margin: 12mm 15mm; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            font-size: 11px;
+            line-height: 1.4;
+            padding: 10px;
+          }
+          .brand-header {
+            background: ${activePrintColor.gradient};
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color: #ffffff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+          }
+          .cards-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+          }
+          .kpi-card {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .footer {
+            margin-top: 25px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 9.5px;
+            color: #64748b;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="brand-header">
+          <div>
+            <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px;">${businessName}</div>
+            <div style="font-size: 11px; font-weight: 700; opacity: 0.95; margin-top: 2px;">REPORTE DE VENTAS, GANANCIAS Y SUCURSALES</div>
+            <div style="font-size: 10px; opacity: 0.85; margin-top: 3px;">Período analizado: <strong>${periodLabel}</strong></div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 9px; opacity: 0.9; text-transform: uppercase;">Emisión</div>
+            <div style="font-size: 11px; font-weight: 800;">${emissionDate}</div>
+            <div style="font-size: 10px; opacity: 0.85;">${emissionTime}</div>
+          </div>
+        </div>
+
+        <div class="cards-row">
+          <div class="kpi-card">
+            <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b;">TOTAL VENDIDO</div>
+            <div style="font-size: 14px; font-weight: 900; font-family: monospace; color: #0f172a; margin-top: 3px;">
+              ${currency} ${report.periodTotalSales.toFixed(2)}
+            </div>
+            <div style="font-size: 9px; color: #64748b; margin-top: 2px;">${report.periodTotalTickets} tickets emitidos</div>
+          </div>
+
+          <div class="kpi-card">
+            <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b;">GANANCIA NETA</div>
+            <div style="font-size: 14px; font-weight: 900; font-family: monospace; color: #059669; margin-top: 3px;">
+              ${currency} ${report.periodTotalProfit.toFixed(2)}
+            </div>
+            <div style="font-size: 9px; font-weight: 800; color: #059669; margin-top: 2px;">${report.periodMargin.toFixed(1)}% Margen</div>
+          </div>
+
+          <div class="kpi-card">
+            <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b;">COSTO MERCADERÍA</div>
+            <div style="font-size: 14px; font-weight: 900; font-family: monospace; color: #475569; margin-top: 3px;">
+              ${currency} ${report.periodTotalCost.toFixed(2)}
+            </div>
+            <div style="font-size: 9px; color: #64748b; margin-top: 2px;">Costo de mercadería</div>
+          </div>
+
+          <div class="kpi-card">
+            <div style="font-size: 9px; font-weight: 800; text-transform: uppercase; color: #64748b;">VENDEDOR ESTRELLA</div>
+            <div style="font-size: 11px; font-weight: 900; color: #7c3aed; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${report.topSeller ? report.topSeller.fullName : 'Sin datos'}
+            </div>
+            <div style="font-size: 9px; color: #64748b; margin-top: 2px;">
+              ${report.topSeller ? '+ ' + currency + ' ' + report.topSeller.profit.toFixed(2) + ' ganancia' : 'Esperando ventas'}
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 10px; font-size: 10.5px; font-weight: 900; text-transform: uppercase; color: #334155; letter-spacing: 0.5px;">
+          Desglose por Sucursal y Rendimiento de Colaboradores
+        </div>
+
+        ${branchListHtml}
+
+        <div class="footer">
+          <div>
+            <div><strong>KOMI POS Cloud</strong> · Plataforma Integral de Facturación e Inventario</div>
+            <div style="font-size: 8.5px; color: #94a3b8; margin-top: 2px;">Documento de control interno no válido como factura tributaria</div>
+          </div>
+          <div style="text-align: center; width: 180px;">
+            <div style="border-bottom: 1px solid #94a3b8; height: 30px; margin-bottom: 4px;"></div>
+            <div style="font-weight: 700; font-size: 9.5px;">Firma / Aprobación</div>
+          </div>
+        </div>
+
+        <script>
+          window.addEventListener('load', () => {
+            window.print();
+          });
+        </script>
+      </body>
+      </html>
+    `);
+
+    win.document.close();
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* ======================================================== */}
-      {/* CABECERA PRINCIPAL                                       */}
+      {/* CABECERA PRINCIPAL CON BOTONES IMPRIMIR Y COLOR           */}
       {/* ======================================================== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
@@ -351,51 +635,61 @@ export const SellerReportsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filtro de Período */}
-        <div className="flex items-center gap-1 bg-white dark:bg-zinc-900 p-1 rounded-xl shadow-xs border border-slate-200/80 dark:border-zinc-800 self-start sm:self-auto">
+        {/* Botones de Cabecera: Color Impresión e IMPRIMIR */}
+        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+          {/* Selector de Color de Impresión */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              className="px-3.5 py-2.5 rounded-2xl border-2 border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              title="Elegir color de la cabecera del reporte a imprimir"
+            >
+              <span
+                className="w-4 h-4 rounded-full border-2 border-white shadow-xs flex-shrink-0"
+                style={{ background: activePrintColor.gradient }}
+              />
+              <span className="hidden sm:inline">Color Impresión</span>
+            </button>
+
+            {/* Paleta desplegable de colores */}
+            {showColorPicker && (
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-zinc-700 p-4 w-72">
+                <p className="text-xs font-black text-slate-700 dark:text-zinc-200 mb-3 uppercase tracking-wider">
+                  🎨 Color de Encabezado para Impresión
+                </p>
+                <div className="grid grid-cols-6 gap-2">
+                  {PRINT_COLORS.map((c) => (
+                    <button
+                      key={c.hex}
+                      type="button"
+                      onClick={() => handleSelectPrintColor(c.hex)}
+                      title={c.label}
+                      className={`w-9 h-9 rounded-xl cursor-pointer transition-all active:scale-90 shadow-md ${
+                        printColor === c.hex
+                          ? 'ring-3 ring-offset-2 ring-slate-900 dark:ring-white scale-110'
+                          : 'hover:scale-105'
+                      }`}
+                      style={{ background: c.gradient, border: 'none' }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 mt-3">
+                  Seleccionado: <span className="text-slate-700 dark:text-zinc-200 font-black">{activePrintColor.label}</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Botón Imprimir */}
           <button
             type="button"
-            onClick={() => setTimeRange('today')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              timeRange === 'today'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-            }`}
+            onClick={handlePrintReport}
+            className="px-4 py-2.5 rounded-2xl border-2 border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+            title="Imprimir reporte oficial de ventas y productividad"
           >
-            📅 {t('seller_report.today', 'Hoy')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTimeRange('week')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              timeRange === 'week'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            {t('seller_report.week', 'Esta Semana')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTimeRange('month')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              timeRange === 'month'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            {t('seller_report.month', 'Este Mes')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTimeRange('all')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              timeRange === 'all'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            {t('seller_report.historical', 'Histórico')}
+            <Printer className="w-4 h-4 text-slate-600 dark:text-zinc-400" />
+            <span>{t('common.print', 'IMPRIMIR')}</span>
           </button>
         </div>
       </div>
@@ -411,7 +705,7 @@ export const SellerReportsPage: React.FC = () => {
               <DollarSign className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              {timeRange === 'today' ? 'Hoy' : timeRange === 'week' ? 'Semana' : timeRange === 'month' ? 'Mes' : 'Histórico'}
+              {timeRange === 'today' ? 'Hoy' : timeRange === 'week' ? 'Semana' : timeRange === 'month' ? 'Mes' : timeRange === 'custom' ? 'Rango' : 'Todos'}
             </span>
           </div>
           {/* Watermark SVG decorativo de fondo */}
@@ -523,19 +817,72 @@ export const SellerReportsPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* BUSCADOR DE SUCURSAL / VENDEDOR                          */}
+      {/* BARRA DE BÚSQUEDA Y FILTROS DE PERÍODO / FECHA           */}
       {/* ======================================================== */}
-      <Card className="p-3 sm:p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar por nombre de vendedor o sucursal..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-700 focus:outline-none focus:border-emerald-500 transition-all"
-          />
+      <Card className="rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-2 sm:p-2.5">
+          {/* Input de Búsqueda */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Filtrar por nombre de vendedor o sucursal..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-zinc-800/80 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold rounded-xl border border-slate-200/80 dark:border-zinc-700 focus:outline-none focus:border-emerald-500 transition-all"
+            />
+          </div>
+
+          {/* Selector de Período con botones: Hoy, Semana, Mes, Todos, Fecha */}
+          <div className="flex items-center gap-1 bg-slate-100/80 dark:bg-zinc-800/80 p-1 rounded-xl self-start md:self-auto overflow-x-auto max-w-full">
+            {([
+              { key: 'today',  label: 'Hoy' },
+              { key: 'week',   label: 'Semana' },
+              { key: 'month',  label: 'Mes' },
+              { key: 'all',    label: 'Todos' },
+              { key: 'custom', label: '📅 Fecha' },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTimeRange(key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                  timeRange === key
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Fila desplegable: Rango personalizado Desde / Hasta */}
+        {timeRange === 'custom' && (
+          <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-t border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50">
+            <Calendar className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+            <label className="text-[11px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
+              {t('sales.from', 'Desde')}
+            </label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="text-xs font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2.5 py-1 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+            />
+            <span className="text-slate-300 dark:text-zinc-600 font-black">→</span>
+            <label className="text-[11px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
+              {t('sales.to', 'Hasta')}
+            </label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="text-xs font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2.5 py-1 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+            />
+          </div>
+        )}
       </Card>
 
       {/* ======================================================== */}
