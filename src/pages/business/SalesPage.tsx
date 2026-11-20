@@ -926,77 +926,85 @@ export const SalesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Filtros de periodo + búsqueda ── */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        {/* Búsqueda */}
-        <div className="relative flex-1 min-w-0">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <input
-            type="text"
-            placeholder={t('sales.search', 'Buscar por ticket, cliente o producto...')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold pl-10 pr-9 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500 shadow-xs transition-all"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
-              <X className="w-4 h-4" />
-            </button>
-          )}
+      {/* ── Barra de filtros unificada ── */}
+      <div className="bg-white dark:bg-[#181615] rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+        {/* Fila 1: Búsqueda + Botones periodo */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-zinc-800">
+          {/* Búsqueda */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              placeholder={t('sales.search', 'Buscar por ticket, cliente o producto...')}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-transparent text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold pl-11 pr-9 py-3 focus:outline-none"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Separador + Botones de periodo */}
+          <div className="flex items-center gap-1 px-3 py-2 flex-shrink-0">
+            {([
+              { key: 'today',  label: t('sales.filter_today',  'Hoy') },
+              { key: 'week',   label: t('sales.filter_week',   'Semana') },
+              { key: 'month',  label: t('sales.filter_month',  'Mes') },
+              { key: 'all',    label: t('sales.filter_all',    'Todos') },
+              { key: 'custom', label: '📅 ' + t('sales.filter_custom', 'Fecha') },
+            ] as const).map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setPeriod(key)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-pointer whitespace-nowrap ${
+                  period === key
+                    ? 'bg-emerald-500 text-white shadow-sm'
+                    : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Botones de periodo */}
-        <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#181615] rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm flex-shrink-0">
-          {([
-            { key: 'today', label: t('sales.filter_today', 'Hoy') },
-            { key: 'week',  label: t('sales.filter_week',  'Semana') },
-            { key: 'month', label: t('sales.filter_month', 'Mes') },
-            { key: 'all',   label: t('sales.filter_all',   'Todos') },
-            { key: 'custom',label: t('sales.filter_custom','Fecha') },
-          ] as const).map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setPeriod(key)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-pointer whitespace-nowrap ${
-                period === key
-                  ? 'bg-emerald-500 text-white shadow-sm'
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* Fila 2: Rango de fechas (solo si period === 'custom') */}
+        {period === 'custom' && (
+          <div className="flex items-center gap-3 px-4 py-2.5 border-t-2 border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/50">
+            <Calendar className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+            <label className="text-[11px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
+              {t('sales.from', 'Desde')}
+            </label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={e => setDateFrom(e.target.value)}
+              className="text-xs font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2.5 py-1 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+            />
+            <span className="text-slate-300 dark:text-zinc-600 font-black">→</span>
+            <label className="text-[11px] font-black text-slate-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
+              {t('sales.to', 'Hasta')}
+            </label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={e => setDateTo(e.target.value)}
+              className="text-xs font-bold bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2.5 py-1 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500 cursor-pointer"
+            />
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(''); setDateTo(''); }}
+                className="ml-auto text-[11px] font-black text-rose-500 hover:text-rose-700 cursor-pointer flex items-center gap-1 whitespace-nowrap"
+              >
+                <X className="w-3 h-3" /> {t('common.clear', 'Limpiar')}
+              </button>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Selector de fechas personalizado */}
-      {period === 'custom' && (
-        <div className="flex items-center gap-3 p-4 bg-white dark:bg-[#181615] rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 shadow-sm">
-          <Filter className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-          <span className="text-xs font-black text-slate-700 dark:text-zinc-300 whitespace-nowrap">Desde:</span>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={e => setDateFrom(e.target.value)}
-            className="text-xs font-bold bg-slate-50 dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500"
-          />
-          <span className="text-xs font-black text-slate-700 dark:text-zinc-300 whitespace-nowrap">Hasta:</span>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={e => setDateTo(e.target.value)}
-            className="text-xs font-bold bg-slate-50 dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500"
-          />
-          {(dateFrom || dateTo) && (
-            <button
-              onClick={() => { setDateFrom(''); setDateTo(''); }}
-              className="text-xs font-black text-rose-500 hover:text-rose-700 cursor-pointer flex items-center gap-1"
-            >
-              <X className="w-3.5 h-3.5" /> Limpiar
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Tabla Principal */}
       <Card className="p-0 overflow-hidden border-2 border-slate-200 dark:border-zinc-800 rounded-3xl shadow-md">
