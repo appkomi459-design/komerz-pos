@@ -364,9 +364,9 @@ export const DashboardOverviewPage: React.FC = () => {
       {/* ======================================================== */}
       {/* SECCIÓN INFERIOR: INGRESOS 7 DÍAS + ACTIVIDAD RECIENTE    */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col gap-6">
         {/* Gráfica de Línea: Ingresos — últimos 7 días */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col">
+        <div className="bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col">
           {/* Header */}
           <div className="bg-slate-900 text-white px-6 py-4 border-b-2 border-slate-950 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -409,7 +409,7 @@ export const DashboardOverviewPage: React.FC = () => {
               }).join(' ');
               const areaD = `${pathD} L ${pts[n-1].x.toFixed(1)} ${H - PAD} L ${pts[0].x.toFixed(1)} ${H - PAD} Z`;
               return (
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{height: 180}} preserveAspectRatio="xMidYMid meet">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{height: 220}} preserveAspectRatio="xMidYMid meet">
                   <defs>
                     <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#10b981" stopOpacity="0.30"/>
@@ -478,10 +478,11 @@ export const DashboardOverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tarjeta: Actividad Reciente */}
-        <div className="bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col justify-between">
-          <div>
-            <div className="bg-slate-900 text-white px-6 py-4 border-b-2 border-slate-950 flex items-center gap-3">
+        {/* Tarjeta: Últimas Ventas — full width, horizontal grid */}
+        <div className="bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden">
+          {/* Header */}
+          <div className="bg-slate-900 text-white px-6 py-4 border-b-2 border-slate-950 flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center font-bold shadow-md shadow-rose-500/25">
                 <Receipt className="w-5 h-5" />
               </div>
@@ -489,59 +490,62 @@ export const DashboardOverviewPage: React.FC = () => {
                 <h3 className="text-base font-black text-white tracking-tight">
                   {t('panel.recent_sales', 'Últimos tickets de venta')}
                 </h3>
-                <p className="text-xs font-bold text-slate-300">{t('panel.recent_sales', 'Actividad reciente')}</p>
+                <p className="text-xs font-bold text-slate-400">{t('panel.recent_sales_sub', 'Actividad reciente del negocio')}</p>
               </div>
             </div>
+            <Link
+              to="/app/sales"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-black transition-colors"
+            >
+              {t('panel.view_all', 'Ver todas')} <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
 
-            <div className="p-5 space-y-2.5">
-              {recentSales.length === 0 ? (
-                <div className="text-center py-10">
-                  <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-zinc-600 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs font-bold text-slate-600 dark:text-zinc-400">
-                    {t('panel.no_recent_sales', 'Sin ventas recientes')}
-                  </p>
-                  <Link
-                    to="/app/pos"
-                    className="inline-block mt-3 text-xs font-black text-rose-600 dark:text-rose-400 hover:underline"
-                  >
-                    {t('panel.open_pos', 'Hacer mi primera venta')} →
-                  </Link>
-                </div>
-              ) : (
-                recentSales.map((sale) => (
+          {/* Body */}
+          <div className="p-5">
+            {recentSales.length === 0 ? (
+              <div className="text-center py-8 flex flex-col items-center gap-3">
+                <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-zinc-600 opacity-50" />
+                <p className="text-xs font-bold text-slate-500 dark:text-zinc-400">
+                  {t('panel.no_recent_sales', 'Sin ventas recientes')}
+                </p>
+                <Link
+                  to="/app/pos"
+                  className="text-xs font-black text-rose-600 dark:text-rose-400 hover:underline"
+                >
+                  {t('panel.open_pos', 'Hacer mi primera venta')} →
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {recentSales.map((sale) => (
                   <div
                     key={sale.id}
-                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border-2 border-slate-200 dark:border-zinc-700 hover:border-slate-900 dark:hover:border-zinc-500 transition-all"
+                    className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-zinc-800/60 border-2 border-slate-200 dark:border-zinc-700 hover:border-emerald-400 dark:hover:border-emerald-600 transition-all group"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-700 border border-slate-200 dark:border-zinc-600 flex items-center justify-center text-xs font-black text-rose-600 dark:text-rose-400 shadow-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center text-white text-xs font-black shadow-sm flex-shrink-0">
                         #
                       </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-900 dark:text-zinc-100">
+                      <div className="min-w-0">
+                        <p className="text-xs font-black text-slate-900 dark:text-zinc-100 truncate">
                           {sale.invoice_number}
                         </p>
-                        <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400 truncate">
-                          {sale.customer?.name || t('sales.consumer', 'Consumidor Final')} • {formatDate(sale.created_at)}
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 truncate">
+                          {sale.customer?.name || t('sales.consumer', 'Consumidor Final')}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500">
+                          {formatDate(sale.created_at)}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                    <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 flex-shrink-0 ml-2">
                       {formatCurrency(sale.total, currency)}
                     </span>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          <div className="p-4 border-t-2 border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60">
-            <Link
-              to="/app/sales"
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black transition-colors shadow-md"
-            >
-              {t('panel.view_all', 'Ver todas las ventas')} <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
