@@ -1239,24 +1239,25 @@ export const SalesPage: React.FC = () => {
       {/* MODAL: VER FACTURA PROFESIONAL DE LA VENTA SELECCIONADA  */}
       {/* ======================================================== */}
       {selectedSale && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm p-3 sm:p-5 flex justify-center items-start sm:items-center">
-          <div className="relative bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg my-auto border border-slate-200 dark:border-zinc-800 overflow-hidden animate-fadeIn flex flex-col max-h-[92vh]">
-            {/* Cabecera del Negocio (Fija) */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="relative bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg border border-slate-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[88vh]">
+            {/* Cabecera del Negocio (Centrada y Elegante) */}
             <div
-              className="relative px-5 pt-4 pb-3.5 shrink-0 text-white shadow-md"
+              className="relative px-5 pt-4 pb-4 shrink-0 text-white shadow-md text-center"
               style={{ background: activePrintColor.gradient }}
             >
               {/* Botón Cerrar X flotante */}
               <button
                 type="button"
                 onClick={() => setSelectedSale(null)}
-                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center cursor-pointer transition-colors"
+                className="absolute top-3.5 right-3.5 w-7 h-7 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center cursor-pointer transition-colors"
                 title="Cerrar ventana"
               >
                 <X className="w-4 h-4" />
               </button>
 
-              <div className="flex items-center justify-between pr-8 mb-2">
+              {/* Fila superior con badges */}
+              <div className="flex items-center justify-between pr-8 mb-2.5">
                 <span className="bg-white/20 border border-white/30 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Factura Oficial · {activeBusiness?.name?.toUpperCase() || 'MI NEGOCIO'}
                 </span>
@@ -1265,9 +1266,10 @@ export const SalesPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* Contenido Central: Logo y Nombre */}
+              <div className="flex flex-col items-center justify-center text-center">
                 {activeBusiness?.logo_url ? (
-                  <div className="w-12 h-12 rounded-2xl bg-white p-1 border-2 border-white/40 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-13 h-13 rounded-2xl bg-white p-1 border-2 border-white/40 shadow-lg flex items-center justify-center mb-1.5 overflow-hidden">
                     <img
                       src={activeBusiness.logo_url}
                       alt={activeBusiness.name}
@@ -1275,26 +1277,25 @@ export const SalesPage: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">
+                  <div className="w-13 h-13 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center mb-1.5 shadow-md">
                     <Store className="w-6 h-6 text-white" />
                   </div>
                 )}
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-black text-white leading-tight truncate">
-                    {activeBusiness?.name || 'Mi Negocio'}
-                  </h2>
-                  <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-white/85 font-medium mt-0.5">
-                    {activeBusiness?.address && (
-                      <span className="truncate">{activeBusiness.address}{activeBusiness.city ? ` · ${activeBusiness.city}` : ''}</span>
-                    )}
-                    {activeBusiness?.phone && (
-                      <span>Tel: {activeBusiness.phone}</span>
-                    )}
-                  </div>
-                  <p className="text-[10px] text-white/80 font-bold mt-1">
-                    📅 {new Date(selectedSale.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} · {new Date(selectedSale.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+
+                <h2 className="text-xl font-black text-white leading-tight tracking-tight truncate max-w-full">
+                  {activeBusiness?.name || 'Mi Negocio'}
+                </h2>
+
+                {(activeBusiness?.address || activeBusiness?.phone) && (
+                  <p className="text-white/85 text-[10px] font-medium mt-0.5 max-w-full truncate">
+                    {activeBusiness?.address}{activeBusiness?.city ? ` · ${activeBusiness.city}` : ''}
+                    {activeBusiness?.phone ? ` · Tel: ${activeBusiness.phone}` : ''}
                   </p>
-                </div>
+                )}
+
+                <span className="inline-flex items-center gap-1 mt-1.5 px-3 py-0.5 rounded-full bg-black/20 text-white/95 text-[10px] font-bold">
+                  📅 {new Date(selectedSale.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} · {new Date(selectedSale.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                </span>
               </div>
             </div>
 
@@ -1412,47 +1413,45 @@ export const SalesPage: React.FC = () => {
               </p>
             </div>
 
-            {/* Botones de Acción (Footer Fijo) */}
-            <div className="shrink-0 p-3 sm:p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+            {/* Botones de Acción (Footer Fijo y Centrado) */}
+            <div className="shrink-0 p-3 sm:p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 flex items-center justify-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={() => setSelectedSale(null)}
-                className="py-2 px-3.5 rounded-xl border border-slate-300 dark:border-zinc-700 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="py-2.5 px-4 rounded-xl border border-slate-300 dark:border-zinc-700 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 Cerrar
               </button>
 
-              <div className="flex items-center gap-1.5 flex-1 justify-end">
-                <button
-                  type="button"
-                  onClick={() => handlePrintThermalTicket(selectedSale, '58mm')}
-                  className="py-2 px-2.5 rounded-xl bg-slate-900 dark:bg-zinc-800 text-emerald-400 border border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-800 transition-colors shrink-0"
-                  title="Para mini impresoras térmicas (58mm)"
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span>Ticket 58mm</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => handlePrintThermalTicket(selectedSale, '58mm')}
+                className="py-2.5 px-3 rounded-xl bg-slate-900 dark:bg-zinc-800 text-emerald-400 border border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-800 transition-colors"
+                title="Para mini impresoras térmicas (58mm)"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Ticket 58mm</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handlePrintThermalTicket(selectedSale, '80mm')}
-                  className="py-2 px-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors shrink-0"
-                  title="Para impresoras térmicas de mostrador (80mm)"
-                >
-                  <Receipt className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Ticket 80mm</span>
-                </button>
+              <button
+                type="button"
+                onClick={() => handlePrintThermalTicket(selectedSale, '80mm')}
+                className="py-2.5 px-3 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
+                title="Para impresoras térmicas de mostrador (80mm)"
+              >
+                <Receipt className="w-3.5 h-3.5 text-blue-400" />
+                <span>Ticket 80mm</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => handlePrintFormalInvoice(selectedSale)}
-                  className="py-2 px-3 rounded-xl text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md active:scale-95 shrink-0"
-                  style={{ background: activePrintColor.gradient }}
-                >
-                  <Receipt className="w-3.5 h-3.5" />
-                  <span>Factura Color (Carta)</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handlePrintFormalInvoice(selectedSale)}
+                className="py-2.5 px-4 rounded-xl text-white text-[10px] font-black flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-md active:scale-95"
+                style={{ background: activePrintColor.gradient }}
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                <span>Factura Color (Carta)</span>
+              </button>
             </div>
           </div>
         </div>
