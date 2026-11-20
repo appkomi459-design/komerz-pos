@@ -2018,6 +2018,11 @@ export const PosPage: React.FC = () => {
                       </style>
                     </head>
                     <body>
+                      ${activeBusiness?.logo_url ? `
+                        <div style="text-align: center; margin-bottom: 5px;">
+                          <img src="${activeBusiness.logo_url}" alt="Logo" style="max-height: 38px; max-width: 80%; object-fit: contain; filter: grayscale(100%);" />
+                        </div>
+                      ` : ''}
                       <div class="text-center bold biz-name">${activeBusiness?.name || 'MI NEGOCIO'}</div>
                       ${activeBusiness?.address ? `<div class="text-center biz-sub">${activeBusiness.address}</div>` : ''}
                       ${activeBusiness?.phone ? `<div class="text-center biz-sub">Tel: ${activeBusiness.phone}</div>` : ''}
@@ -2246,6 +2251,11 @@ export const PosPage: React.FC = () => {
                     </head>
                     <body>
                       <!-- Encabezado del Negocio -->
+                      ${activeBusiness?.logo_url ? `
+                        <div style="text-align: center; margin-bottom: 6px;">
+                          <img src="${activeBusiness.logo_url}" alt="Logo" style="max-height: 48px; max-width: 80%; object-fit: contain; filter: grayscale(100%);" />
+                        </div>
+                      ` : ''}
                       <div class="text-center bold biz-name">${activeBusiness?.name || 'MI NEGOCIO'}</div>
                       ${activeBusiness?.address ? `<div class="text-center biz-sub">${activeBusiness.address}${activeBusiness.city ? ' - ' + activeBusiness.city : ''}</div>` : ''}
                       ${activeBusiness?.phone ? `<div class="text-center biz-sub">Tel: ${activeBusiness.phone}</div>` : ''}

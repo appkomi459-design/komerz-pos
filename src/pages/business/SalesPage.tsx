@@ -767,6 +767,11 @@ export const SalesPage: React.FC = () => {
       </head>
       <body>
         <!-- Encabezado del Negocio -->
+        ${activeBusiness?.logo_url ? `
+          <div style="text-align: center; margin-bottom: 6px;">
+            <img src="${activeBusiness.logo_url}" alt="Logo" style="max-height: ${is58 ? '38px' : '48px'}; max-width: 80%; object-fit: contain; filter: grayscale(100%);" />
+          </div>
+        ` : ''}
         <div class="text-center bold biz-name">${activeBusiness?.name || 'MI NEGOCIO'}</div>
         ${activeBusiness?.address ? `<div class="text-center biz-sub">${activeBusiness.address}${activeBusiness.city ? ' - ' + activeBusiness.city : ''}</div>` : ''}
         ${activeBusiness?.phone ? `<div class="text-center biz-sub">Tel: ${activeBusiness.phone}</div>` : ''}

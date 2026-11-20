@@ -516,10 +516,15 @@ export const CustomerSalesPage: React.FC = () => {
       </head>
       <body>
         <div class="header">
-          <div class="biz-info">
-            <h1>${activeBusiness?.name || 'Mi Negocio'}</h1>
-            <p>${activeBusiness?.address || ''} ${activeBusiness?.city ? '· ' + activeBusiness.city : ''}</p>
-            <p>${activeBusiness?.phone ? 'Tel: ' + activeBusiness.phone : ''}</p>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${activeBusiness?.logo_url ? `
+              <img src="${activeBusiness.logo_url}" alt="Logo" style="width: 52px; height: 52px; object-fit: contain; border-radius: 8px; border: 1px solid #cbd5e1; padding: 2px;" />
+            ` : ''}
+            <div class="biz-info">
+              <h1>${activeBusiness?.name || 'Mi Negocio'}</h1>
+              <p>${activeBusiness?.address || ''} ${activeBusiness?.city ? '· ' + activeBusiness.city : ''}</p>
+              <p>${activeBusiness?.phone ? 'Tel: ' + activeBusiness.phone : ''}</p>
+            </div>
           </div>
           <div class="doc-badge">
             <div class="title">Historial de Compras</div>

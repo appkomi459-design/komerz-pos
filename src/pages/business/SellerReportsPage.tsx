@@ -538,10 +538,15 @@ export const SellerReportsPage: React.FC = () => {
       </head>
       <body>
         <div class="brand-header">
-          <div>
-            <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px;">${businessName}</div>
-            <div style="font-size: 11px; font-weight: 700; opacity: 0.95; margin-top: 2px;">REPORTE DE VENTAS, GANANCIAS Y SUCURSALES</div>
-            <div style="font-size: 10px; opacity: 0.85; margin-top: 3px;">Período analizado: <strong>${periodLabel}</strong></div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${activeBusiness?.logo_url ? `
+              <img src="${activeBusiness.logo_url}" alt="Logo" style="width: 52px; height: 52px; object-fit: contain; border-radius: 10px; background: #ffffff; padding: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);" />
+            ` : ''}
+            <div>
+              <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px;">${businessName}</div>
+              <div style="font-size: 11px; font-weight: 700; opacity: 0.95; margin-top: 2px;">REPORTE DE VENTAS, GANANCIAS Y SUCURSALES</div>
+              <div style="font-size: 10px; opacity: 0.85; margin-top: 3px;">Período analizado: <strong>${periodLabel}</strong></div>
+            </div>
           </div>
           <div style="text-align: right;">
             <div style="font-size: 9px; opacity: 0.9; text-transform: uppercase;">Emisión</div>
