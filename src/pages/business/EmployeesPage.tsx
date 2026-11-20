@@ -788,17 +788,16 @@ export const EmployeesPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-zinc-800/60 uppercase tracking-wider text-slate-500 dark:text-zinc-400 border-b border-slate-200/80 dark:border-zinc-800 font-black text-[10px]">
+          <div className="w-full">
+            <table className="w-full text-left table-fixed text-xs">
+              <thead className="bg-slate-50 dark:bg-zinc-800/60 uppercase tracking-wider text-slate-500 dark:text-zinc-400 border-b border-slate-200/80 dark:border-zinc-800 font-black text-[9px] sm:text-[10px]">
                 <tr>
-                  <th className="py-3.5 px-4">Vendedor</th>
-                  <th className="py-3.5 px-4">Credenciales (Login & Clave)</th>
-                  <th className="py-3.5 px-3">Sucursal</th>
-                  <th className="py-3.5 px-3">Rol</th>
-                  <th className="py-3.5 px-3 text-right">Total Vendido</th>
-                  <th className="py-3.5 px-3 text-center">Estado de Acceso</th>
-                  <th className="py-3.5 px-4 text-right">Acciones</th>
+                  <th className="py-2.5 px-2 sm:px-3 w-[24%]">Vendedor</th>
+                  <th className="py-2.5 px-2 sm:px-3 w-[29%]">Credenciales (Login & Clave)</th>
+                  <th className="py-2.5 px-2 sm:px-3 w-[15%]">Sucursal</th>
+                  <th className="py-2.5 px-2 sm:px-3 text-right w-[11%]">Vendido</th>
+                  <th className="py-2.5 px-2 sm:px-3 text-center w-[10%]">Acceso</th>
+                  <th className="py-2.5 px-2 sm:px-3 text-right w-[11%]">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 font-medium">
@@ -811,32 +810,44 @@ export const EmployeesPage: React.FC = () => {
                       key={seller.memberId}
                       className="hover:bg-slate-50/80 dark:hover:bg-zinc-800/40 transition-colors"
                     >
-                      {/* Vendedor (Avatar y Nombre) */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-xs shadow-xs shrink-0 tracking-wider">
+                      {/* Vendedor (Avatar, Nombre y Rol) */}
+                      <td className="py-2.5 px-2 sm:px-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-[11px] sm:text-xs shadow-xs shrink-0 tracking-wider">
                             {seller.fullName.slice(0, 2).toUpperCase()}
                           </div>
-                          <div className="min-w-0">
-                            <div className="text-slate-900 dark:text-zinc-100 font-black text-xs truncate max-w-[160px]">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-slate-900 dark:text-zinc-100 font-black text-xs truncate" title={seller.fullName}>
                               {seller.fullName}
                             </div>
-                            <div className="text-[10px] text-slate-400 font-medium">
-                              {seller.role === 'owner' ? 'Propietario del negocio' : 'Personal autorizado'}
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-black shrink-0 ${
+                                seller.role === 'owner'
+                                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60'
+                                  : seller.role === 'admin'
+                                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60'
+                                  : 'bg-slate-100 text-slate-700 dark:bg-zinc-800 dark:text-zinc-300 border border-slate-200/60 dark:border-zinc-700/60'
+                              }`}>
+                                {seller.role === 'owner'
+                                  ? `👑 ${t('role.owner', 'Dueño')}`
+                                  : seller.role === 'admin'
+                                  ? `🛡️ ${t('role.admin', 'Admin')}`
+                                  : `🛒 ${t('role.cashier', 'Cajero')}`}
+                              </span>
                             </div>
                           </div>
                         </div>
                       </td>
 
                       {/* Credenciales de Acceso: Login (Correo) y Contraseña con botones para copiar */}
-                      <td className="py-3.5 px-4">
-                        <div className="bg-slate-50 dark:bg-zinc-800/80 p-2 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 space-y-1.5 min-w-[210px] max-w-[270px]">
+                      <td className="py-2.5 px-2 sm:px-3">
+                        <div className="bg-slate-50 dark:bg-zinc-800/80 p-1.5 sm:p-2 rounded-xl border border-slate-200/80 dark:border-zinc-700/80 space-y-1 w-full min-w-0">
                           {/* Login / Correo */}
-                          <div className="flex items-center justify-between gap-1.5">
-                            <div className="flex items-center gap-1 min-w-0">
-                              <Mail className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                          <div className="flex items-center justify-between gap-1 min-w-0">
+                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                              <Mail className="w-3 h-3 text-blue-500 shrink-0" />
                               <span
-                                className="font-mono text-[11px] font-bold text-slate-800 dark:text-zinc-200 truncate select-all"
+                                className="font-mono text-[10px] sm:text-[11px] font-bold text-slate-800 dark:text-zinc-200 truncate select-all"
                                 title={seller.email}
                               >
                                 {seller.email}
@@ -846,27 +857,27 @@ export const EmployeesPage: React.FC = () => {
                               type="button"
                               onClick={() => handleCopySingle(seller.email, `mail_${seller.userId}`)}
                               title="Copiar correo / usuario"
-                              className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer shrink-0"
+                              className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-400 hover:text-blue-600 transition-colors cursor-pointer shrink-0"
                             >
                               {copiedKey === `mail_${seller.userId}` ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                <Check className="w-3 h-3 text-emerald-600" />
                               ) : (
-                                <Copy className="w-3.5 h-3.5" />
+                                <Copy className="w-3 h-3" />
                               )}
                             </button>
                           </div>
 
                           {/* Contraseña */}
-                          <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-slate-200/60 dark:border-zinc-700/60">
-                            <div className="flex items-center gap-1 min-w-0">
-                              <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <div className="flex items-center justify-between gap-1 pt-1 border-t border-slate-200/60 dark:border-zinc-700/60 min-w-0">
+                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                              <Lock className="w-3 h-3 text-emerald-600 shrink-0" />
                               {sellerPassword ? (
-                                <span className="font-mono text-[11px] font-black text-emerald-700 dark:text-emerald-400 truncate select-all">
+                                <span className="font-mono text-[10px] sm:text-[11px] font-black text-emerald-700 dark:text-emerald-400 truncate select-all">
                                   {isRevealed ? sellerPassword : '••••••••'}
                                 </span>
                               ) : (
-                                <span className="text-[10px] text-amber-600 dark:text-amber-400 italic font-semibold">
-                                  Clave no registrada
+                                <span className="text-[9px] sm:text-[10px] text-amber-600 dark:text-amber-400 italic font-semibold truncate">
+                                  Sin clave
                                 </span>
                               )}
                             </div>
@@ -878,24 +889,24 @@ export const EmployeesPage: React.FC = () => {
                                     type="button"
                                     onClick={() => toggleRevealPassword(seller.userId)}
                                     title={isRevealed ? 'Ocultar contraseña' : 'Ver contraseña'}
-                                    className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
+                                    className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
                                   >
                                     {isRevealed ? (
-                                      <EyeOff className="w-3.5 h-3.5" />
+                                      <EyeOff className="w-3 h-3" />
                                     ) : (
-                                      <Eye className="w-3.5 h-3.5" />
+                                      <Eye className="w-3 h-3" />
                                     )}
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleCopySingle(sellerPassword, `pass_${seller.userId}`)}
                                     title="Copiar contraseña"
-                                    className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
+                                    className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer"
                                   >
                                     {copiedKey === `pass_${seller.userId}` ? (
-                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                      <Check className="w-3 h-3 text-emerald-600" />
                                     ) : (
-                                      <Copy className="w-3.5 h-3.5" />
+                                      <Copy className="w-3 h-3" />
                                     )}
                                   </button>
                                 </>
@@ -903,7 +914,7 @@ export const EmployeesPage: React.FC = () => {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEdit(seller)}
-                                  className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                                  className="text-[9px] sm:text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                                   title="Asignar contraseña"
                                 >
                                   + Asignar
@@ -915,11 +926,11 @@ export const EmployeesPage: React.FC = () => {
                       </td>
 
                       {/* Sucursal */}
-                      <td className="py-3.5 px-3 whitespace-nowrap">
+                      <td className="py-2.5 px-2 sm:px-3">
                         {seller.branchName ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60">
-                            <Store className="w-3 h-3" />
-                            <span>{seller.branchName}</span>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200/70 dark:border-indigo-800/60 truncate max-w-full" title={seller.branchName}>
+                            <Store className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{seller.branchName}</span>
                           </span>
                         ) : (
                           <span className="text-slate-400 text-[10px]">
@@ -928,23 +939,9 @@ export const EmployeesPage: React.FC = () => {
                         )}
                       </td>
 
-                      {/* Rol */}
-                      <td className="py-3.5 px-3 whitespace-nowrap">
-                        <Badge
-                          variant={seller.role === 'owner' ? 'emerald' : seller.role === 'admin' ? 'blue' : 'gray'}
-                          size="sm"
-                        >
-                          {seller.role === 'owner'
-                            ? `👑 ${t('role.owner', 'Dueño')}`
-                            : seller.role === 'admin'
-                            ? `🛡️ ${t('role.admin', 'Admin')}`
-                            : `🛒 ${t('role.cashier', 'VENDEDOR / CAJERO')}`}
-                        </Badge>
-                      </td>
-
                       {/* Ventas y Total */}
-                      <td className="py-3.5 px-3 whitespace-nowrap text-right">
-                        <div className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                      <td className="py-2.5 px-2 sm:px-3 text-right">
+                        <div className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-xs truncate">
                           {formatCurrency(seller.totalSold, activeBusiness?.currency || 'BOB')}
                         </div>
                         <div className="text-[10px] text-slate-400 font-normal">
@@ -953,48 +950,48 @@ export const EmployeesPage: React.FC = () => {
                       </td>
 
                       {/* Estado de Acceso con interruptor */}
-                      <td className="py-3.5 px-3 whitespace-nowrap text-center">
+                      <td className="py-2.5 px-2 sm:px-3 text-center">
                         {seller.role !== 'owner' ? (
                           <button
                             type="button"
                             disabled={updatingMemberId === seller.memberId}
                             onClick={() => handleToggleStatus(seller.memberId, seller.isActive)}
-                            className="inline-flex items-center gap-2 group cursor-pointer focus:outline-none"
+                            className="inline-flex flex-col items-center gap-0.5 group cursor-pointer focus:outline-none"
                             title={seller.isActive ? t('employees.deactivate', 'Desactivar Acceso') : t('employees.activate', 'Activar Acceso')}
                           >
                             <div
-                              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${
+                              className={`relative inline-flex h-4.5 w-8 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${
                                 seller.isActive ? 'bg-emerald-500' : 'bg-rose-500'
                               }`}
                             >
                               <span
                                 className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
-                                  seller.isActive ? 'translate-x-4.5' : 'translate-x-1'
+                                  seller.isActive ? 'translate-x-4' : 'translate-x-0.5'
                                 }`}
                               />
                             </div>
                             <span
-                              className={`text-[11px] font-black ${
+                              className={`text-[9px] font-black ${
                                 seller.isActive
                                   ? 'text-emerald-600 dark:text-emerald-400'
                                   : 'text-rose-600 dark:text-rose-400'
                               }`}
                             >
-                              {seller.isActive ? t('employees.can_enter', 'Puede entrar') : t('employees.no_access', 'Sin acceso')}
+                              {seller.isActive ? t('employees.can_enter', 'Activo') : t('employees.no_access', 'Inactivo')}
                             </span>
                           </button>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            {t('employees.always_active', 'Siempre activo')}
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                            {t('employees.always_active', 'Activo')}
                           </span>
                         )}
                       </td>
 
                       {/* Acciones */}
-                      <td className="py-3.5 px-4 whitespace-nowrap text-right">
+                      <td className="py-2.5 px-2 sm:px-3 text-right">
                         {seller.role !== 'owner' ? (
-                          <div className="flex items-center justify-end gap-1.5">
+                          <div className="flex items-center justify-end gap-1">
                             {/* Ver y Copiar Credenciales */}
                             <button
                               type="button"
@@ -1006,7 +1003,7 @@ export const EmployeesPage: React.FC = () => {
                                   branchName: seller.branchName || undefined,
                                 });
                               }}
-                              className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-600 hover:text-emerald-600 transition-colors cursor-pointer"
+                              className="p-1 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-600 hover:text-emerald-600 transition-colors cursor-pointer"
                               title="Ver y Copiar Credenciales Completas"
                             >
                               <KeyRound className="w-3.5 h-3.5" />
@@ -1016,7 +1013,7 @@ export const EmployeesPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenEdit(seller)}
-                              className="p-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer"
+                              className="p-1 rounded-lg border border-slate-200 dark:border-zinc-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-600 hover:text-blue-600 transition-colors cursor-pointer"
                               title={t('employees.edit', 'Editar Vendedor y Contraseña')}
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -1026,7 +1023,7 @@ export const EmployeesPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setDeletingSeller(seller)}
-                              className="p-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
+                              className="p-1 rounded-lg border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer"
                               title={t('employees.delete', 'Eliminar Vendedor')}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
