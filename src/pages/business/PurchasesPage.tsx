@@ -493,84 +493,123 @@ export const PurchasesPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* TARJETAS DE MÉTRICAS / KPIS                              */}
+      {/* TARJETAS DE MÉTRICAS / KPIS (VIBRANTES CON GRADIENTES)  */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Total Invertido
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* 1. TOTAL INVERTIDO (Verde Esmeralda) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Inversión
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100">
-              Bs {totalSpent.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5 flex items-center gap-1">
-              <span>Gastos en mercadería</span>
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="56" cy="20" r="4" fill="white"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            Bs {totalSpent.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            Total Invertido
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Gastos en mercadería
+          </p>
+        </div>
 
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Órdenes de Compra
+        {/* 2. ÓRDENES DE COMPRA (Azul Cobalto) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <ShoppingBag className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Órdenes
             </span>
-            <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100">
-              {purchases.length}
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              Recepciones registradas
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <path d="M22 26h28l-4 26H26L22 26z" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M30 26V20a6 6 0 0 1 12 0v6" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
+            {purchases.length}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            Órdenes de Compra
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Recepciones registradas
+          </p>
+        </div>
 
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Proveedores
+        {/* 3. PROVEEDORES (Púrpura / Índigo) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#8e2de2] to-[#4a00e0] text-white shadow-xl shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Truck className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Red
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-              <Truck className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100">
-              {uniqueSuppliersCount}
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              Distribuidores activos
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <rect x="16" y="24" width="28" height="22" rx="3" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M44 32h10l4 8v6h-14v-14z" stroke="white" strokeWidth="3" strokeLinejoin="round" fill="none"/>
+              <circle cx="26" cy="48" r="4" fill="white"/>
+              <circle cx="50" cy="48" r="4" fill="white"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
+            {uniqueSuppliersCount}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            Proveedores
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Distribuidores activos
+          </p>
+        </div>
 
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Unidades Ingresadas
+        {/* 4. UNIDADES INGRESADAS (Ámbar / Naranja) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#f2994a] to-[#f2c94c] text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <PackageCheck className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Stock
             </span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-              <PackageCheck className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100">
-              {totalUnitsBought.toLocaleString('es-BO')}
-            </div>
-            <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold mt-0.5">
-              Sumadas al inventario
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <path d="M36 18 L54 28 L36 38 L18 28 Z" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M18 28 V46 L36 56 V38" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M54 28 V46 L36 56" stroke="white" strokeWidth="3" fill="none"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            {totalUnitsBought.toLocaleString('es-BO')}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            Unidades Ingresadas
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Sumadas al inventario
+          </p>
+        </div>
       </div>
 
       {/* ======================================================== */}

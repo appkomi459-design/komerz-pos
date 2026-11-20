@@ -454,89 +454,118 @@ export const ReportsPage: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-          {/* 1. Ventas Totales */}
-          <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-                1. Ventas Totales (+)
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          {/* 1. VENTAS TOTALES (Azul Cobalto) */}
+          <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                <ArrowUpRight className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+                (+) Bruto
               </span>
-              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center">
-                <ArrowUpRight className="w-4 h-4" />
-              </div>
             </div>
-            <div className="mt-2">
-              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-                Bs {financialSummary.totalRevenue.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Ticket promedio: Bs {financialSummary.averageTicket.toFixed(2)}
-              </p>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+              <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+                <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+                <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="56" cy="20" r="4" fill="white"/>
+              </svg>
             </div>
-          </Card>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+              Bs {financialSummary.totalRevenue.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+              1. Ventas Totales
+            </p>
+            <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10 font-mono">
+              Ticket prom: Bs {financialSummary.averageTicket.toFixed(2)}
+            </p>
+          </div>
 
-          {/* 2. Costo de Mercadería Vendida */}
-          <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-                2. Costo Mercadería (−)
+          {/* 2. COSTO MERCADERÍA (Ámbar / Naranja) */}
+          <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#f2994a] to-[#f2c94c] text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/30">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                <ShoppingBag className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+                (−) Costo
               </span>
-              <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
-                <ShoppingBag className="w-4 h-4" />
-              </div>
             </div>
-            <div className="mt-2">
-              <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">
-                − Bs {financialSummary.totalCostOfGoods.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Costo reposición de lo vendido
-              </p>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+              <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+                <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+                <path d="M22 26h28l-4 26H26L22 26z" stroke="white" strokeWidth="3" fill="none"/>
+                <path d="M30 26V20a6 6 0 0 1 12 0v6" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+              </svg>
             </div>
-          </Card>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+              − Bs {financialSummary.totalCostOfGoods.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+              2. Costo Mercadería
+            </p>
+            <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+              Reposición de inventario
+            </p>
+          </div>
 
-          {/* 3. Gastos Operativos */}
-          <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-                3. Gastos Operativos (−)
+          {/* 3. GASTOS OPERATIVOS (Rojo Carmesí) */}
+          <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#eb3349] to-[#f45c43] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                <TrendingDown className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+                (−) Egresos
               </span>
-              <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center">
-                <TrendingDown className="w-4 h-4" />
-              </div>
             </div>
-            <div className="mt-2">
-              <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
-                − Bs {financialSummary.totalOperatingExpenses.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                Luz, alquiler, bolsas y sueldos
-              </p>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+              <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+                <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+                <polyline points="16,24 26,38 36,34 46,48 56,56" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                <circle cx="56" cy="56" r="4" fill="white"/>
+              </svg>
             </div>
-          </Card>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+              − Bs {financialSummary.totalOperatingExpenses.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+              3. Gastos Operativos
+            </p>
+            <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+              Luz, bolsas, sueldos
+            </p>
+          </div>
 
-          {/* 4. Ganancia Neta Limpia (DESTACADA) */}
-          <Card className="p-4 sm:p-5 rounded-2xl border-2 border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 via-emerald-600/5 to-teal-500/10 dark:from-emerald-950/40 dark:to-zinc-900 shadow-md shadow-emerald-500/10 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                🏆 Ganancia Limpia Real (=)
+          {/* 4. GANANCIA LIMPIA REAL (Verde Esmeralda) */}
+          <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+                <DollarSign className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+                {financialSummary.netMarginPct.toFixed(1)}% Margen
               </span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-                <DollarSign className="w-4 h-4" />
-              </div>
             </div>
-            <div className="mt-2">
-              <div className={`text-xl sm:text-2xl font-black font-mono ${financialSummary.netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-600'}`}>
-                Bs {financialSummary.netProfit.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-emerald-600 text-white font-mono">
-                  {financialSummary.netMarginPct.toFixed(1)}% Margen Neto
-                </span>
-                <span className="text-[10px] text-emerald-800/80 dark:text-emerald-300/80 font-medium">libre de todo</span>
-              </div>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+              <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+                <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+                <circle cx="36" cy="36" r="16" stroke="white" strokeWidth="3" fill="none"/>
+                <path d="M36 28v16M30 32h10a2 2 0 0 1 0 4H32a2 2 0 0 0 0 4h10" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
             </div>
-          </Card>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+              Bs {financialSummary.netProfit.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+            <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+              4. Ganancia Limpia Real
+            </p>
+            <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+              Utilidad neta disponible
+            </p>
+          </div>
         </div>
       </div>
 

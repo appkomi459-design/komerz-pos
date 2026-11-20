@@ -312,88 +312,120 @@ export const ExpensesPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* TARJETAS DE MÉTRICAS / KPIS                              */}
+      {/* TARJETAS DE MÉTRICAS / KPIS (VIBRANTES CON GRADIENTES)  */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {/* Total del Mes */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              {t('expenses.month', 'Gastos del Mes')}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* 1. TOTAL DEL MES (Rojo Carmesí) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#eb3349] to-[#f45c43] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Mes
             </span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
-              Bs {metrics.totalMonth.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              {metrics.countMonth} {t('expenses.title', 'gastos')}
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              <circle cx="56" cy="20" r="4" fill="white"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            Bs {metrics.totalMonth.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('expenses.month', 'Gastos del Mes')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            {metrics.countMonth} {t('expenses.title', 'gastos')}
+          </p>
+        </div>
 
-        {/* Gastos de Hoy */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              {t('expenses.today', 'Gastos de Hoy')}
+        {/* 2. GASTOS DE HOY (Ámbar / Naranja) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#f2994a] to-[#f2c94c] text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Hoy
             </span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Calendar className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-              Bs {metrics.totalToday.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-              Salidas de la jornada
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <rect x="20" y="22" width="32" height="32" rx="4" stroke="white" strokeWidth="3" fill="none"/>
+              <line x1="20" y1="32" x2="52" y2="32" stroke="white" strokeWidth="2.5"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            Bs {metrics.totalToday.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('expenses.today', 'Gastos de Hoy')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Salidas de la jornada
+          </p>
+        </div>
 
-        {/* Pagados desde Caja */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Salidas de Caja Chica
+        {/* 3. SALIDAS DE CAJA CHICA (Verde Esmeralda) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Wallet className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Caja Chica
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2">
-            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-              Bs {metrics.cashExpenses.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">
-              Descontado en arqueo
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <rect x="18" y="24" width="36" height="26" rx="4" stroke="white" strokeWidth="3" fill="none"/>
+              <circle cx="42" cy="37" r="3" fill="white"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
+            Bs {metrics.cashExpenses.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            Salidas de Caja Chica
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            Descontado en arqueo
+          </p>
+        </div>
 
-        {/* Mayor Rubro */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              Mayor Rubro de Gasto
+        {/* 4. MAYOR RUBRO (Púrpura / Índigo) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#8e2de2] to-[#4a00e0] text-white shadow-xl shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Tag className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              Rubro Top
             </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-              <Tag className="w-4 h-4" />
-            </div>
           </div>
-          <div className="mt-2 truncate">
-            <div className="text-sm sm:text-base font-black text-slate-900 dark:text-zinc-100 truncate" title={metrics.topCatName}>
-              {metrics.topCatName}
-            </div>
-            <p className="text-[10px] text-purple-600 dark:text-purple-400 font-bold mt-0.5 font-mono">
-              {metrics.topCatAmount > 0 ? `Bs ${metrics.topCatAmount.toFixed(2)}` : 'Sin registros'}
-            </p>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <path d="M22 22h14l18 18-14 14-18-18V22z" stroke="white" strokeWidth="3" fill="none"/>
+              <circle cx="28" cy="28" r="3" fill="white"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-xs truncate relative z-10" title={metrics.topCatName}>
+            {metrics.topCatName}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            Mayor Rubro de Gasto
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10 font-mono">
+            {metrics.topCatAmount > 0 ? `Bs ${metrics.topCatAmount.toFixed(2)}` : 'Sin registros'}
+          </p>
+        </div>
       </div>
 
       {/* ======================================================== */}

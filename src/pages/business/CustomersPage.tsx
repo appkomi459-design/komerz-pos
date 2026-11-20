@@ -299,68 +299,93 @@ export const CustomersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── TARJETAS DE MÉTRICAS DE CLIENTES ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              {t('customers.total', 'Total Clientes')}
-            </p>
-            <p className="text-2xl font-black text-slate-900 dark:text-zinc-100 mt-0.5 font-mono">
-              {customerStats.total}
-            </p>
-            <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              {t('panel.customers_registered', 'Registrados')}
-            </p>
-          </div>
-          <div className="w-11 h-11 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center">
-            <Users className="w-5 h-5" />
-          </div>
-        </Card>
-
-        <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              {t('customers.tax_id', 'NIT / CI')}
-            </p>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-                {customerStats.withNit}
-              </span>
-              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded-md">
-                {customerStats.total > 0 ? Math.round((customerStats.withNit / customerStats.total) * 100) : 0}%
-              </span>
+      {/* ── TARJETAS DE MÉTRICAS DE CLIENTES (VIBRANTES CON GRADIENTES) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* 1. TOTAL CLIENTES (Ámbar / Naranja) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#f2994a] to-[#f2c94c] text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Users className="w-5 h-5" />
             </div>
-            <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              {t('settings.billing_title', 'Facturación')}
-            </p>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              {t('panel.today', 'Cartera')}
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 flex items-center justify-center">
-            <CreditCard className="w-5 h-5" />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <circle cx="36" cy="28" r="10" stroke="white" strokeWidth="3" fill="none"/>
+              <path d="M18 56c0-10 8-16 18-16s18 6 18 16" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
+            {customerStats.total}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('customers.total', 'Total Clientes')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            {t('panel.customers_registered', 'Clientes registrados')}
+          </p>
+        </div>
 
-        <Card className="p-4 border border-slate-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm shadow-xs flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500">
-              {t('customers.phone', 'Teléfono')} / WhatsApp
-            </p>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-2xl font-black text-slate-900 dark:text-zinc-100 font-mono">
-                {customerStats.withPhone}
-              </span>
-              <span className="text-[10px] font-bold text-teal-600 bg-teal-50 dark:bg-teal-950/60 px-1.5 py-0.5 rounded-md">
-                {customerStats.total > 0 ? Math.round((customerStats.withPhone / customerStats.total) * 100) : 0}%
-              </span>
+        {/* 2. CON NIT / CI (Azul Cobalto) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <CreditCard className="w-5 h-5" />
             </div>
-            <p className="text-[10px] text-slate-400 dark:text-zinc-500 font-bold mt-0.5">
-              {t('common.active', 'Contacto')}
-            </p>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              {customerStats.total > 0 ? Math.round((customerStats.withNit / customerStats.total) * 100) : 0}% NIT
+            </span>
           </div>
-          <div className="w-11 h-11 rounded-2xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 flex items-center justify-center">
-            <Phone className="w-5 h-5" />
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <rect x="16" y="24" width="40" height="26" rx="4" stroke="white" strokeWidth="3" fill="none"/>
+              <line x1="16" y1="32" x2="56" y2="32" stroke="white" strokeWidth="3"/>
+              <rect x="22" y="38" width="8" height="6" rx="1" fill="white"/>
+            </svg>
           </div>
-        </Card>
+          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
+            {customerStats.withNit}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('customers.tax_id', 'NIT / CI')}
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            {t('settings.billing_title', 'Facturación y recibos')}
+          </p>
+        </div>
+
+        {/* 3. TELÉFONO / WHATSAPP (Verde Esmeralda) */}
+        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
+          <div className="flex items-start justify-between mb-4">
+            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <Phone className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
+              {customerStats.total > 0 ? Math.round((customerStats.withPhone / customerStats.total) * 100) : 0}% Activo
+            </span>
+          </div>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
+              <rect x="24" y="18" width="24" height="38" rx="4" stroke="white" strokeWidth="3" fill="none"/>
+              <line x1="32" y1="22" x2="40" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <circle cx="36" cy="48" r="2" fill="white"/>
+            </svg>
+          </div>
+          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
+            {customerStats.withPhone}
+          </p>
+          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
+            {t('customers.phone', 'Teléfono')} / WhatsApp
+          </p>
+          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
+            {t('common.active', 'Contacto directo')}
+          </p>
+        </div>
       </div>
 
       {/* ── BUSCADOR Y FILTROS ── */}
