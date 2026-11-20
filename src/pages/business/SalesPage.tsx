@@ -1239,84 +1239,90 @@ export const SalesPage: React.FC = () => {
       {/* MODAL: VER FACTURA PROFESIONAL DE LA VENTA SELECCIONADA  */}
       {/* ======================================================== */}
       {selectedSale && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-y-auto border-2 border-slate-900 dark:border-zinc-700">
-            {/* Cabecera del Negocio */}
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm p-3 sm:p-5 flex justify-center items-start sm:items-center">
+          <div className="relative bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg my-auto border border-slate-200 dark:border-zinc-800 overflow-hidden animate-fadeIn flex flex-col max-h-[92vh]">
+            {/* Cabecera del Negocio (Fija) */}
             <div
-              className="relative rounded-t-3xl px-6 pt-5 pb-4"
+              className="relative px-5 pt-4 pb-3.5 shrink-0 text-white shadow-md"
               style={{ background: activePrintColor.gradient }}
             >
-              <div className="flex items-start justify-between mb-3">
-                <span className="bg-emerald-400/20 border border-emerald-400/50 text-emerald-300 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+              {/* Botón Cerrar X flotante */}
+              <button
+                type="button"
+                onClick={() => setSelectedSale(null)}
+                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center cursor-pointer transition-colors"
+                title="Cerrar ventana"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center justify-between pr-8 mb-2">
+                <span className="bg-white/20 border border-white/30 text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Factura Oficial · {activeBusiness?.name?.toUpperCase() || 'MI NEGOCIO'}
                 </span>
-                <span className="bg-white/10 border border-white/20 text-white text-[11px] font-black px-3 py-1 rounded-full font-mono">
+                <span className="bg-white/20 border border-white/30 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full font-mono">
                   {selectedSale.invoice_number}
                 </span>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {activeBusiness?.logo_url ? (
-                  <img
-                    src={activeBusiness.logo_url}
-                    alt={activeBusiness.name}
-                    className="w-14 h-14 rounded-2xl object-cover border-2 border-white/30 shadow-lg flex-shrink-0"
-                  />
+                  <div className="w-12 h-12 rounded-2xl bg-white p-1 border-2 border-white/40 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+                    <img
+                      src={activeBusiness.logo_url}
+                      alt={activeBusiness.name}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
                 ) : (
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-600/40 border-2 border-emerald-400/50 flex items-center justify-center flex-shrink-0">
-                    <Store className="w-7 h-7 text-emerald-300" />
+                  <div className="w-12 h-12 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center shrink-0">
+                    <Store className="w-6 h-6 text-white" />
                   </div>
                 )}
-                <div>
-                  <h2 className="text-xl font-black text-white leading-tight">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg font-black text-white leading-tight truncate">
                     {activeBusiness?.name || 'Mi Negocio'}
                   </h2>
-                  {activeBusiness?.address && (
-                    <p className="text-emerald-300/80 text-[11px] font-bold mt-0.5">
-                      {activeBusiness.address}
-                      {activeBusiness.city ? ` · ${activeBusiness.city}` : ''}
-                    </p>
-                  )}
-                  {activeBusiness?.phone && (
-                    <p className="text-emerald-300/70 text-[11px] font-bold">
-                      Tel: {activeBusiness.phone}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap items-center gap-x-2 text-[10px] text-white/85 font-medium mt-0.5">
+                    {activeBusiness?.address && (
+                      <span className="truncate">{activeBusiness.address}{activeBusiness.city ? ` · ${activeBusiness.city}` : ''}</span>
+                    )}
+                    {activeBusiness?.phone && (
+                      <span>Tel: {activeBusiness.phone}</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-white/80 font-bold mt-1">
+                    📅 {new Date(selectedSale.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} · {new Date(selectedSale.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
               </div>
-
-              <p className="text-emerald-300/70 text-[10px] font-bold mt-2 text-right">
-                {new Date(selectedSale.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                {' · '}
-                {new Date(selectedSale.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-              </p>
             </div>
 
-            {/* Cuerpo de la Factura */}
-            <div className="px-5 py-4 space-y-4">
+            {/* Cuerpo de la Factura (Con Scroll interno si es necesario) */}
+            <div className="overflow-y-auto flex-1 px-5 py-3.5 space-y-3.5">
               {/* Datos Cliente & Emisión */}
-              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700">
+              <div className="grid grid-cols-2 gap-2.5 p-3 bg-slate-50 dark:bg-zinc-800/80 rounded-2xl border border-slate-200/80 dark:border-zinc-700">
                 <div>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Datos del Cliente</p>
-                  <p className="text-sm font-black text-slate-900 dark:text-zinc-100">
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-0.5">Cliente</p>
+                  <p className="text-xs font-black text-slate-900 dark:text-zinc-100 truncate">
                     {selectedSale.customer_name || 'Consumidor Final'}
                   </p>
-                  <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-400">
+                  <p className="text-[10px] font-bold text-slate-500 dark:text-zinc-400">
                     NIT / CI: {selectedSale.customer_nit || 'S/N'}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 mb-1">Datos de Emisión</p>
-                  <p className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">
+                  <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-500 mb-0.5">Emisión</p>
+                  <p className="text-[10px] font-bold text-slate-700 dark:text-zinc-300">
                     Cajero: <span className="font-black">Administrador</span>
                   </p>
-                  <p className="text-[11px] font-bold text-slate-700 dark:text-zinc-300">
+                  <p className="text-[10px] font-bold text-slate-700 dark:text-zinc-300">
                     Método:{' '}
                     <span className="font-black capitalize">
                       {selectedSale.payment_method === 'cash' ? 'Efectivo' : selectedSale.payment_method === 'transfer' ? 'QR / Trans.' : 'Tarjeta'}
                     </span>
                   </p>
-                  <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                     Estado: <span className="font-black">✓ Pagado</span>
                   </p>
                 </div>
@@ -1324,7 +1330,7 @@ export const SalesPage: React.FC = () => {
 
               {/* Tabla de Productos con Fotos */}
               <div className="rounded-2xl border border-slate-200 dark:border-zinc-700 overflow-hidden">
-                <div className="grid grid-cols-12 bg-slate-100 dark:bg-zinc-800 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-zinc-400">
+                <div className="grid grid-cols-12 bg-slate-100/90 dark:bg-zinc-800 px-3 py-1.5 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                   <span className="col-span-2 text-center">Cant.</span>
                   <span className="col-span-6">Producto</span>
                   <span className="col-span-2 text-right">P. Unit</span>
@@ -1370,11 +1376,11 @@ export const SalesPage: React.FC = () => {
               </div>
 
               {/* Totales y QR */}
-              <div className="flex items-end gap-4">
-                <div className="flex-shrink-0 w-20 h-20 bg-slate-100 dark:bg-zinc-800 rounded-xl border-2 border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center">
-                  <QrCode className="w-10 h-10 text-slate-400 dark:text-zinc-500" />
-                  <p className="text-[8px] font-black text-slate-400 mt-1 text-center leading-tight">
-                    Comprobante<br/>Válido
+              <div className="flex items-end gap-3 pt-1">
+                <div className="flex-shrink-0 w-16 h-16 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-dashed border-slate-300 dark:border-zinc-700 flex flex-col items-center justify-center p-1">
+                  <QrCode className="w-8 h-8 text-slate-400 dark:text-zinc-500" />
+                  <p className="text-[7.5px] font-black text-slate-400 text-center leading-tight mt-0.5">
+                    Comprobante Válido
                   </p>
                 </div>
 
@@ -1391,9 +1397,9 @@ export const SalesPage: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="flex justify-between font-black text-slate-900 dark:text-zinc-100 pt-1.5 border-t-2 border-slate-300 dark:border-zinc-600 mt-1">
+                  <div className="flex justify-between font-black text-slate-900 dark:text-zinc-100 pt-1 border-t-2 border-slate-300 dark:border-zinc-700">
                     <span className="text-sm uppercase tracking-wider">Total Pagado:</span>
-                    <span className="text-sm font-mono text-emerald-700 dark:text-emerald-400">
+                    <span className="text-base font-mono text-emerald-600 dark:text-emerald-400">
                       {formatCurrency(selectedSale.total, currency)}
                     </span>
                   </div>
@@ -1401,50 +1407,52 @@ export const SalesPage: React.FC = () => {
               </div>
 
               {/* Footer nota */}
-              <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold italic px-4 border-t border-slate-100 dark:border-zinc-800 pt-3">
+              <p className="text-center text-[10px] text-slate-400 dark:text-zinc-500 font-bold italic px-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
                 {settings?.receipt_footer || '"Gracias por su preferencia — Esta nota de venta avala la entrega de mercadería"'}
               </p>
             </div>
 
-            {/* Botones de Acción */}
-            <div className="px-5 pb-5 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* Botones de Acción (Footer Fijo) */}
+            <div className="shrink-0 p-3 sm:p-4 border-t border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedSale(null)}
-                className="py-2.5 rounded-xl border-2 border-slate-200 dark:border-zinc-700 text-xs font-black text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                className="py-2 px-3.5 rounded-xl border border-slate-300 dark:border-zinc-700 text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-200/60 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
               >
                 Cerrar
               </button>
 
-              <button
-                type="button"
-                onClick={() => handlePrintThermalTicket(selectedSale, '58mm')}
-                className="py-2.5 rounded-xl bg-slate-900 dark:bg-zinc-800 text-emerald-400 border border-slate-700 text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-800 transition-colors"
-                title="Para mini impresoras térmicas de bolsillo (58mm)"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Ticket Mini (58mm)</span>
-              </button>
+              <div className="flex items-center gap-1.5 flex-1 justify-end">
+                <button
+                  type="button"
+                  onClick={() => handlePrintThermalTicket(selectedSale, '58mm')}
+                  className="py-2 px-2.5 rounded-xl bg-slate-900 dark:bg-zinc-800 text-emerald-400 border border-slate-700 text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-800 transition-colors shrink-0"
+                  title="Para mini impresoras térmicas (58mm)"
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>Ticket 58mm</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handlePrintThermalTicket(selectedSale, '80mm')}
-                className="py-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors"
-                title="Para impresoras térmicas de mostrador (80mm)"
-              >
-                <Receipt className="w-3.5 h-3.5 text-blue-400" />
-                <span>Ticket POS (80mm)</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handlePrintThermalTicket(selectedSale, '80mm')}
+                  className="py-2 px-2.5 rounded-xl bg-slate-800 dark:bg-zinc-700 text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer hover:bg-slate-700 transition-colors shrink-0"
+                  title="Para impresoras térmicas de mostrador (80mm)"
+                >
+                  <Receipt className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Ticket 80mm</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => handlePrintFormalInvoice(selectedSale)}
-                className="py-2.5 rounded-xl text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md active:scale-95"
-                style={{ background: activePrintColor.gradient }}
-              >
-                <Receipt className="w-3.5 h-3.5" />
-                <span>Factura Color (Carta)</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handlePrintFormalInvoice(selectedSale)}
+                  className="py-2 px-3 rounded-xl text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md active:scale-95 shrink-0"
+                  style={{ background: activePrintColor.gradient }}
+                >
+                  <Receipt className="w-3.5 h-3.5" />
+                  <span>Factura Color (Carta)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
