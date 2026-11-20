@@ -387,58 +387,53 @@ export const DashboardOverviewPage: React.FC = () => {
 
           {/* Gráfico de línea SVG */}
           <div className="px-6 pt-6 pb-2 flex-1">
+            {/* LineChart rendered safely */}
             {(() => {
-              const W = 600, H = 160, PAD = 16;
-              const vals = metrics.weeklyDays.map(d => d.total);
+              const W = 600, H = 160, PAD = 20;
+              const days = metrics.weeklyDays;
+              if (!days || days.length < 2) return null;
+              const vals = days.map(d => d.total);
               const maxVal = Math.max(...vals, 1);
-              const pts = vals.map((v, i) => {
-                const x = PAD + (i / (vals.length - 1)) * (W - PAD * 2);
-                const y = H - PAD - ((v / maxVal) * (H - PAD * 2));
-                return { x, y, v, label: metrics.weeklyDays[i].label };
-              });
-              // Smooth bezier path
-              const pathD = pts.reduce((acc, pt, i) => {
-                if (i === 0) return `M ${pt.x} ${pt.y}`;
+              const n = days.length;
+              const pts = vals.map((v, i) => ({
+                x: PAD + (i / (n - 1)) * (W - PAD * 2),
+                y: PAD + ((1 - v / maxVal) * (H - PAD * 2)),
+                v,
+                label: days[i].label,
+              }));
+              const pathD = pts.map((pt, i) => {
+                if (i === 0) return `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
                 const prev = pts[i - 1];
-                const cpx = (prev.x + pt.x) / 2;
-                return `${acc} C ${cpx} ${prev.y} ${cpx} ${pt.y} ${pt.x} ${pt.y}`;
-              }, '');
-              const areaD = `${pathD} L ${pts[pts.length-1].x} ${H - PAD} L ${pts[0].x} ${H - PAD} Z`;
+                const cpx = ((prev.x + pt.x) / 2).toFixed(1);
+                return `C ${cpx} ${prev.y.toFixed(1)} ${cpx} ${pt.y.toFixed(1)} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+              }).join(' ');
+              const areaD = `${pathD} L ${pts[n-1].x.toFixed(1)} ${H - PAD} L ${pts[0].x.toFixed(1)} ${H - PAD} Z`;
               return (
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{height: 180}} preserveAspectRatio="none">
+                <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{height: 180}} preserveAspectRatio="xMidYMid meet">
                   <defs>
                     <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.35"/>
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.30"/>
                       <stop offset="100%" stopColor="#10b981" stopOpacity="0.02"/>
                     </linearGradient>
-                    {/* Glow filter */}
-                    <filter id="glow">
-                      <feGaussianBlur stdDeviation="3" result="blur"/>
-                      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                    </filter>
                   </defs>
                   {/* Grid lines horizontales */}
                   {[0.25, 0.5, 0.75].map(pct => (
                     <line key={pct}
-                      x1={PAD} y1={H - PAD - pct * (H - PAD * 2)}
-                      x2={W - PAD} y2={H - PAD - pct * (H - PAD * 2)}
+                      x1={PAD} y1={PAD + pct * (H - PAD * 2)}
+                      x2={W - PAD} y2={PAD + pct * (H - PAD * 2)}
                       stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4 4"
-                      className="dark:stroke-zinc-700"
                     />
                   ))}
                   {/* Área rellena */}
                   <path d={areaD} fill="url(#lineGrad)"/>
                   {/* Línea principal */}
-                  <path d={pathD} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#glow)"/>
+                  <path d={pathD} fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                   {/* Puntos y labels */}
                   {pts.map((pt, i) => (
                     <g key={i}>
-                      {/* Dot outer */}
-                      <circle cx={pt.x} cy={pt.y} r="6" fill="white" stroke="#10b981" strokeWidth="2.5" className="dark:fill-[#181615]"/>
-                      {/* Dot inner — lleno si tiene valor */}
-                      {pt.v > 0 && <circle cx={pt.x} cy={pt.y} r="3" fill="#10b981"/>}
-                      {/* Label día */}
-                      <text x={pt.x} y={H - 2} textAnchor="middle" fontSize="11" fontWeight="700" fill="#64748b" className="dark:fill-zinc-400">
+                      <circle cx={pt.x} cy={pt.y} r="5" fill="white" stroke="#10b981" strokeWidth="2.5"/>
+                      {pt.v > 0 && <circle cx={pt.x} cy={pt.y} r="2.5" fill="#10b981"/>}
+                      <text x={pt.x} y={H - 3} textAnchor="middle" fontSize="10" fontWeight="700" fill="#94a3b8">
                         {pt.label}
                       </text>
                     </g>
