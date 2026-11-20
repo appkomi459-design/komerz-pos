@@ -62,6 +62,35 @@ export const SalesPage: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  // Color de factura / impresión — sincronizado con la configuración global
+  const [printColor, setPrintColor] = useState<string>(() => {
+    return localStorage.getItem('komi_print_color') || '#6d28d9';
+  });
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  const PRINT_COLORS = [
+    { hex: '#6d28d9', label: 'Púrpura Real',      gradient: 'linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)' },
+    { hex: '#be123c', label: 'Rojo Carmesí',      gradient: 'linear-gradient(135deg, #be123c 0%, #9f1239 100%)' },
+    { hex: '#0369a1', label: 'Azul Oceánico',     gradient: 'linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%)' },
+    { hex: '#047857', label: 'Verde Esmeralda',   gradient: 'linear-gradient(135deg, #047857 0%, #064e3b 100%)' },
+    { hex: '#c2410c', label: 'Naranja Volcánico', gradient: 'linear-gradient(135deg, #c2410c 0%, #9a3412 100%)' },
+    { hex: '#db2777', label: 'Rosa Fucsia',       gradient: 'linear-gradient(135deg, #db2777 0%, #9d174d 100%)' },
+    { hex: '#0f766e', label: 'Teal Profundo',     gradient: 'linear-gradient(135deg, #0f766e 0%, #134e4a 100%)' },
+    { hex: '#7c2d12', label: 'Marrón Vino',       gradient: 'linear-gradient(135deg, #7c2d12 0%, #431407 100%)' },
+    { hex: '#1d4ed8', label: 'Azul Zafiro',       gradient: 'linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)' },
+    { hex: '#b45309', label: 'Ámbar Dorado',      gradient: 'linear-gradient(135deg, #b45309 0%, #78350f 100%)' },
+    { hex: '#7e22ce', label: 'Violeta Neon',      gradient: 'linear-gradient(135deg, #7e22ce 0%, #581c87 100%)' },
+    { hex: '#0f172a', label: 'Negro Elegante',    gradient: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' },
+  ];
+
+  const activePrintColor = PRINT_COLORS.find((c) => c.hex === printColor) || PRINT_COLORS[0];
+
+  const handleSelectPrintColor = (hex: string) => {
+    setPrintColor(hex);
+    localStorage.setItem('komi_print_color', hex);
+    setShowColorPicker(false);
+  };
+
   // Modales de acción
   const [selectedSale, setSelectedSale] = useState<SaleWithItems | null>(null);
   const [saleToDelete, setSaleToDelete] = useState<SaleWithItems | null>(null);
@@ -238,7 +267,7 @@ export const SalesPage: React.FC = () => {
             overflow: hidden;
           }
           .header-banner {
-            background: linear-gradient(135deg, #064e3b 0%, #047857 55%, #059669 100%) !important;
+            background: ${activePrintColor.gradient} !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color: #ffffff;
@@ -911,13 +940,57 @@ export const SalesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats rápidos */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400 bg-white dark:bg-[#181615] px-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm">
+        {/* Stats rápidos + Color Factura */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          {/* Selector de Color de Factura */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              className="px-3.5 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#181615] hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer whitespace-nowrap active:scale-95"
+              title="Elegir color de la factura"
+            >
+              <span
+                className="w-4 h-4 rounded-full border-2 border-white shadow-xs flex-shrink-0"
+                style={{ background: activePrintColor.gradient }}
+              />
+              <span className="hidden sm:inline">Color Factura</span>
+            </button>
+
+            {/* Paleta desplegable de colores */}
+            {showColorPicker && (
+              <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border-2 border-slate-200 dark:border-zinc-700 p-4 w-72">
+                <p className="text-xs font-black text-slate-700 dark:text-zinc-200 mb-3 uppercase tracking-wider">
+                  🎨 Color de Encabezado de Factura
+                </p>
+                <div className="grid grid-cols-6 gap-2">
+                  {PRINT_COLORS.map((c) => (
+                    <button
+                      key={c.hex}
+                      type="button"
+                      onClick={() => handleSelectPrintColor(c.hex)}
+                      title={c.label}
+                      className={`w-9 h-9 rounded-xl cursor-pointer transition-all active:scale-90 shadow-md ${
+                        printColor === c.hex
+                          ? 'ring-3 ring-offset-2 ring-slate-900 dark:ring-white scale-110'
+                          : 'hover:scale-105'
+                      }`}
+                      style={{ background: c.gradient, border: 'none' }}
+                    />
+                  ))}
+                </div>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 mt-3">
+                  Seleccionado: <span className="text-slate-700 dark:text-zinc-200 font-black">{activePrintColor.label}</span>
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400 bg-white dark:bg-[#181615] px-3.5 sm:px-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm">
             <Receipt className="w-4 h-4 text-emerald-500" />
             <span>{filteredSales.length} tickets</span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 sm:px-4 py-2.5 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800 shadow-sm">
             <TrendingUp className="w-4 h-4" />
             <span>{formatCurrency(totalFiltered, currency)}</span>
           </div>
@@ -1171,7 +1244,7 @@ export const SalesPage: React.FC = () => {
             {/* Cabecera del Negocio */}
             <div
               className="relative rounded-t-3xl px-6 pt-5 pb-4"
-              style={{ background: 'linear-gradient(135deg, #1a2e1a 0%, #0f4c2a 60%, #166534 100%)' }}
+              style={{ background: activePrintColor.gradient }}
             >
               <div className="flex items-start justify-between mb-3">
                 <span className="bg-emerald-400/20 border border-emerald-400/50 text-emerald-300 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
@@ -1366,7 +1439,8 @@ export const SalesPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handlePrintFormalInvoice(selectedSale)}
-                className="py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-colors shadow-md shadow-emerald-700/20"
+                className="py-2.5 rounded-xl text-white text-[10px] font-black flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md active:scale-95"
+                style={{ background: activePrintColor.gradient }}
               >
                 <Receipt className="w-3.5 h-3.5" />
                 <span>Factura Color (Carta)</span>
