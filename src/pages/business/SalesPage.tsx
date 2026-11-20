@@ -14,6 +14,9 @@ import {
   Banknote,
   Smartphone,
   CheckCircle2,
+  RefreshCw,
+  TrendingUp,
+  Filter,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -55,6 +58,9 @@ export const SalesPage: React.FC = () => {
   const [sales, setSales] = useState<SaleWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'custom' | 'all'>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Modales de acción
   const [selectedSale, setSelectedSale] = useState<SaleWithItems | null>(null);
@@ -846,58 +852,151 @@ export const SalesPage: React.FC = () => {
     win.document.close();
   };
 
-  const filteredSales = sales.filter(
-    (s) =>
-      s.invoice_number.toLowerCase().includes(search.toLowerCase()) ||
-      (s.customer_name && s.customer_name.toLowerCase().includes(search.toLowerCase())) ||
-      (s.items && s.items.some(i => i.product?.name?.toLowerCase().includes(search.toLowerCase())))
-  );
+  // ── Period helpers ──────────────────────────────────────────────
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(startOfDay);
+  startOfWeek.setDate(startOfDay.getDate() - startOfDay.getDay()); // Sunday
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const filteredSales = sales.filter((s) => {
+    // Text search
+    const q = search.toLowerCase();
+    const matchesSearch =
+      !q ||
+      s.invoice_number.toLowerCase().includes(q) ||
+      (s.customer_name && s.customer_name.toLowerCase().includes(q)) ||
+      (s.items && s.items.some(i => i.product?.name?.toLowerCase().includes(q)));
+    if (!matchesSearch) return false;
+
+    // Period filter
+    const saleDate = new Date(s.created_at);
+    if (period === 'today') return saleDate >= startOfDay;
+    if (period === 'week') return saleDate >= startOfWeek;
+    if (period === 'month') return saleDate >= startOfMonth;
+    if (period === 'custom') {
+      if (dateFrom && saleDate < new Date(dateFrom)) return false;
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setDate(to.getDate() + 1); // inclusive
+        if (saleDate >= to) return false;
+      }
+      return true;
+    }
+    return true; // 'all'
+  });
+
+  const totalFiltered = filteredSales.reduce((sum, s) => sum + (s.total || 0), 0);
 
   return (
     <div className="space-y-6">
-      {/* Cabecera */}
+      {/* ── Cabecera ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shadow-md shadow-emerald-500/25">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25">
             <Receipt className="w-5 h-5" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-zinc-100 tracking-tight">
-              {t('sales.title', 'Historial de Ventas')}
+              {t('sales.title', 'Todas las Ventas')}
             </h1>
             <p className="text-xs font-bold text-slate-500 dark:text-zinc-400 mt-0.5">
-              {t('sales.subtitle', 'Registro de todas las facturas y comprobantes emitidos en el negocio')}
+              {t('sales.subtitle', 'Historial completo de transacciones')}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400 bg-white dark:bg-[#181615] px-4 py-2 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm">
-          <Calendar className="w-4 h-4 text-emerald-600" />
-          <span>{sales.length} {t('common.tickets', 'comprobantes')}</span>
+        {/* Stats rápidos */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-zinc-400 bg-white dark:bg-[#181615] px-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm">
+            <Receipt className="w-4 h-4 text-emerald-500" />
+            <span>{filteredSales.length} tickets</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 rounded-2xl border-2 border-emerald-200 dark:border-emerald-800 shadow-sm">
+            <TrendingUp className="w-4 h-4" />
+            <span>{formatCurrency(totalFiltered, currency)}</span>
+          </div>
+          <button
+            onClick={fetchSales}
+            className="p-2.5 rounded-2xl bg-white dark:bg-[#181615] border-2 border-slate-200 dark:border-zinc-800 text-slate-500 hover:text-emerald-600 hover:border-emerald-400 transition-all shadow-sm cursor-pointer"
+            title="Actualizar"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Buscador */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 max-w-md relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      {/* ── Filtros de periodo + búsqueda ── */}
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        {/* Búsqueda */}
+        <div className="relative flex-1 min-w-0">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
-            placeholder={t('sales.search', 'Buscar por número de factura, cliente o producto...')}
+            placeholder={t('sales.search', 'Buscar por ticket, cliente o producto...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold pl-10 pr-4 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500 shadow-xs transition-all"
+            className="w-full bg-white dark:bg-[#181615] text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 text-xs font-bold pl-10 pr-9 py-2.5 rounded-2xl border-2 border-slate-200 dark:border-zinc-800 focus:outline-none focus:border-emerald-500 shadow-xs transition-all"
           />
           {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-            >
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
+
+        {/* Botones de periodo */}
+        <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#181615] rounded-2xl border-2 border-slate-200 dark:border-zinc-800 shadow-sm flex-shrink-0">
+          {([
+            { key: 'today', label: t('sales.filter_today', 'Hoy') },
+            { key: 'week',  label: t('sales.filter_week',  'Semana') },
+            { key: 'month', label: t('sales.filter_month', 'Mes') },
+            { key: 'all',   label: t('sales.filter_all',   'Todos') },
+            { key: 'custom',label: t('sales.filter_custom','Fecha') },
+          ] as const).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setPeriod(key)}
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-black transition-all cursor-pointer whitespace-nowrap ${
+                period === key
+                  ? 'bg-emerald-500 text-white shadow-sm'
+                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      {/* Selector de fechas personalizado */}
+      {period === 'custom' && (
+        <div className="flex items-center gap-3 p-4 bg-white dark:bg-[#181615] rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 shadow-sm">
+          <Filter className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+          <span className="text-xs font-black text-slate-700 dark:text-zinc-300 whitespace-nowrap">Desde:</span>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={e => setDateFrom(e.target.value)}
+            className="text-xs font-bold bg-slate-50 dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500"
+          />
+          <span className="text-xs font-black text-slate-700 dark:text-zinc-300 whitespace-nowrap">Hasta:</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={e => setDateTo(e.target.value)}
+            className="text-xs font-bold bg-slate-50 dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="text-xs font-black text-rose-500 hover:text-rose-700 cursor-pointer flex items-center gap-1"
+            >
+              <X className="w-3.5 h-3.5" /> Limpiar
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Tabla Principal */}
       <Card className="p-0 overflow-hidden border-2 border-slate-200 dark:border-zinc-800 rounded-3xl shadow-md">
