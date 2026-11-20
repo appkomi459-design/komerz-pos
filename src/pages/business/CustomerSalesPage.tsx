@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import type { Customer, Sale } from '@/types';
 
 interface SaleItemWithProduct {
@@ -743,9 +744,9 @@ export const CustomerSalesPage: React.FC = () => {
                             target="_blank"
                             rel="noreferrer"
                             title="Enviar comprobante por WhatsApp al cliente"
-                            className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                            className="p-1.5 px-2 rounded-xl bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20ba59] hover:to-[#0f7a6e] text-white shadow-xs shadow-emerald-500/25 hover:scale-105 transition-all flex items-center gap-1 cursor-pointer"
                           >
-                            <MessageCircle className="w-3.5 h-3.5 fill-emerald-600" />
+                            <WhatsAppIcon className="w-3.5 h-3.5 fill-white" />
                           </a>
                         )}
 

@@ -31,6 +31,7 @@ import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 import type { Customer, Sale } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 
 export const CustomersPage: React.FC = () => {
   const { activeBusiness } = useBusiness();
@@ -358,23 +359,18 @@ export const CustomersPage: React.FC = () => {
           </p>
         </div>
 
-        {/* 3. TELÉFONO / WHATSAPP (Verde Esmeralda) */}
+        {/* 3. TELÉFONO / WHATSAPP (Verde Esmeralda con Logo WhatsApp Pro) */}
         <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
           <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Phone className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
+              <WhatsAppIcon className="w-6 h-6 fill-white drop-shadow-xs" />
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              {customerStats.total > 0 ? Math.round((customerStats.withPhone / customerStats.total) * 100) : 0}% Activo
+              {customerStats.total > 0 ? Math.round((customerStats.withPhone / customerStats.total) * 100) : 0}% WhatsApp
             </span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="24" y="18" width="24" height="38" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <line x1="32" y1="22" x2="40" y2="22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <circle cx="36" cy="48" r="2" fill="white"/>
-            </svg>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
+            <WhatsAppIcon className="w-24 h-24 fill-white" />
           </div>
           <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
             {customerStats.withPhone}
@@ -578,10 +574,10 @@ export const CustomersPage: React.FC = () => {
                               href={`https://wa.me/${cleanPhoneForWhatsApp(c.phone)}`}
                               target="_blank"
                               rel="noreferrer"
-                              title="Chatear por WhatsApp"
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-100/80 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-400 text-[10px] font-black hover:bg-emerald-200 transition-colors"
+                              title="Abrir chat en WhatsApp"
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-[#25D366] to-[#128C7E] hover:from-[#20ba59] hover:to-[#0f7a6e] text-white text-[11px] font-black shadow-xs shadow-emerald-500/30 hover:shadow-md hover:scale-105 transition-all cursor-pointer"
                             >
-                              <MessageCircle className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+                              <WhatsAppIcon className="w-3.5 h-3.5 fill-white" />
                               <span>WhatsApp</span>
                             </a>
                           </div>
