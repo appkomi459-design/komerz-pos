@@ -9,6 +9,9 @@ export type BusinessType =
   | 'stationery'
   | 'clothing'
   | 'services'
+  | 'butchery'
+  | 'bakery'
+  | 'icecream'
   | 'general';
 
 export type BusinessStatus = 'active' | 'suspended' | 'trial' | 'cancelled';

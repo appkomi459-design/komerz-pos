@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   ShoppingCart,
   Search,
@@ -33,18 +33,57 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { formatCurrency, formatFullDate } from '@/utils/formatters';
-import type { Product } from '@/types';
+import type { Product, BusinessType } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { BusinessModeBar } from '@/components/pos/BusinessModeBar';
+import { ScaleModal } from '@/components/pos/ScaleModal';
+import { ClothingVariantModal } from '@/components/pos/ClothingVariantModal';
 
 interface CartItem {
   product: Product;
   quantity: number;
+  weightKg?: number;
+  variant?: {
+    size?: string;
+    color?: string;
+  };
+  tableNumber?: string;
+  notes?: string;
 }
 
 export const PosPage: React.FC = () => {
   const { activeBusiness, settings, mainBranch, activeMembership, updateSettings } = useBusiness();
   const { user } = useAuth();
   const { t } = useLanguage();
+
+  // Giro / Tipo de negocio activo con detección inteligente
+  const businessType: BusinessType | string = useMemo(() => {
+    if (activeBusiness?.business_type) return activeBusiness.business_type;
+    const n = (activeBusiness?.name || '').toLowerCase();
+    if (n.includes('carniseria') || n.includes('carniceria') || n.includes('frigorifico')) return 'butchery';
+    if (n.includes('farma') || n.includes('drogueria')) return 'pharmacy';
+    if (n.includes('rest') || n.includes('cafe') || n.includes('comida')) return 'restaurant';
+    if (n.includes('ropa') || n.includes('boutique') || n.includes('calzado')) return 'clothing';
+    if (n.includes('panad') || n.includes('pastel')) return 'bakery';
+    if (n.includes('helad')) return 'icecream';
+    if (n.includes('ferret')) return 'hardware';
+    return 'retail';
+  }, [activeBusiness?.business_type, activeBusiness?.name]);
+
+  // Estados de Adaptación por Negocio
+  const [selectedWeight, setSelectedWeight] = useState<number | null>(null);
+  const [isScaleModalOpen, setIsScaleModalOpen] = useState(false);
+  const [pendingScaleProduct, setPendingScaleProduct] = useState<Product | null>(null);
+
+  const [selectedTable, setSelectedTable] = useState('Mesa 1');
+
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [isClothingModalOpen, setIsClothingModalOpen] = useState(false);
+  const [pendingClothingProduct, setPendingClothingProduct] = useState<Product | null>(null);
+
+  const [selectedUnit, setSelectedUnit] = useState('UND');
+  const [packDiscountActive, setPackDiscountActive] = useState(false);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -185,6 +224,117 @@ export const PosPage: React.FC = () => {
     fetchCatalog();
   }, [activeBusiness]);
 
+  const handleProductSelect = (product: Product) => {
+    if (product.stock <= 0) {
+      alert(`El producto "${product.name}" está agotado.`);
+      return;
+    }
+
+    // Modo Carnicería / Frigorífico: Pesaje por balanza
+    if (businessType === 'butchery') {
+      if (selectedWeight && selectedWeight > 0) {
+        addWithCustomProps(product, { weightKg: selectedWeight });
+      } else {
+        setPendingScaleProduct(product);
+        setIsScaleModalOpen(true);
+      }
+      return;
+    }
+
+    // Modo Ropa / Calzado: Selector de Tallas y Colores
+    if (businessType === 'clothing') {
+      if (selectedSize || selectedColor) {
+        addWithCustomProps(product, {
+          variant: { size: selectedSize || 'M', color: selectedColor || 'Negro' },
+        });
+      } else {
+        setPendingClothingProduct(product);
+        setIsClothingModalOpen(true);
+      }
+      return;
+    }
+
+    // Modo Restaurante: Asignar a la mesa actual
+    if (businessType === 'restaurant') {
+      addWithCustomProps(product, { tableNumber: selectedTable });
+      return;
+    }
+
+    addToCart(product);
+  };
+
+  const addWithCustomProps = (
+    product: Product,
+    props: {
+      weightKg?: number;
+      variant?: { size?: string; color?: string };
+      tableNumber?: string;
+      notes?: string;
+    }
+  ) => {
+    setCart((prev) => [
+      ...prev,
+      {
+        product,
+        quantity: 1,
+        weightKg: props.weightKg,
+        variant: props.variant,
+        tableNumber: props.tableNumber || selectedTable,
+        notes: props.notes,
+      },
+    ]);
+  };
+
+  const handlePrintKitchenOrder = () => {
+    if (cart.length === 0) return;
+    const win = window.open('', '_blank', 'width=340,height=600');
+    if (!win) return;
+    const timeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Comanda Cocina - ${selectedTable}</title>
+        <style>
+          @page { size: 80mm auto; margin: 0; }
+          body { font-family: 'Courier New', monospace; font-size: 13px; width: 72mm; margin: 4mm auto; color: #000; }
+          .header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 8px; }
+          .title { font-size: 18px; font-weight: bold; }
+          .table { font-size: 22px; font-weight: 900; margin: 4px 0; background: #000; color: #fff; padding: 2px 6px; display: inline-block; border-radius: 4px; }
+          .item { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; margin: 6px 0; border-bottom: 1px dotted #ccc; padding-bottom: 3px; }
+          .qty { font-size: 16px; font-weight: 900; margin-right: 8px; }
+          .footer { margin-top: 12px; border-top: 2px dashed #000; text-align: center; font-size: 11px; padding-top: 4px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">🍳 COMANDA A COCINA</div>
+          <div class="table">${selectedTable.toUpperCase()}</div>
+          <div>Hora: ${timeStr} | Fecha: ${dateStr}</div>
+          <div>Cajero: ${user?.email || 'Turno Activo'}</div>
+        </div>
+        <div class="items">
+          ${cart.map((item) => `
+            <div class="item">
+              <span><span class="qty">${item.quantity}x</span>${item.product.name} ${item.variant ? `(${item.variant.size || ''} ${item.variant.color || ''})` : ''} ${item.notes ? `[${item.notes}]` : ''}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="footer">
+          *** ORDEN EN PREPARACIÓN ***
+        </div>
+        <script>
+          window.onload = function() { window.print(); window.close(); }
+        </script>
+      </body>
+      </html>
+    `);
+    win.document.close();
+  };
+
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
       alert(`El producto "${product.name}" está agotado.`);
@@ -192,19 +342,19 @@ export const PosPage: React.FC = () => {
     }
 
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
+      const existing = prev.find((item) => item.product.id === product.id && !item.weightKg && !item.variant);
       if (existing) {
         if (existing.quantity >= product.stock) {
           alert(`No puedes agregar más de ${product.stock} unidades de este producto.`);
           return prev;
         }
         return prev.map((item) =>
-          item.product.id === product.id
+          item.product.id === product.id && !item.weightKg && !item.variant
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-      return [...prev, { product, quantity: 1 }];
+      return [...prev, { product, quantity: 1, tableNumber: selectedTable }];
     });
   };
 
@@ -230,13 +380,15 @@ export const PosPage: React.FC = () => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   };
 
-  // Cálculos transparentes de Totales e Impuestos
+  // Cálculos transparentes de Totales e Impuestos con soporte para Pesaje y Packs
   const effectiveTaxRate = taxMode === 'none' ? 0 : taxPercentage / 100;
 
-  const rawCartSum = cart.reduce(
-    (acc, item) => acc + item.product.sale_price * item.quantity,
-    0
-  );
+  const rawCartSum = cart.reduce((acc, item) => {
+    const itemTotal = item.weightKg
+      ? item.product.sale_price * item.weightKg
+      : item.product.sale_price * item.quantity;
+    return acc + (packDiscountActive ? itemTotal * 0.9 : itemTotal);
+  }, 0);
 
   // Calcular monto de descuento
   const discountNumeric = parseFloat(discountValue) || 0;
@@ -520,6 +672,30 @@ export const PosPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* LADO IZQUIERDO: CATÁLOGO CON TARJETAS VISUALES */}
         <div className="flex-1 w-full space-y-3.5 min-w-0">
+          {/* BARRA DE ADAPTACIÓN INTELIGENTE SEGÚN GIRO DE NEGOCIO */}
+          <BusinessModeBar
+            currentType={businessType}
+            selectedWeight={selectedWeight}
+            onSelectWeight={setSelectedWeight}
+            onOpenScaleModal={() => {
+              setPendingScaleProduct(null);
+              setIsScaleModalOpen(true);
+            }}
+            selectedTable={selectedTable}
+            onSelectTable={setSelectedTable}
+            onPrintKitchenOrder={handlePrintKitchenOrder}
+            hasItemsInCart={cart.length > 0}
+            selectedSize={selectedSize}
+            onSelectSize={setSelectedSize}
+            selectedColor={selectedColor}
+            onSelectColor={setSelectedColor}
+            onQuickFilter={(term) => setSearch(term)}
+            selectedUnit={selectedUnit}
+            onSelectUnit={setSelectedUnit}
+            packDiscountActive={packDiscountActive}
+            onTogglePackDiscount={() => setPackDiscountActive((p) => !p)}
+          />
+
           {/* Barra de Búsqueda y Botón "+ Nuevo Producto" */}
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
@@ -696,9 +872,9 @@ export const PosPage: React.FC = () => {
                       {inCartItem ? (
                         <button
                           type="button"
-                          onClick={() => addToCart(product)}
+                          onClick={() => handleProductSelect(product)}
                           className="flex-1 min-w-0 py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-1 shadow-sm shadow-emerald-600/30 transition-all cursor-pointer active:scale-95 whitespace-nowrap overflow-hidden"
-                          title="Añadir una unidad más al carrito"
+                          title="Añadir al carrito"
                         >
                           <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
                           <span className="truncate">{t('pos.cart_in', 'Carrito +')}{inCartItem.quantity}</span>
@@ -707,7 +883,7 @@ export const PosPage: React.FC = () => {
                         <button
                           type="button"
                           disabled={isOutOfStock}
-                          onClick={() => addToCart(product)}
+                          onClick={() => handleProductSelect(product)}
                           className={`flex-1 min-w-0 py-1.5 px-2 rounded-lg font-black text-xs flex items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 whitespace-nowrap overflow-hidden ${
                             isOutOfStock
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
@@ -897,11 +1073,36 @@ export const PosPage: React.FC = () => {
                             {item.product.name}
                           </h4>
                           <p className="text-[10px] font-bold text-slate-400 dark:text-zinc-400 mt-0.5">
-                            {formatCurrency(item.product.sale_price, currency)} c/u
+                            {formatCurrency(item.product.sale_price, currency)} {item.weightKg ? '/ kg' : 'c/u'}
                           </p>
+
+                          {/* Badges de Rubro Específico */}
+                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                            {item.weightKg && (
+                              <span className="text-[9px] font-black bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 px-1.5 py-0.2 rounded-md">
+                                ⚖️ {item.weightKg} kg
+                              </span>
+                            )}
+                            {item.variant && (
+                              <span className="text-[9px] font-black bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60 px-1.5 py-0.2 rounded-md">
+                                👗 {item.variant.size ? `Talla: ${item.variant.size}` : ''} {item.variant.color ? `· ${item.variant.color}` : ''}
+                              </span>
+                            )}
+                            {item.tableNumber && businessType === 'restaurant' && (
+                              <span className="text-[9px] font-black bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 px-1.5 py-0.2 rounded-md">
+                                🍽️ {item.tableNumber}
+                              </span>
+                            )}
+                          </div>
                         </div>
+
                         <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 font-mono whitespace-nowrap">
-                          {formatCurrency(item.product.sale_price * item.quantity, currency)}
+                          {formatCurrency(
+                            item.weightKg
+                              ? item.product.sale_price * item.weightKg
+                              : item.product.sale_price * item.quantity,
+                            currency
+                          )}
                         </span>
                       </div>
 
@@ -2061,10 +2262,14 @@ export const PosPage: React.FC = () => {
 
                       ${(completedSale.items || []).map((item: CartItem) => `
                         <div class="item-block">
-                          <div class="item-title">x${item.quantity} ${item.product.name}</div>
+                          <div class="item-title">
+                            ${item.weightKg ? `${item.weightKg} kg` : `x${item.quantity}`} ${item.product.name}
+                            ${item.variant ? `<br/><small style="color:#666;">👗 ${item.variant.size ? 'Talla ' + item.variant.size : ''} ${item.variant.color || ''}</small>` : ''}
+                            ${item.tableNumber ? `<br/><small style="color:#666;">🍽️ ${item.tableNumber}</small>` : ''}
+                          </div>
                           <div class="item-calc">
-                            <span>${formatCurrency(item.product.sale_price, currency)}</span>
-                            <span class="bold">${formatCurrency(item.product.sale_price * item.quantity, currency)}</span>
+                            <span>${formatCurrency(item.product.sale_price, currency)} ${item.weightKg ? '/kg' : ''}</span>
+                            <span class="bold">${formatCurrency(item.weightKg ? item.product.sale_price * item.weightKg : item.product.sale_price * item.quantity, currency)}</span>
                           </div>
                         </div>
                       `).join('')}
@@ -2297,10 +2502,14 @@ export const PosPage: React.FC = () => {
                       <!-- Lista de Artículos -->
                       ${(completedSale.items || []).map((item: CartItem) => `
                         <div class="item-block">
-                          <div class="item-title">x${item.quantity} ${item.product.name}</div>
+                          <div class="item-title">
+                            ${item.weightKg ? `${item.weightKg} kg` : `x${item.quantity}`} ${item.product.name}
+                            ${item.variant ? `<br/><small style="color:#555;">👗 ${item.variant.size ? 'Talla ' + item.variant.size : ''} ${item.variant.color || ''}</small>` : ''}
+                            ${item.tableNumber ? `<br/><small style="color:#555;">🍽️ ${item.tableNumber}</small>` : ''}
+                          </div>
                           <div class="item-calc">
-                            <span>${formatCurrency(item.product.sale_price, currency)} c/u</span>
-                            <span class="bold">${formatCurrency(item.product.sale_price * item.quantity, currency)}</span>
+                            <span>${formatCurrency(item.product.sale_price, currency)} ${item.weightKg ? '/kg' : 'c/u'}</span>
+                            <span class="bold">${formatCurrency(item.weightKg ? item.product.sale_price * item.weightKg : item.product.sale_price * item.quantity, currency)}</span>
                           </div>
                         </div>
                       `).join('')}
@@ -2748,7 +2957,7 @@ export const PosPage: React.FC = () => {
                               ${(completedSale.items || []).map((item: CartItem) => `
                                 <tr>
                                   <td style="text-align: center;">
-                                    <span class="cant-badge">x${item.quantity}</span>
+                                    <span class="cant-badge">${item.weightKg ? `${item.weightKg} kg` : `x${item.quantity}`}</span>
                                   </td>
                                   <td>
                                     <div style="display: flex; align-items: center; gap: 10px;">
@@ -2759,15 +2968,19 @@ export const PosPage: React.FC = () => {
                                       `}
                                       <div style="min-width: 0;">
                                         <div class="prod-name">${item.product.name}</div>
-                                        <div class="prod-sku">${item.product.sku || item.product.barcode || 'PROD-' + item.product.id.slice(0, 4)}</div>
+                                        <div class="prod-sku">
+                                          ${item.product.sku || item.product.barcode || 'PROD-' + item.product.id.slice(0, 4)}
+                                          ${item.variant ? ` · 👗 Talla ${item.variant.size || ''} ${item.variant.color || ''}` : ''}
+                                          ${item.tableNumber ? ` · 🍽️ ${item.tableNumber}` : ''}
+                                        </div>
                                       </div>
                                     </div>
                                   </td>
                                   <td style="text-align: right; font-family: monospace; color: #475569;">
-                                    ${formatCurrency(item.product.sale_price, currency)}
+                                    ${formatCurrency(item.product.sale_price, currency)} ${item.weightKg ? '/kg' : ''}
                                   </td>
                                   <td style="text-align: right; font-family: monospace; font-weight: 800; color: #0f172a;">
-                                    ${formatCurrency(item.product.sale_price * item.quantity, currency)}
+                                    ${formatCurrency(item.weightKg ? item.product.sale_price * item.weightKg : item.product.sale_price * item.quantity, currency)}
                                   </td>
                                 </tr>
                               `).join('')}
@@ -2869,6 +3082,40 @@ export const PosPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de Balanza Electrónica */}
+      <ScaleModal
+        isOpen={isScaleModalOpen}
+        onClose={() => {
+          setIsScaleModalOpen(false);
+          setPendingScaleProduct(null);
+        }}
+        onConfirm={(confirmedWeight) => {
+          if (pendingScaleProduct) {
+            addWithCustomProps(pendingScaleProduct, { weightKg: confirmedWeight });
+          } else {
+            setSelectedWeight(confirmedWeight);
+          }
+        }}
+        productName={pendingScaleProduct?.name || 'Pesaje en Balanza'}
+        pricePerKg={pendingScaleProduct?.sale_price || 0}
+        currency={currency}
+      />
+
+      {/* Modal de Selección de Talla y Color */}
+      <ClothingVariantModal
+        isOpen={isClothingModalOpen}
+        onClose={() => {
+          setIsClothingModalOpen(false);
+          setPendingClothingProduct(null);
+        }}
+        onConfirm={(variant) => {
+          if (pendingClothingProduct) {
+            addWithCustomProps(pendingClothingProduct, { variant });
+          }
+        }}
+        productName={pendingClothingProduct?.name || 'Prenda de Vestir'}
+      />
     </div>
   );
 };
