@@ -291,26 +291,46 @@ export const PosPage: React.FC = () => {
       const changeAmount = amountPaid && parseFloat(amountPaid) >= total ? parseFloat(amountPaid) - total : 0;
 
       // 1. Create sale
-      const { data: saleData, error: saleError } = await supabase
+      let saleData: any = null;
+      const baseSalePayload = {
+        business_id: activeBusiness.id,
+        branch_id: activeMembership?.branch_id || mainBranch?.id || null,
+        user_id: user?.id || null,
+        customer_id: matchedCustomer?.id || null,
+        invoice_number: invoiceNumber,
+        subtotal,
+        tax: taxAmount,
+        total,
+        payment_method: paymentMethod,
+        status: 'completed',
+      };
+
+      // Intentar primero incluyendo amount_received y change_given
+      const { data: sWithCash, error: sErrWithCash } = await supabase
         .from('sales')
         .insert({
-          business_id: activeBusiness.id,
-          branch_id: activeMembership?.branch_id || mainBranch?.id || null,
-          user_id: user?.id || null,
-          customer_id: matchedCustomer?.id || null,
-          invoice_number: invoiceNumber,
-          subtotal,
-          tax: taxAmount,
-          total,
-          payment_method: paymentMethod,
-          status: 'completed',
+          ...baseSalePayload,
           amount_received: finalAmountReceived,
           change_given: changeAmount,
         })
         .select()
         .single();
 
-      if (saleError || !saleData) throw saleError || new Error('Error al registrar venta');
+      if (!sErrWithCash && sWithCash) {
+        saleData = sWithCash;
+      } else if (sErrWithCash && (sErrWithCash.message?.includes('amount_received') || sErrWithCash.message?.includes('change_given'))) {
+        // Fallback automático si la tabla sales aún no tiene esas columnas
+        const { data: sBase, error: sErrBase } = await supabase
+          .from('sales')
+          .insert(baseSalePayload)
+          .select()
+          .single();
+
+        if (sErrBase || !sBase) throw sErrBase || new Error('Error al registrar venta');
+        saleData = sBase;
+      } else {
+        throw sErrWithCash || new Error('Error al registrar venta');
+      }
 
       // 2. Create sale items & reduce stock
       for (const item of cart) {
