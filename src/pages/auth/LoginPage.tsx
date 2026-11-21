@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Lock, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { User, Lock, AlertCircle, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,6 +22,7 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword]     = useState('');
   const [error, setError]           = useState<string | null>(null);
   const [loading, setLoading]       = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   /** Rellena los campos con credenciales de demo */
   const fillCredentials = (type: 'admin' | 'usuario') => {
@@ -148,15 +149,27 @@ export const LoginPage: React.FC = () => {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          <Input
-            type="password"
-            autoComplete="current-password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock className="w-4 h-4" />}
-            required
-          />
+          <div className="relative">
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              icon={<Lock className="w-4 h-4" />}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors z-10"
+              tabIndex={-1}
+            >
+              {showPassword
+                ? <EyeOff className="w-4 h-4" />
+                : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
 
         <Button

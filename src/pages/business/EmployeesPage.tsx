@@ -303,41 +303,78 @@ export const EmployeesPage: React.FC = () => {
       setError(null);
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY as string;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+      const normEmail = email.trim().toLowerCase();
 
-      // Usar cliente temporal con persistSession:false para no cerrar sesión del dueño
-      const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: {
-          storageKey: `komerz-seller-temp-${Date.now()}`,
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      });
+      let newUserId: string | null = null;
 
-      // 1. Crear usuario en Supabase Auth
-      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          data: {
-            full_name: fullName.trim(),
-            phone: phone.trim() || null,
+      // 1. Si hay service role key → crear usuario ya confirmado (sin email de verificación)
+      if (serviceKey) {
+        const adminRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': serviceKey,
+            'Authorization': `Bearer ${serviceKey}`,
           },
-        },
-      });
+          body: JSON.stringify({
+            email: normEmail,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              full_name: fullName.trim(),
+              phone: phone.trim() || null,
+            },
+          }),
+        });
 
-      if (signUpError) {
-        if (
-          signUpError.message.toLowerCase().includes('already registered') ||
-          signUpError.message.toLowerCase().includes('already been registered') ||
-          signUpError.message.toLowerCase().includes('user already exists')
-        ) {
-          throw new Error('Este correo ya tiene una cuenta registrada. Usa otro correo.');
+        const adminData = await adminRes.json();
+
+        if (!adminRes.ok) {
+          const msg = adminData?.msg || adminData?.message || '';
+          if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists')) {
+            throw new Error('Este correo ya tiene una cuenta registrada. Usa otro correo.');
+          }
+          throw new Error(msg || 'Error al crear la cuenta del vendedor.');
         }
-        throw signUpError;
+
+        newUserId = adminData?.id ?? null;
+      } else {
+        // Fallback: signUp normal (requiere confirmación de email en el panel de Supabase)
+        const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: {
+            storageKey: `komerz-seller-temp-${Date.now()}`,
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        });
+
+        const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
+          email: normEmail,
+          password,
+          options: {
+            data: {
+              full_name: fullName.trim(),
+              phone: phone.trim() || null,
+            },
+          },
+        });
+
+        if (signUpError) {
+          if (
+            signUpError.message.toLowerCase().includes('already registered') ||
+            signUpError.message.toLowerCase().includes('already been registered') ||
+            signUpError.message.toLowerCase().includes('user already exists')
+          ) {
+            throw new Error('Este correo ya tiene una cuenta registrada. Usa otro correo.');
+          }
+          throw signUpError;
+        }
+
+        newUserId = signUpData?.user?.id ?? null;
       }
 
-      const newUserId = signUpData?.user?.id;
       if (!newUserId) throw new Error('No se pudo crear la cuenta. Intenta de nuevo.');
 
       // 2. Asegurar perfil
@@ -377,7 +414,6 @@ export const EmployeesPage: React.FC = () => {
       }
 
       // 4. GUARDAR CREDENCIALES PERMANENTEMENTE EN AUDIT_LOGS Y LOCALSTORAGE
-      const normEmail = email.trim().toLowerCase();
       try {
         await supabase.from('audit_logs').insert({
           business_id: activeBusiness.id,
