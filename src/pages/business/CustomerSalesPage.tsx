@@ -885,92 +885,66 @@ export const CustomerSalesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── TARJETAS DE MÉTRICAS (KPIS VIBRANTES CON GRADIENTES) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── TARJETAS DE MÉTRICAS (ESTILO SUCURSALES) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         {/* 1. VENTAS REGISTRADAS (Rojo Carmesí) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#eb3349] to-[#f45c43] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Receipt className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Historial
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-100">
+              Ventas a Clientes
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Receipt className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="22" y="16" width="28" height="40" rx="3" stroke="white" strokeWidth="3" fill="none"/>
-              <line x1="28" y1="26" x2="44" y2="26" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-              <line x1="28" y1="34" x2="44" y2="34" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-              <line x1="28" y1="42" x2="38" y2="42" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {stats.count}
+            </div>
+            <p className="text-[10px] text-rose-100 font-bold mt-0.5 truncate">
+              {selectedCustomerId === 'all' ? 'Compras de clientes registrados' : `Compras de ${selectedCustomerObj?.name || 'este cliente'}`}
+            </p>
           </div>
-          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
-            {stats.count}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Ventas a Clientes
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {selectedCustomerId === 'all' ? 'Compras de clientes registrados' : `Compras de ${selectedCustomerObj?.name || 'este cliente'}`}
-          </p>
         </div>
 
         {/* 2. TOTAL FACTURADO (Verde Esmeralda) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <DollarSign className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Ingresos
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">
+              Total Facturado
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <DollarSign className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="56" cy="20" r="4" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              {formatCurrency(stats.revenue, currency)}
+            </div>
+            <p className="text-[10px] text-emerald-100 font-bold mt-0.5">
+              Ingresos de clientes registrados
+            </p>
           </div>
-          <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            {formatCurrency(stats.revenue, currency)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Total Facturado
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Ingresos de clientes registrados
-          </p>
         </div>
 
         {/* 3. TICKET PROMEDIO (Azul Cobalto) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Promedio
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">
+              Ticket Promedio
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <circle cx="36" cy="36" r="20" stroke="white" strokeWidth="3" strokeDasharray="4 4" fill="none"/>
-              <circle cx="36" cy="36" r="6" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              {formatCurrency(stats.average, currency)}
+            </div>
+            <p className="text-[10px] text-blue-100 font-bold mt-0.5">
+              Por compra de cliente registrado
+            </p>
           </div>
-          <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            {formatCurrency(stats.average, currency)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Ticket Promedio
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Por compra de cliente registrado
-          </p>
         </div>
       </div>
 

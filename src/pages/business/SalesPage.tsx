@@ -1003,119 +1003,87 @@ export const SalesPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* 2. TARJETAS KPI DE RENDIMIENTO (ESTILO PROFESIONAL)      */}
+      {/* 2. TARJETAS KPI DE RENDIMIENTO (ESTILO SUCURSALES)       */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
-        {/* 1. TOTAL VENTAS (Rojo Carmesí) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#eb3349] to-[#f45c43] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Receipt className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Historial
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4 no-print">
+        {/* Total Facturado */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">
+              Total Facturado
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="22" y="18" width="28" height="36" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M28 28H44M28 36H44M28 44H38" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              {formatCurrency(totalFiltered, currency)}
+            </div>
+            <p className="text-[10px] text-emerald-100 font-bold mt-0.5">
+              Recaudación en periodo
+            </p>
           </div>
-          <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
-            {filteredSales.length}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Total Ventas
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Tickets procesados en periodo
-          </p>
         </div>
 
-        {/* 2. FACTURACIÓN TOTAL (Verde Esmeralda) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Ingresos
+        {/* Total Ventas */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">
+              Total Ventas
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Receipt className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <path d="M20 48L32 36L42 42L54 26" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M44 26H54V36" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {filteredSales.length}
+            </div>
+            <p className="text-[10px] text-blue-100 font-bold mt-0.5">
+              Tickets procesados
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono truncate">
-            {formatCurrency(totalFiltered, currency)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Total Facturado
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Recaudación acumulada
-          </p>
         </div>
 
-        {/* 3. COBRADO EN EFECTIVO (Azul Cobalto) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Banknote className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Efectivo
+        {/* Digital / QR */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-purple-100">
+              Transferencia / QR
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Smartphone className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="18" y="24" width="36" height="24" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <circle cx="36" cy="36" r="6" stroke="white" strokeWidth="3"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              {formatCurrency(totalDigital, currency)}
+            </div>
+            <p className="text-[10px] text-purple-100 font-bold mt-0.5">
+              Pagos digitales y QR
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono truncate">
-            {formatCurrency(totalCash, currency)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            En Efectivo
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Pagos físicos en caja
-          </p>
         </div>
 
-        {/* 4. DIGITAL / TRANSFERENCIA (Púrpura Vibrante) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#8e2de2] to-[#4a00e0] text-white shadow-xl shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Smartphone className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Digital / QR
+        {/* En Efectivo */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-100">
+              En Efectivo
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Banknote className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="24" y="18" width="24" height="36" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <circle cx="36" cy="48" r="2" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              {formatCurrency(totalCash, currency)}
+            </div>
+            <p className="text-[10px] text-amber-100 font-bold mt-0.5">
+              Cobrado en billetes y caja
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono truncate">
-            {formatCurrency(totalDigital, currency)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Transferencia / QR
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Pagos electrónicos
-          </p>
         </div>
       </div>
 

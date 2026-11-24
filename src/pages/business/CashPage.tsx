@@ -278,118 +278,86 @@ export const CashPage: React.FC = () => {
         </div>
       )}
 
-      {/* MÉTRICAS DEL DÍA (KPIS VIBRANTES CON GRADIENTES) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* MÉTRICAS DEL DÍA (ESTILO SUCURSALES) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* 1. TOTAL VENDIDO HOY (Rojo Carmesí) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#eb3349] to-[#f45c43] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Hoy
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-100">
+              Total Vendido Hoy
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="56" cy="20" r="4" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              Bs {metrics.totalSales.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-rose-100 font-bold mt-0.5">
+              {metrics.salesCount} {metrics.salesCount === 1 ? 'venta' : 'ventas'} completadas
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            Bs {metrics.totalSales.toFixed(2)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Total Vendido Hoy
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {metrics.salesCount} {metrics.salesCount === 1 ? 'venta' : 'ventas'} completadas
-          </p>
         </div>
 
         {/* 2. COBRADO EN EFECTIVO (Verde Esmeralda) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Banknote className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Efectivo
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">
+              Cobrado en Efectivo
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Banknote className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="16" y="24" width="40" height="24" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <circle cx="36" cy="36" r="6" stroke="white" strokeWidth="3" fill="none"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              Bs {metrics.totalCash.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-emerald-100 font-bold mt-0.5">
+              {metrics.cashSalesCount} ventas en efectivo
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            Bs {metrics.totalCash.toFixed(2)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Cobrado en Efectivo
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {metrics.cashSalesCount} ventas en efectivo
-          </p>
         </div>
 
         {/* 3. TRANSFERENCIA / QR (Azul Cobalto) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Smartphone className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Digital / QR
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">
+              Transferencia / QR
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Smartphone className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="24" y="18" width="24" height="38" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <circle cx="36" cy="48" r="2" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              Bs {metrics.totalTransfer.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-blue-100 font-bold mt-0.5">
+              {metrics.transferSalesCount} ventas digitales
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            Bs {metrics.totalTransfer.toFixed(2)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Transferencia / QR
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {metrics.transferSalesCount} ventas digitales
-          </p>
         </div>
 
         {/* 4. CAMBIO / VUELTO DADO (Ámbar / Naranja) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#f2994a] to-[#f2c94c] text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Calculator className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Vuelto
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-100">
+              Cambio / Vuelto Dado
             </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Calculator className="w-4 h-4 text-white" />
+            </div>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <circle cx="36" cy="36" r="18" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M30 36h12M36 30v12" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              Bs {metrics.totalChange.toFixed(2)}
+            </div>
+            <p className="text-[10px] text-amber-100 font-bold mt-0.5">
+              Vuelto entregado a clientes
+            </p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            Bs {metrics.totalChange.toFixed(2)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            Cambio / Vuelto Dado
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Vuelto entregado a clientes
-          </p>
         </div>
       </div>
 

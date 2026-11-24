@@ -255,109 +255,87 @@ export const DashboardOverviewPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* 4 TARJETAS KPI PRINCIPALES                              */}
+      {/* 4 TARJETAS KPI PRINCIPALES (ESTILO SUCURSALES)          */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* 1. VENTAS HOY (Rojo Carmesí) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#eb3349] to-[#f45c43] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <ShoppingCart className="w-5 h-5" />
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-100">
+              {t('panel.sales_today', 'Ventas Hoy')}
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <ShoppingCart className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.today', 'Hoy')}</span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none" className="animate-card-float">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <path d="M18 22h4l5 22h18l4-14H25" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="30" cy="48" r="3" fill="white"/>
-              <circle cx="44" cy="48" r="3" fill="white"/>
-              <path d="M32 30h10M32 35h8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {metrics.salesTodayCount}
+            </div>
+            <p className="text-[10px] text-rose-100 font-bold mt-0.5 truncate">
+              {formatCurrency(metrics.salesToday, currency)} {t('panel.collected', 'recaudados')}
+            </p>
           </div>
-          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10">
-            {metrics.salesTodayCount}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">{t('panel.sales_today', 'Ventas Hoy')}</p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {formatCurrency(metrics.salesToday, currency)} {t('panel.collected', 'recaudados')}
-          </p>
         </div>
 
         {/* 2. INGRESOS HOY (Verde Esmeralda) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <TrendingUp className="w-5 h-5" />
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">
+              {t('panel.income_today', 'Ingresos Hoy')}
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.day', 'Día')}</span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none" className="animate-card-float-delayed">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="56" cy="20" r="4" fill="white"/>
-              <path d="M50 20 L56 14 L62 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight font-mono truncate">
+              {formatCurrency(metrics.salesToday, currency)}
+            </div>
+            <p className="text-[10px] text-emerald-100 font-bold mt-0.5">
+              {t('panel.income_today_sub', 'Total del día')}
+            </p>
           </div>
-          <p className="text-3xl sm:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10">
-            {formatCurrency(metrics.salesToday, currency)}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">{t('panel.income_today', 'Ingresos Hoy')}</p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">{t('panel.income_today_sub', 'Total del día')}</p>
         </div>
 
-        {/* 3. STOCK BAJO (Azul-Verde Alerta) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#0575e6] via-[#00a86b] to-[#008f5d] text-white shadow-xl shadow-teal-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-teal-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <AlertTriangle className="w-5 h-5" />
+        {/* 3. STOCK BAJO (Púrpura / Rosa Alerta) */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-purple-100">
+              {t('panel.low_stock', 'Stock Bajo')}
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.alert', 'Alerta')}</span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none" className="animate-card-float">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <rect x="18" y="30" width="36" height="26" rx="4" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M26 30V24a10 10 0 0 1 20 0v6" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-              <line x1="36" y1="39" x2="36" y2="46" stroke="white" strokeWidth="3" strokeLinecap="round"/>
-              <circle cx="36" cy="50" r="1.5" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {metrics.lowStockCount}
+            </div>
+            <p className="text-[10px] text-purple-100 font-bold mt-0.5">
+              {metrics.lowStockCount > 0 ? `${metrics.lowStockCount} con stock bajo` : t('panel.low_stock_ok', 'Inventario OK')}
+            </p>
           </div>
-          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10">
-            {metrics.lowStockCount}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">{t('panel.low_stock', 'Stock Bajo')}</p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {metrics.lowStockCount > 0 ? `${metrics.lowStockCount} ${t('panel.low_stock_items', 'productos con stock bajo')}` : t('panel.low_stock_ok', 'Inventario OK')}
-          </p>
         </div>
 
         {/* 4. EMPLEADOS (Azul Cobalto) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Users className="w-5 h-5" />
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">
+              {t('panel.employees', 'Empleados')}
+            </span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Users className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">{t('panel.team', 'Equipo')}</span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none" className="animate-card-float-alt">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <circle cx="36" cy="26" r="8" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M20 54c0-9 7-14 16-14s16 5 16 14" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
-              <circle cx="54" cy="29" r="5" stroke="white" strokeWidth="2.5" fill="none"/>
-              <path d="M60 50c0-6 4-10 0-10" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-              <circle cx="18" cy="29" r="5" stroke="white" strokeWidth="2.5" fill="none"/>
-              <path d="M12 50c0-6-4-10 0-10" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {metrics.employeesCount}
+            </div>
+            <p className="text-[10px] text-blue-100 font-bold mt-0.5">
+              {t('panel.employees_sub', 'Personal activo')}
+            </p>
           </div>
-          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10">
-            {metrics.employeesCount}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">{t('panel.employees', 'Empleados')}</p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">{t('panel.employees_sub', 'Personal activo')}</p>
         </div>
       </div>
 
