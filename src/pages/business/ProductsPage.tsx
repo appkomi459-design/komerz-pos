@@ -20,6 +20,7 @@ import {
   Edit3,
   Boxes,
   TrendingUp,
+  Camera,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { recordTrashItem } from '@/utils/trash';
@@ -34,6 +35,7 @@ import type { Product, Category } from '@/types';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
+import { BarcodeCameraModal } from '@/components/common/BarcodeCameraModal';
 
 export const ProductsPage: React.FC = () => {
   const { activeBusiness, settings, currentRole } = useBusiness();
@@ -349,6 +351,7 @@ export const ProductsPage: React.FC = () => {
   // ---- BARCODE SCANNER (pistola USB / Bluetooth) ----
   const [scanToast, setScanToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const scanToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const showProductScanToast = (msg: string, ok: boolean) => {
     if (scanToastTimerRef.current) clearTimeout(scanToastTimerRef.current);
@@ -357,9 +360,9 @@ export const ProductsPage: React.FC = () => {
   };
 
   // Desactivar cuando el modal de edición/creación esté abierto
-  const productScannerActive = !isModalOpen && !editingProduct;
+  const productScannerActive = !isModalOpen && !editingProduct && !isCameraOpen;
 
-  useBarcodeScanner((code) => {
+  const handleProductBarcodeScan = (code: string) => {
     // 1. Buscar producto por barcode o SKU exacto
     const found = products.find(
       (p) =>
@@ -379,7 +382,9 @@ export const ProductsPage: React.FC = () => {
       setIsModalOpen(true);
       showProductScanToast(`⚠ Código "${code}" nuevo — completá el producto`, false);
     }
-  }, productScannerActive);  // Productos con Stock Bajo o Crítico
+  };
+
+  useBarcodeScanner(handleProductBarcodeScan, productScannerActive);  // Productos con Stock Bajo o Crítico
   const lowStockProducts = products.filter(
     (p) => p.is_active && Number(p.stock) <= Number(p.min_stock)
   );
@@ -759,6 +764,14 @@ export const ProductsPage: React.FC = () => {
           <Barcode className="w-3.5 h-3.5" />
           <span>Lector USB listo</span>
         </div>
+        {/* Botón cámara para móvil */}
+        <button
+          onClick={() => setIsCameraOpen(true)}
+          className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
+          title="Escanear con cámara del celular"
+        >
+          <Camera className="w-4 h-4" />
+        </button>
         <div className="text-xs font-bold text-slate-500 dark:text-zinc-400">
           Mostrando {filteredProducts.length} de {products.length} productos
         </div>
@@ -1635,6 +1648,17 @@ export const ProductsPage: React.FC = () => {
           </form>
         </Modal>
       )}
+
+      {/* Modal cámara para escaneo móvil */}
+      <BarcodeCameraModal
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onScan={(code) => {
+          setIsCameraOpen(false);
+          handleProductBarcodeScan(code);
+        }}
+        title="Escanear → Producto"
+      />
     </div>
   );
 };

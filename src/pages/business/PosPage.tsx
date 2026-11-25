@@ -25,6 +25,7 @@ import {
   Printer,
   ChevronDown,
   ChevronUp,
+  Camera,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,6 +40,7 @@ import { BusinessModeBar } from '@/components/pos/BusinessModeBar';
 import { ScaleModal } from '@/components/pos/ScaleModal';
 import { ClothingVariantModal } from '@/components/pos/ClothingVariantModal';
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
+import { BarcodeCameraModal } from '@/components/common/BarcodeCameraModal';
 
 interface CartItem {
   product: Product;
@@ -644,6 +646,7 @@ export const PosPage: React.FC = () => {
   // ---- BARCODE SCANNER (pistola USB / Bluetooth) ----
   const [scanToast, setScanToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const scanToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
   const showScanToast = (msg: string, ok: boolean) => {
     if (scanToastTimerRef.current) clearTimeout(scanToastTimerRef.current);
@@ -656,9 +659,10 @@ export const PosPage: React.FC = () => {
   const scannerActive =
     !isNewProductModalOpen &&
     !isScaleModalOpen &&
-    !isClothingModalOpen;
+    !isClothingModalOpen &&
+    !isCameraOpen;
 
-  useBarcodeScanner((code) => {
+  const handleBarcodeScan = (code: string) => {
     // Buscar producto por barcode exacto o por SKU exacto
     const found = products.find(
       (p) =>
@@ -671,7 +675,9 @@ export const PosPage: React.FC = () => {
     } else {
       showScanToast(`⚠ Código "${code}" no encontrado`, false);
     }
-  }, scannerActive);
+  };
+
+  useBarcodeScanner(handleBarcodeScan, scannerActive);
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-5">
@@ -762,6 +768,15 @@ export const PosPage: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {/* Botón cámara para móvil */}
+            <button
+              onClick={() => setIsCameraOpen(true)}
+              className="w-10 h-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
+              title="Escanear con cámara del celular"
+            >
+              <Camera className="w-5 h-5" />
+            </button>
 
             <button
               onClick={() => setIsNewProductModalOpen(true)}
@@ -1614,6 +1629,19 @@ export const PosPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* MODAL: ESCANEO CON CÁMARA (MÓVIL)                       */}
+      {/* ======================================================== */}
+      <BarcodeCameraModal
+        isOpen={isCameraOpen}
+        onClose={() => setIsCameraOpen(false)}
+        onScan={(code) => {
+          setIsCameraOpen(false);
+          handleBarcodeScan(code);
+        }}
+        title="Escanear → Carrito"
+      />
 
       {/* ======================================================== */}
       {/* MODAL: REGISTRAR NUEVO PRODUCTO (DISEÑO HORIZONTAL)      */}
