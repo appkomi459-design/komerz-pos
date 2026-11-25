@@ -427,12 +427,28 @@ export const ProductsPage: React.FC = () => {
 
     if (target === 'edit') {
       setEditBarcode(clean);
+      if (editingProduct) {
+        const { error: bcErr } = await supabase
+          .from('products')
+          .update({ barcode: clean })
+          .eq('id', editingProduct.id);
+        if (!bcErr) {
+          setProducts((prev) =>
+            prev.map((item) =>
+              item.id === editingProduct.id ? { ...item, barcode: clean } : item
+            )
+          );
+          setEditingProduct((prev) =>
+            prev ? { ...prev, barcode: clean } : prev
+          );
+        }
+      }
       showProductScanResult({
         code: clean,
         name: editName || undefined,
         imageUrl: editProductImage,
         status: 'found',
-        message: 'Código de barras actualizado',
+        message: 'Código de barras guardado',
       });
       return;
     }

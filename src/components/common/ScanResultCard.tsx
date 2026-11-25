@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Barcode, CheckCircle2, AlertTriangle, Sparkles, X, Package } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -40,8 +41,8 @@ export const ScanResultCard: React.FC<ScanResultCardProps> = ({ result, onClose 
       ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
       : 'bg-rose-500/15 text-rose-700 dark:text-rose-300';
 
-  return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-[92vw] max-w-md pointer-events-auto">
+  return createPortal(
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[10001] w-[92vw] max-w-md pointer-events-auto">
       <div
         className={`bg-white dark:bg-zinc-900 border-2 ${borderColor} rounded-2xl shadow-2xl p-3 flex items-center gap-3.5 transition-all`}
       >
@@ -107,6 +108,7 @@ export const ScanResultCard: React.FC<ScanResultCardProps> = ({ result, onClose 
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

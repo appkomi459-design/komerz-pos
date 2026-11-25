@@ -10,6 +10,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { NotFoundException } from '@zxing/library';
 import { X, Camera, RefreshCw, AlertTriangle } from 'lucide-react';
@@ -130,8 +131,11 @@ export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="w-full sm:max-w-sm bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-zinc-800">
@@ -220,6 +224,7 @@ export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
