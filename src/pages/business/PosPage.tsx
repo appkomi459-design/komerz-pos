@@ -38,6 +38,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { BusinessModeBar } from '@/components/pos/BusinessModeBar';
 import { ScaleModal } from '@/components/pos/ScaleModal';
 import { ClothingVariantModal } from '@/components/pos/ClothingVariantModal';
+import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 
 interface CartItem {
   product: Product;
@@ -640,8 +641,53 @@ export const PosPage: React.FC = () => {
       (p.barcode && p.barcode.includes(search))
   );
 
+  // ---- BARCODE SCANNER (pistola USB / Bluetooth) ----
+  const [scanToast, setScanToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const scanToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showScanToast = (msg: string, ok: boolean) => {
+    if (scanToastTimerRef.current) clearTimeout(scanToastTimerRef.current);
+    setScanToast({ msg, ok });
+    scanToastTimerRef.current = setTimeout(() => setScanToast(null), 2200);
+  };
+
+  // Cuando hay un modal de formulario abierto, desactivamos el scanner global
+  // para no interferir con los campos de texto.
+  const scannerActive =
+    !isNewProductModalOpen &&
+    !isScaleModalOpen &&
+    !isClothingModalOpen;
+
+  useBarcodeScanner((code) => {
+    // Buscar producto por barcode exacto o por SKU exacto
+    const found = products.find(
+      (p) =>
+        (p.barcode && p.barcode.trim() === code.trim()) ||
+        (p.sku && p.sku.trim() === code.trim())
+    );
+    if (found) {
+      addToCart(found);
+      showScanToast(`✓ ${found.name} → carrito`, true);
+    } else {
+      showScanToast(`⚠ Código "${code}" no encontrado`, false);
+    }
+  }, scannerActive);
+
   return (
     <div className="max-w-[1600px] mx-auto space-y-5">
+      {/* ===== TOAST ESCÁNER DE BARRAS ===== */}
+      {scanToast && (
+        <div
+          className={`fixed top-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-2xl shadow-xl text-white text-sm font-black flex items-center gap-2 transition-all animate-bounce-once ${
+            scanToast.ok
+              ? 'bg-emerald-600 shadow-emerald-600/40'
+              : 'bg-rose-600 shadow-rose-600/40'
+          }`}
+        >
+          <span>{scanToast.msg}</span>
+        </div>
+      )}
+
       {/* ======================================================== */}
       {/* CABECERA SUPERIOR: TÍTULO, SUBTÍTULO Y FECHA             */}
       {/* ======================================================== */}

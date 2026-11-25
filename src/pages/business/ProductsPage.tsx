@@ -33,6 +33,7 @@ import { formatCurrency } from '@/utils/formatters';
 import type { Product, Category } from '@/types';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 
 export const ProductsPage: React.FC = () => {
   const { activeBusiness, settings, currentRole } = useBusiness();
@@ -345,7 +346,40 @@ export const ProductsPage: React.FC = () => {
       (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // Productos con Stock Bajo o Crítico
+  // ---- BARCODE SCANNER (pistola USB / Bluetooth) ----
+  const [scanToast, setScanToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const scanToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showProductScanToast = (msg: string, ok: boolean) => {
+    if (scanToastTimerRef.current) clearTimeout(scanToastTimerRef.current);
+    setScanToast({ msg, ok });
+    scanToastTimerRef.current = setTimeout(() => setScanToast(null), 2500);
+  };
+
+  // Desactivar cuando el modal de edición/creación esté abierto
+  const productScannerActive = !isModalOpen && !editingProduct;
+
+  useBarcodeScanner((code) => {
+    // 1. Buscar producto por barcode o SKU exacto
+    const found = products.find(
+      (p) =>
+        (p.barcode && p.barcode.trim() === code.trim()) ||
+        (p.sku && p.sku.trim() === code.trim())
+    );
+
+    if (found) {
+      // Producto encontrado: aplicar como filtro de búsqueda para resaltarlo
+      setSearch(code.trim());
+      showProductScanToast(`✓ "${found.name}" encontrado`, true);
+    } else {
+      // Producto NO encontrado: abrir modal de nuevo producto con barcode pre-relleno
+      setBarcode(code.trim());
+      setName('');
+      setSku(`PROD-${Math.floor(1000 + Math.random() * 9000)}`);
+      setIsModalOpen(true);
+      showProductScanToast(`⚠ Código "${code}" nuevo — completá el producto`, false);
+    }
+  }, productScannerActive);  // Productos con Stock Bajo o Crítico
   const lowStockProducts = products.filter(
     (p) => p.is_active && Number(p.stock) <= Number(p.min_stock)
   );
@@ -364,6 +398,19 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* ===== TOAST ESCÁNER DE BARRAS ===== */}
+      {scanToast && (
+        <div
+          className={`fixed top-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-2xl shadow-xl text-white text-sm font-black flex items-center gap-2 ${
+            scanToast.ok
+              ? 'bg-emerald-600 shadow-emerald-600/40'
+              : 'bg-amber-500 shadow-amber-500/40'
+          }`}
+        >
+          <span>{scanToast.msg}</span>
+        </div>
+      )}
+
       {/* ======================================================== */}
       {/* CABECERA DE LA PÁGINA Y BOTONES DE ACCIÓN                  */}
       {/* ======================================================== */}
@@ -706,6 +753,11 @@ export const ProductsPage: React.FC = () => {
             onChange={(e) => setSearch(e.target.value)}
             icon={<Search className="w-4 h-4" />}
           />
+        </div>
+        {/* Badge: escáner USB activo */}
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-[11px] font-black">
+          <Barcode className="w-3.5 h-3.5" />
+          <span>Lector USB listo</span>
         </div>
         <div className="text-xs font-bold text-slate-500 dark:text-zinc-400">
           Mostrando {filteredProducts.length} de {products.length} productos
