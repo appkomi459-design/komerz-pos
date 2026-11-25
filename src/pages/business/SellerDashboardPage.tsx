@@ -158,86 +158,88 @@ export const SellerDashboardPage: React.FC = () => {
       {/* ======================================================== */}
       {/* MÉTRICAS PERSONALES DEL DÍA                              */}
       {/* ======================================================== */}
+      {/* 2. TARJETAS KPI DEL VENDEDOR (ESTILO SUCURSALES)         */}
+      {/* ======================================================== */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Mis Ventas de Hoy */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs col-span-2 sm:col-span-1">
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl col-span-2 sm:col-span-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">
               Mis Ventas de Hoy
             </span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
               Bs {metrics.totalSold.toFixed(2)}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[10px] text-emerald-100 font-bold mt-0.5">
               {metrics.ticketCount} tickets emitidos
             </p>
           </div>
-        </Card>
+        </div>
 
-        {/* En Efectivo */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+        {/* Cobrado en Efectivo */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">
               Cobrado en Efectivo
             </span>
-            <div className="w-8 h-8 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
-              <Banknote className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Banknote className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900 dark:text-zinc-100 font-mono">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
               Bs {metrics.totalCash.toFixed(2)}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[10px] text-blue-100 font-bold mt-0.5">
               {metrics.cashCount} cobros en mano
             </p>
           </div>
-        </Card>
+        </div>
 
         {/* Transferencia / QR */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-purple-100">
               Transferencia / QR
             </span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Smartphone className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Smartphone className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900 dark:text-zinc-100 font-mono">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
               Bs {metrics.totalTransfer.toFixed(2)}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[10px] text-purple-100 font-bold mt-0.5">
               {metrics.transferCount} pagos digitales
             </p>
           </div>
-        </Card>
+        </div>
 
-        {/* Catálogo de Productos */}
-        <Card className="p-4 sm:p-5 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
+        {/* Productos en Tienda */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+            <span className="text-[11px] font-black uppercase tracking-wider text-amber-100">
               Productos en Tienda
             </span>
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-              <Package className="w-4 h-4" />
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Package className="w-4 h-4 text-white" />
             </div>
           </div>
-          <div className="mt-2">
-            <div className="text-xl font-black text-slate-900 dark:text-zinc-100 font-mono">
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
               {products.length}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+            <p className="text-[10px] text-amber-100 font-bold mt-0.5">
               Disponibles para vender
             </p>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* ======================================================== */}
