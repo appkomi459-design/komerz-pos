@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users,
   Plus,
@@ -674,118 +674,72 @@ export const EmployeesPage: React.FC = () => {
 
       {/* ── TARJETAS DE MÉTRICAS / KPIS (VIBRANTES CON GRADIENTES) ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* 1. TOTAL VENDEDORES (Azul Cobalto) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#2980b9] to-[#2c3e50] text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Users className="w-5 h-5" />
+          {/* 1. TOTAL VENDEDORES */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">TOTAL VENDEDORES</span>
+              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+                <Users className="w-4 h-4 text-white" />
+              </div>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Equipo
-            </span>
-          </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <circle cx="36" cy="28" r="10" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M18 56c0-10 8-16 18-16s18 6 18 16" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none"/>
-            </svg>
-          </div>
-          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
-            {metrics.totalSellers}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('employees.total', 'TOTAL VENDEDORES')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {t('employees.users_registered', 'Usuarios registrados')}
-          </p>
-        </div>
-
-        {/* 2. VENDEDORES ACTIVOS (Verde Esmeralda) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+                {metrics.totalSellers}
+              </div>
+              <p className="text-[10px] text-blue-100 font-bold mt-0.5">{t('employees.users_registered', 'Usuarios registrados')}</p>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              {metrics.totalSellers > 0 ? Math.round((metrics.activeCount / metrics.totalSellers) * 100) : 0}% Habilitados
-            </span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <path d="M36 18L52 26V38C52 48 44 54 36 58C28 54 20 48 20 38V26L36 18Z" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M28 36L34 42L44 30" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-xs relative z-10 font-mono">
-            {metrics.activeCount}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('employees.active', 'VENDEDORES ACTIVOS')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {t('employees.access_enabled', 'Con acceso habilitado al POS')}
-          </p>
-        </div>
 
-        {/* 3. VENDIDO POR EL EQUIPO (Púrpura / Índigo) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#8e2de2] to-[#4a00e0] text-white shadow-xl shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <TrendingUp className="w-5 h-5" />
+          {/* 2. VENDEDORES ACTIVOS */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">VENDEDORES ACTIVOS</span>
+              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 text-white" />
+              </div>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Recaudación
-            </span>
-          </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <polyline points="16,52 26,38 36,42 46,28 56,20" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="56" cy="20" r="4" fill="white"/>
-            </svg>
-          </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            {formatCurrency(metrics.totalSalesByTeam, activeBusiness?.currency || 'BOB')}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('employees.sold_by_team', 'Vendido por el Equipo')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {t('panel.total_sales_sub', 'Total acumulado en caja')}
-          </p>
-        </div>
-
-        {/* 4. VENDEDOR ESTRELLA (Ámbar / Naranja) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#f2994a] to-[#f2c94c] text-white shadow-xl shadow-amber-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Award className="w-5 h-5" />
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+                {metrics.activeCount}
+              </div>
+              <p className="text-[10px] text-emerald-100 font-bold mt-0.5">{metrics.totalSellers > 0 ? Math.round((metrics.activeCount / metrics.totalSellers) * 100) : 0}% habilitados al POS</p>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Top #1
-            </span>
           </div>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <polygon points="36,18 41,29 53,30 44,38 46,50 36,44 26,50 28,38 19,30 31,29" stroke="white" strokeWidth="2.5" fill="none"/>
-            </svg>
-          </div>
-          <p className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-xs truncate relative z-10" title={metrics.starSeller?.fullName || 'Sin ventas aún'}>
-            {metrics.starSeller ? metrics.starSeller.fullName : 'Sin ventas aún'}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('employees.star_seller', 'Vendedor Estrella')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10 font-mono">
-            {metrics.starSeller ? `${formatCurrency(metrics.starSeller.totalSold, activeBusiness?.currency || 'BOB')} (${metrics.starSeller.salesCount} ventas)` : 'Esperando ventas'}
-          </p>
-        </div>
-      </div>
 
+          {/* 3. VENDIDO POR EL EQUIPO */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-purple-100">VENDIDO POR EQUIPO</span>
+              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+                {formatCurrency(metrics.totalSalesByTeam, activeBusiness?.currency || 'BOB')}
+              </div>
+              <p className="text-[10px] text-purple-100 font-bold mt-0.5">Historial acumulado</p>
+            </div>
+          </div>
+
+          {/* 4. VENDEDOR ESTRELLA */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-100">VENDEDOR ESTRELLA</span>
+              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+                <Award className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <div className="text-xl sm:text-2xl font-black tracking-tight truncate" title={metrics.starSeller?.fullName || 'Sin ventas aun'}>
+                {metrics.starSeller ? metrics.starSeller.fullName : 'Sin ventas'}
+              </div>
+              <p className="text-[10px] text-amber-100 font-bold mt-0.5 font-mono truncate">
+                {metrics.starSeller ? `${formatCurrency(metrics.starSeller.totalSold, activeBusiness?.currency || 'BOB')} (${metrics.starSeller.salesCount} ventas)` : 'Esperando ventas'}
+              </p>
+            </div>
+          </div>
+        </div>
       {/* ── BARRA DE BÚSQUEDA ── */}
       <Card className="p-3 sm:p-4 rounded-2xl border border-slate-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
         <div className="relative">

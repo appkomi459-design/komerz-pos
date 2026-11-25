@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Store,
   DollarSign,
@@ -702,125 +702,73 @@ export const SellerReportsPage: React.FC = () => {
       {/* ======================================================== */}
       {/* 4 CARDS DE RESUMEN EJECUTIVO (DISEÑO COLOR GRADIENT)      */}
       {/* ======================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* 1. TOTAL VENDIDO (Rojo / Coral) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#ff416c] to-[#ff4b2b] text-white shadow-xl shadow-rose-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <DollarSign className="w-5 h-5" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* 1. TOTAL VENDIDO */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-lg shadow-rose-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-rose-100">TOTAL VENDIDO</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <DollarSign className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              {timeRange === 'today' ? 'Hoy' : timeRange === 'week' ? 'Semana' : timeRange === 'month' ? 'Mes' : timeRange === 'custom' ? 'Rango' : 'Todos'}
-            </span>
           </div>
-          {/* Watermark SVG decorativo de fondo */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <path d="M24 24H28L32 46H48L52 30H30" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <circle cx="34" cy="52" r="3" fill="white"/>
-              <circle cx="46" cy="52" r="3" fill="white"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {formatCurrency(report.periodTotalSales, activeBusiness?.currency || 'BOB')}
+            </div>
+            <p className="text-[10px] text-rose-100 font-bold mt-0.5">{report.periodTotalTickets} {t('seller_report.tickets_issued', 'tickets emitidos')}</p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            {formatCurrency(report.periodTotalSales, activeBusiness?.currency || 'BOB')}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('seller_report.sold_today', 'TOTAL VENDIDO')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {report.periodTotalTickets} {t('seller_report.tickets_issued', 'tickets emitidos')}
-          </p>
         </div>
 
-        {/* 2. GANANCIA NETA (Verde Esmeralda) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#00b09b] to-[#96c93d] text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <TrendingUp className="w-5 h-5" />
+        {/* 2. GANANCIA NETA */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-100">GANANCIA NETA</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              {report.periodMargin.toFixed(1)}% Margen
-            </span>
           </div>
-          {/* Watermark SVG decorativo de fondo */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <polyline points="18,50 28,38 38,42 54,22" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <polyline points="44,22 54,22 54,32" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {formatCurrency(report.periodTotalProfit, activeBusiness?.currency || 'BOB')}
+            </div>
+            <p className="text-[10px] text-emerald-100 font-bold mt-0.5">{report.periodMargin.toFixed(1)}% margen neto</p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            {formatCurrency(report.periodTotalProfit, activeBusiness?.currency || 'BOB')}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('seller_report.net_profit', 'GANANCIA NETA')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            Rendimiento neto generado
-          </p>
         </div>
 
-        {/* 3. COSTO MERCADERÍA (Azul Cian / Océano) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#4facfe] to-[#00f2fe] text-white shadow-xl shadow-cyan-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <ShoppingBag className="w-5 h-5" />
+        {/* 3. COSTO MERCADERÍA */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-blue-100">COSTO MERCADERÍA</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <ShoppingBag className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Inversión
-            </span>
           </div>
-          {/* Watermark SVG decorativo de fondo */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <path d="M22 28L26 50H46L50 28H22Z" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M30 28V22C30 18.7 32.7 16 36 16C39.3 16 42 18.7 42 22V28" stroke="white" strokeWidth="3" fill="none"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {formatCurrency(report.periodTotalCost, activeBusiness?.currency || 'BOB')}
+            </div>
+            <p className="text-[10px] text-blue-100 font-bold mt-0.5">{t('seller_report.cost_sub', 'Costo de productos vendidos')}</p>
           </div>
-          <p className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight drop-shadow-xs truncate relative z-10 font-mono">
-            {formatCurrency(report.periodTotalCost, activeBusiness?.currency || 'BOB')}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('seller_report.cost', 'COSTO MERCADERÍA')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10">
-            {t('seller_report.cost_sub', 'Costo de productos vendidos')}
-          </p>
         </div>
 
-        {/* 4. VENDEDOR ESTRELLA (Púrpura / Índigo) */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-br from-[#8e2de2] to-[#4a00e0] text-white shadow-xl shadow-purple-500/25 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/30">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <Award className="w-5 h-5" />
+        {/* 4. VENDEDOR ESTRELLA */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/20 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-purple-100">VENDEDOR ESTRELLA</span>
+            <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+              <Award className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[10px] font-black uppercase tracking-wider bg-black/15 text-white/90 px-2.5 py-0.5 rounded-full">
-              Líder
-            </span>
           </div>
-          {/* Watermark SVG decorativo de fondo */}
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
-            <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" fill="white" fillOpacity="0.15"/>
-              <circle cx="36" cy="30" r="10" stroke="white" strokeWidth="3" fill="none"/>
-              <path d="M30 40L24 56L36 50L48 56L42 40" stroke="white" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
-            </svg>
+          <div className="mt-3">
+            <div className="text-xl sm:text-2xl font-black tracking-tight truncate">
+              {report.topSeller ? report.topSeller.fullName : t('employees.waiting', 'Esperando ventas')}
+            </div>
+            <p className="text-[10px] text-purple-100 font-bold mt-0.5 font-mono truncate">
+              {report.topSeller ? `+ ${formatCurrency(report.topSeller.profit, activeBusiness?.currency || 'BOB')} ganancia` : t('reports.no_data', 'Sin datos para el periodo')}
+            </p>
           </div>
-          <p className="text-xl sm:text-2xl font-black tracking-tight drop-shadow-xs truncate relative z-10">
-            {report.topSeller ? report.topSeller.fullName : t('employees.waiting', 'Esperando ventas')}
-          </p>
-          <p className="text-sm font-black uppercase tracking-wider text-white/95 mt-2 relative z-10">
-            {t('employees.star_seller', 'VENDEDOR ESTRELLA')}
-          </p>
-          <p className="text-xs text-white/75 font-medium truncate mt-1 relative z-10 font-mono">
-            {report.topSeller ? `+ ${formatCurrency(report.topSeller.profit, activeBusiness?.currency || 'BOB')} ganancia` : t('reports.no_data', 'Sin datos para el período')}
-          </p>
         </div>
       </div>
-
       {/* ======================================================== */}
       {/* BARRA DE BÚSQUEDA Y FILTROS DE PERÍODO / FECHA           */}
       {/* ======================================================== */}
