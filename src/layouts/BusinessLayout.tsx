@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -59,6 +59,14 @@ export const BusinessLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [businessMenuOpen, setBusinessMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    management: false,
+    admin: false,
+  });
+
+  const toggleSection = (id: string) => {
+    setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const navSections = useMemo(() => {
     // Si el usuario es Vendedor / Cajero, mostrar únicamente sus herramientas permitidas
@@ -79,7 +87,9 @@ export const BusinessLayout: React.FC = () => {
     // Menú completo para el Propietario / Administrador
     return [
       {
+        id: 'operations',
         title: t('nav.operations', 'OPERACIONES'),
+        collapsible: false,
         items: [
           { name: t('nav.panel', 'Panel'), path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
           { name: t('nav.pos', 'Venta (Caja)'), path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
@@ -89,7 +99,9 @@ export const BusinessLayout: React.FC = () => {
         ],
       },
       {
+        id: 'management',
         title: t('nav.management', 'GESTIÓN & CONTROL'),
+        collapsible: true,
         items: [
           { name: t('nav.sales', 'Todas las ventas'), path: '/app/sales', icon: Receipt, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
           { name: t('nav.customers', 'Clientes'), path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
@@ -102,11 +114,20 @@ export const BusinessLayout: React.FC = () => {
         ],
       },
       {
+        id: 'admin',
         title: t('nav.admin', 'ADMINISTRACIÓN'),
+        collapsible: true,
         items: [
           { name: t('nav.employees', 'Vendedores'), path: '/app/employees', icon: Users, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-700 shadow-blue-600/30 text-white' },
           { name: t('nav.seller_reports', 'Reporte Vendedores'), path: '/app/seller-reports', icon: TrendingUp, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
           { name: t('nav.branches', 'Sucursales'), path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+        ],
+      },
+      {
+        id: 'general',
+        title: '',
+        collapsible: false,
+        items: [
           { name: t('nav.settings', 'Configuración'), path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
           { name: t('nav.subscription', 'Suscripción'), path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
           { name: t('nav.suggestions', 'Sugerencias'), path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
@@ -114,6 +135,20 @@ export const BusinessLayout: React.FC = () => {
       },
     ];
   }, [currentRole, language, t]);
+
+  // Abrir automáticamente la sección si el usuario navega a una de sus rutas
+  useEffect(() => {
+    navSections.forEach((sec: any) => {
+      if (sec.collapsible && sec.id) {
+        const hasActive = sec.items.some((item: any) =>
+          item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path)
+        );
+        if (hasActive) {
+          setOpenSections((prev) => (prev[sec.id] ? prev : { ...prev, [sec.id]: true }));
+        }
+      }
+    });
+  }, [location.pathname, navSections]);
 
   const handleLogout = async () => {
     await signOut();
@@ -276,48 +311,80 @@ export const BusinessLayout: React.FC = () => {
         </div>
 
         {/* Sidebar Nav Items (Agrupados por Sección con Cápsulas de Color) */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-          {navSections.map((sec, sIdx) => (
-            <div key={sIdx} className="space-y-1">
-              {!collapsed && (
-                <p className="text-[10px] uppercase font-black tracking-wider text-gray-400 dark:text-zinc-500 px-3 mb-1.5 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
-                  {sec.title}
-                </p>
-              )}
-              {sec.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.exact
-                  ? location.pathname === item.path
-                  : location.pathname.startsWith(item.path);
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
+          {navSections.map((sec: any, sIdx) => {
+            const isCollapsible = Boolean(sec.collapsible && sec.id);
+            const isSectionOpen = !isCollapsible || collapsed || Boolean(openSections[sec.id]);
 
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setMobileOpen(false)}
-                    title={collapsed ? item.name : undefined}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all group ${
-                      isActive
-                        ? `${item.activeGradient} shadow-md`
-                        : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/70 hover:text-gray-900 dark:hover:text-zinc-100'
-                    }`}
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 ${
-                        isActive
-                          ? 'bg-white/20 text-white shadow-inner'
-                          : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 group-hover:text-gray-900 dark:group-hover:text-white'
-                      }`}
+            return (
+              <div key={sec.id || sIdx} className="space-y-1">
+                {!collapsed && sec.title && (
+                  isCollapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleSection(sec.id)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[10px] uppercase font-black tracking-wider text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/70 hover:text-gray-800 dark:hover:text-zinc-200 transition-colors cursor-pointer"
                     >
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    {!collapsed && <span className="truncate">{item.name}</span>}
-                  </NavLink>
-                );
-              })}
-            </div>
-          ))}
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                        {sec.title}
+                      </span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${
+                          isSectionOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                  ) : (
+                    <p className="text-[10px] uppercase font-black tracking-wider text-gray-400 dark:text-zinc-500 px-3 mb-1.5 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block" />
+                      {sec.title}
+                    </p>
+                  )
+                )}
+
+                {!collapsed && !sec.title && sIdx > 0 && (
+                  <div className="my-2 border-t border-gray-100 dark:border-zinc-800/80" />
+                )}
+
+                {isSectionOpen && (
+                  <div className={`space-y-1 ${isCollapsible && !collapsed ? 'pl-1.5' : ''}`}>
+                    {sec.items.map((item: any) => {
+                      const Icon = item.icon;
+                      const isActive = item.exact
+                        ? location.pathname === item.path
+                        : location.pathname.startsWith(item.path);
+
+                      return (
+                        <NavLink
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setMobileOpen(false)}
+                          title={collapsed ? item.name : undefined}
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-2xl text-xs font-bold transition-all group ${
+                            isActive
+                              ? `${item.activeGradient} shadow-md`
+                              : 'text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800/70 hover:text-gray-900 dark:hover:text-zinc-100'
+                          }`}
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105 ${
+                              isActive
+                                ? 'bg-white/20 text-white shadow-inner'
+                                : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 group-hover:text-gray-900 dark:group-hover:text-white'
+                            }`}
+                          >
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          {!collapsed && <span className="truncate">{item.name}</span>}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Sidebar Footer with Collapse Toggle */}
