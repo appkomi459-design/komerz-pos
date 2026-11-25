@@ -60,8 +60,9 @@ export const BusinessLayout: React.FC = () => {
   const [businessMenuOpen, setBusinessMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    management: false,
-    admin: false,
+    sales_clients: false,
+    purchases_catalog: false,
+    reports_team: false,
   });
 
   const toggleSection = (id: string) => {
@@ -93,31 +94,38 @@ export const BusinessLayout: React.FC = () => {
         items: [
           { name: t('nav.panel', 'Panel'), path: '/app', icon: LayoutDashboard, exact: true, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
           { name: t('nav.pos', 'Venta (Caja)'), path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.cash', 'Caja'), path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
           { name: t('nav.products', 'Productos / Stock'), path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
-          { name: t('nav.categories', 'Categorías'), path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
           { name: t('nav.catalog_qr', 'QR Catálogo'), path: '/app/catalog-qr', icon: QrCode, activeGradient: 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-indigo-600/30 text-white' },
         ],
       },
       {
-        id: 'management',
-        title: t('nav.management', 'GESTIÓN & CONTROL'),
+        id: 'sales_clients',
+        title: t('nav.sales_clients', 'VENTAS Y CLIENTES'),
         collapsible: true,
         items: [
           { name: t('nav.sales', 'Todas las ventas'), path: '/app/sales', icon: Receipt, activeGradient: 'bg-gradient-to-r from-[#eb3349] to-[#f45c43] shadow-rose-600/30 text-white' },
           { name: t('nav.customers', 'Clientes'), path: '/app/customers', icon: Users, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
           { name: t('nav.customer_sales', 'Ventas a Clientes'), path: '/app/customer-sales', icon: UserCheck, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
-          { name: t('nav.suppliers', 'Proveedores'), path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
-          { name: t('nav.purchases', 'Compras'), path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-          { name: t('nav.cash', 'Caja'), path: '/app/cash', icon: Wallet, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
-          { name: t('nav.expenses', 'Gastos'), path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
-          { name: t('nav.reports', 'Reportes'), path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
         ],
       },
       {
-        id: 'admin',
-        title: t('nav.admin', 'ADMINISTRACIÓN'),
+        id: 'purchases_catalog',
+        title: t('nav.purchases_catalog', 'COMPRAS, GASTOS Y CATÁLOGO'),
         collapsible: true,
         items: [
+          { name: t('nav.categories', 'Categorías'), path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+          { name: t('nav.suppliers', 'Proveedores'), path: '/app/suppliers', icon: Truck, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
+          { name: t('nav.purchases', 'Compras'), path: '/app/purchases', icon: ShoppingBag, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
+          { name: t('nav.expenses', 'Gastos'), path: '/app/expenses', icon: TrendingDown, activeGradient: 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-600/30 text-white' },
+        ],
+      },
+      {
+        id: 'reports_team',
+        title: t('nav.reports_team', 'REPORTES Y EQUIPO'),
+        collapsible: true,
+        items: [
+          { name: t('nav.reports', 'Reportes'), path: '/app/reports', icon: BarChart3, activeGradient: 'bg-gradient-to-r from-[#2980b9] to-[#2c3e50] shadow-blue-600/30 text-white' },
           { name: t('nav.employees', 'Vendedores'), path: '/app/employees', icon: Users, activeGradient: 'bg-gradient-to-r from-blue-600 to-indigo-700 shadow-blue-600/30 text-white' },
           { name: t('nav.seller_reports', 'Reporte Vendedores'), path: '/app/seller-reports', icon: TrendingUp, activeGradient: 'bg-gradient-to-r from-[#11998e] to-[#38ef7d] shadow-emerald-600/30 text-white' },
           { name: t('nav.branches', 'Sucursales'), path: '/app/branches', icon: Building2, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
