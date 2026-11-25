@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   QrCode,
@@ -12,13 +12,40 @@ import {
   Eye,
   Smartphone,
   Globe,
+  MessageCircle,
+  Save,
 } from 'lucide-react';
 import { useBusiness } from '@/contexts/BusinessContext';
 
 export const CatalogQRPage: React.FC = () => {
-  const { activeBusiness } = useBusiness();
+  const { activeBusiness, updateActiveBusiness } = useBusiness();
   const [copied, setCopied] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [phoneStatus, setPhoneStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const qrRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    setWhatsappPhone(activeBusiness?.phone || '');
+    setPhoneStatus('idle');
+  }, [activeBusiness?.id, activeBusiness?.phone]);
+
+  const handleSavePhone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeBusiness) return;
+    setSavingPhone(true);
+    setPhoneStatus('idle');
+    const { error } = await updateActiveBusiness({
+      phone: whatsappPhone.trim() || (null as unknown as string),
+    });
+    setSavingPhone(false);
+    if (error) {
+      setPhoneStatus('error');
+    } else {
+      setPhoneStatus('saved');
+      setTimeout(() => setPhoneStatus('idle'), 3000);
+    }
+  };
 
   const catalogUrl = activeBusiness
     ? `${window.location.origin}/c/${activeBusiness.id}`
@@ -221,6 +248,63 @@ export const CatalogQRPage: React.FC = () => {
               Compartir Catálogo
             </button>
           </div>
+
+          {/* WhatsApp Phone Config Card */}
+          <form
+            onSubmit={handleSavePhone}
+            className="bg-white dark:bg-zinc-900 rounded-3xl border border-slate-100 dark:border-zinc-800 shadow-sm p-5 space-y-3"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-zinc-400">
+                  WhatsApp para Pedidos
+                </span>
+              </div>
+              {activeBusiness.phone ? (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  Activo
+                </span>
+              ) : (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                  Sin configurar
+                </span>
+              )}
+            </div>
+
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+              Ingresa el número donde recibirás los pedidos del carrito (incluye código de país, ej: <span className="font-mono font-bold">+591 71234567</span>).
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="tel"
+                value={whatsappPhone}
+                onChange={(e) => setWhatsappPhone(e.target.value)}
+                placeholder="Ej: +591 71234567"
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm font-bold text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+              />
+              <button
+                type="submit"
+                disabled={savingPhone}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all active:scale-95 disabled:opacity-60 cursor-pointer whitespace-nowrap"
+              >
+                <Save className="w-3.5 h-3.5" />
+                <span>{savingPhone ? 'Guardando...' : 'Guardar WhatsApp'}</span>
+              </button>
+            </div>
+
+            {phoneStatus === 'saved' && (
+              <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                ¡Número guardado! El botón de WhatsApp ya está activo en tu catálogo.
+              </p>
+            )}
+            {phoneStatus === 'error' && (
+              <p className="text-xs font-bold text-rose-500">
+                No se pudo guardar el número. Verifica tus permisos o intenta de nuevo.
+              </p>
+            )}
+          </form>
 
           {/* Info Cards */}
           <div className="grid grid-cols-2 gap-3">
