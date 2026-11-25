@@ -371,7 +371,7 @@ export const PublicCatalogPage: React.FC = () => {
             <p className="text-xs mt-1">Prueba con otra palabra en el buscador</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3.5">
             {filteredProducts.map((p) => {
               const qtyInCart = getCartQuantity(p.id);
               const stockAvailable = Number(p.stock);
@@ -380,11 +380,11 @@ export const PublicCatalogPage: React.FC = () => {
               return (
                 <div
                   key={p.id}
-                  className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-3.5 flex flex-col gap-3 hover:border-slate-700 transition-all shadow-md group"
+                  className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-2 sm:p-3 flex flex-col justify-between gap-2 hover:border-slate-700 transition-all shadow-md group overflow-hidden min-w-0"
                 >
-                  <div className="flex items-center gap-3.5">
+                  <div className="min-w-0">
                     {/* FOTO */}
-                    <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700/80 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                    <div className="w-full aspect-square rounded-xl bg-slate-800 border border-slate-700/80 overflow-hidden flex items-center justify-center relative mb-2">
                       {p.image_url ? (
                         <img
                           src={p.image_url}
@@ -394,86 +394,82 @@ export const PublicCatalogPage: React.FC = () => {
                       ) : (
                         <Package className="w-7 h-7 text-slate-600" />
                       )}
+
+                      {/* Badge de stock sobre la imagen */}
+                      <span
+                        className={`absolute bottom-1 right-1 text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-md backdrop-blur-sm ${
+                          !isOutOfStock
+                            ? 'bg-slate-950/75 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-rose-950/85 text-rose-300 border border-rose-500/30'
+                        }`}
+                      >
+                        {!isOutOfStock ? `${p.stock} disp.` : 'Agotado'}
+                      </span>
+
+                      {/* Cantidad en carrito */}
+                      {qtyInCart > 0 && (
+                        <span className="absolute top-1 left-1 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-md shadow flex items-center gap-0.5">
+                          <ShoppingCart className="w-2.5 h-2.5" />
+                          <span>{qtyInCart}</span>
+                        </span>
+                      )}
                     </div>
 
                     {/* INFO */}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm text-white truncate leading-snug">
-                        {p.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        {p.sku && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
-                            {p.sku}
-                          </span>
-                        )}
-                        {p.category?.name && (
-                          <span className="text-[10px] font-bold text-slate-400 truncate">
-                            {p.category.name}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-baseline justify-between mt-2">
-                        <span className="text-base font-black text-emerald-400 tracking-tight">
-                          {formatMoney(p.sale_price)}
-                        </span>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            !isOutOfStock
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                          }`}
-                        >
-                          {!isOutOfStock ? `${p.stock} disponible` : 'Agotado'}
-                        </span>
-                      </div>
+                    <h3
+                      className="font-bold text-[11px] sm:text-xs text-white line-clamp-2 leading-tight break-words"
+                      title={p.name}
+                    >
+                      {p.name}
+                    </h3>
+                    <div className="mt-1">
+                      <span className="text-xs sm:text-sm font-black text-emerald-400 tracking-tight block truncate">
+                        {formatMoney(p.sale_price)}
+                      </span>
                     </div>
                   </div>
 
                   {/* CONTROLES DE CARRITO */}
-                  <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                  <div className="pt-1.5 border-t border-slate-800/80 min-w-0">
                     {qtyInCart === 0 ? (
                       <button
                         type="button"
                         disabled={isOutOfStock}
                         onClick={() => addToCart(p)}
-                        className={`w-full py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
+                        className={`w-full py-1.5 px-1.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-tight flex items-center justify-center gap-1 transition-all overflow-hidden ${
                           isOutOfStock
                             ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                             : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer'
                         }`}
                       >
-                        <ShoppingCart className="w-3.5 h-3.5" />
-                        <span>{isOutOfStock ? 'Sin stock' : 'Agregar al carrito'}</span>
+                        <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{isOutOfStock ? 'Agotado' : 'Agregar'}</span>
                       </button>
                     ) : (
-                      <div className="w-full flex items-center justify-between gap-2 bg-slate-800/90 rounded-xl p-1 border border-emerald-500/30">
+                      <div className="w-full flex items-center justify-between gap-1 bg-slate-800/90 rounded-xl p-0.5 sm:p-1 border border-emerald-500/30">
                         <button
                           type="button"
                           onClick={() => updateCartQty(p.id, -1)}
-                          className="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-slate-700 hover:bg-slate-600 text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95 flex-shrink-0"
                           title="Quitar uno"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-3 h-3" />
                         </button>
-                        <div className="text-center">
-                          <span className="text-xs font-black text-white">{qtyInCart}</span>
-                          <span className="text-[10px] text-emerald-400 font-bold ml-1.5">
-                            ({formatMoney(Number(p.sale_price) * qtyInCart)})
-                          </span>
-                        </div>
+                        <span className="text-[11px] sm:text-xs font-black text-white truncate px-0.5">
+                          {qtyInCart}
+                        </span>
                         <button
                           type="button"
                           disabled={qtyInCart >= stockAvailable}
                           onClick={() => updateCartQty(p.id, 1)}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${
                             qtyInCart >= stockAvailable
                               ? 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
                               : 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95'
                           }`}
                           title="Agregar uno más"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
                     )}
