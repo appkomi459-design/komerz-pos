@@ -25,6 +25,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { recordTrashItem } from '@/utils/trash';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
@@ -306,6 +307,15 @@ export const CustomerSalesPage: React.FC = () => {
       // 3. Eliminar la venta principal
       const { error } = await supabase.from('sales').delete().eq('id', saleToDelete.id);
       if (error) throw error;
+
+      await recordTrashItem({
+        businessId: activeBusiness.id,
+        itemType: 'sale',
+        itemId: saleToDelete.id,
+        title: `Venta #${saleToDelete.invoice_number || saleToDelete.id.slice(0, 8)}`,
+        subtitle: `Total: ${saleToDelete.total} · Cliente: ${saleToDelete.customer_name || 'Cliente'}`,
+        payload: saleToDelete as unknown as Record<string, any>,
+      });
 
       // 4. Registrar en auditoría
       await supabase.from('audit_logs').insert({

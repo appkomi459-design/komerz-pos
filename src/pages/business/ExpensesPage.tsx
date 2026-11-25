@@ -24,6 +24,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { recordTrashItem } from '@/utils/trash';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/Card';
@@ -185,6 +186,18 @@ export const ExpensesPage: React.FC = () => {
         .eq('id', expenseToDelete.id);
 
       if (delErr) throw delErr;
+
+      if (activeBusiness) {
+        await recordTrashItem({
+          businessId: activeBusiness.id,
+          itemType: 'expense',
+          itemId: expenseToDelete.id,
+          title: expenseToDelete.description || expenseToDelete.category || 'Gasto',
+          subtitle: `Monto: ${expenseToDelete.amount} · Categoría: ${expenseToDelete.category}`,
+          payload: expenseToDelete as unknown as Record<string, any>,
+        });
+      }
+
       setExpenseToDelete(null);
       await fetchExpenses();
     } catch (err: any) {

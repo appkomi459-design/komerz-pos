@@ -23,6 +23,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { recordTrashItem } from '@/utils/trash';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -186,6 +187,17 @@ export const CustomersPage: React.FC = () => {
         .eq('id', customerToDelete.id);
 
       if (error) throw error;
+
+      if (activeBusiness) {
+        await recordTrashItem({
+          businessId: activeBusiness.id,
+          itemType: 'customer',
+          itemId: customerToDelete.id,
+          title: customerToDelete.name,
+          subtitle: customerToDelete.phone || customerToDelete.email || 'Cliente',
+          payload: customerToDelete as unknown as Record<string, any>,
+        });
+      }
 
       setCustomerToDelete(null);
       await fetchCustomers();

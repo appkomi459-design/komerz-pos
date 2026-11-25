@@ -22,6 +22,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { recordTrashItem } from '@/utils/trash';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -313,6 +314,17 @@ export const ProductsPage: React.FC = () => {
           .eq('id', p.id);
 
         if (softErr) throw softErr;
+      }
+
+      if (activeBusiness) {
+        await recordTrashItem({
+          businessId: activeBusiness.id,
+          itemType: 'product',
+          itemId: p.id,
+          title: p.name,
+          subtitle: `Precio: ${p.sale_price} · Stock: ${p.stock}${p.sku ? ` · SKU: ${p.sku}` : ''}`,
+          payload: p as unknown as Record<string, any>,
+        });
       }
 
       await fetchProductsAndCategories();

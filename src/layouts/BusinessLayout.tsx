@@ -31,6 +31,7 @@ import {
   ChevronsRight,
   MapPin,
   QrCode,
+  Trash2,
   MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,6 +64,7 @@ export const BusinessLayout: React.FC = () => {
     sales_clients: false,
     purchases_catalog: false,
     reports_team: false,
+    settings_group: false,
   });
 
   const toggleSection = (id: string) => {
@@ -132,11 +134,19 @@ export const BusinessLayout: React.FC = () => {
         ],
       },
       {
+        id: 'settings_group',
+        title: t('nav.settings_section', 'CONFIGURACIÓN'),
+        collapsible: true,
+        items: [
+          { name: t('nav.settings', 'Configuración'), path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
+          { name: t('nav.trash', 'Papelera'), path: '/app/trash', icon: Trash2, activeGradient: 'bg-gradient-to-r from-rose-600 to-orange-500 shadow-rose-600/30 text-white' },
+        ],
+      },
+      {
         id: 'general',
         title: '',
         collapsible: false,
         items: [
-          { name: t('nav.settings', 'Configuración'), path: '/app/settings', icon: Settings, activeGradient: 'bg-gradient-to-r from-[#4b6cb7] to-[#182848] shadow-slate-600/30 text-white' },
           { name: t('nav.subscription', 'Suscripción'), path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
           { name: t('nav.suggestions', 'Sugerencias'), path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
         ],

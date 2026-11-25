@@ -24,6 +24,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { recordTrashItem } from '@/utils/trash';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -302,6 +303,17 @@ export const BranchesPage: React.FC = () => {
         .eq('id', deletingBranch.id);
 
       if (error) throw error;
+
+      if (activeBusiness) {
+        await recordTrashItem({
+          businessId: activeBusiness.id,
+          itemType: 'branch',
+          itemId: deletingBranch.id,
+          title: deletingBranch.name,
+          subtitle: deletingBranch.address || deletingBranch.phone || 'Sucursal',
+          payload: deletingBranch as unknown as Record<string, any>,
+        });
+      }
 
       setDeletingBranch(null);
       await fetchData();

@@ -22,6 +22,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { recordTrashItem } from '@/utils/trash';
 import { useBusiness } from '@/contexts/BusinessContext';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -165,6 +166,17 @@ export const SuppliersPage: React.FC = () => {
         .eq('id', supplierToDelete.id);
 
       if (error) throw error;
+
+      if (activeBusiness) {
+        await recordTrashItem({
+          businessId: activeBusiness.id,
+          itemType: 'supplier',
+          itemId: supplierToDelete.id,
+          title: supplierToDelete.name,
+          subtitle: supplierToDelete.phone || supplierToDelete.email || 'Proveedor',
+          payload: supplierToDelete as unknown as Record<string, any>,
+        });
+      }
 
       setSupplierToDelete(null);
       await fetchSuppliers();

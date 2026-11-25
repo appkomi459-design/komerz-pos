@@ -41,6 +41,7 @@ import { SettingsPage }          from '@/pages/business/SettingsPage';
 import { SubscriptionPage }      from '@/pages/business/SubscriptionPage';
 import { SuggestionsPage }       from '@/pages/business/SuggestionsPage';
 import { CatalogQRPage }         from '@/pages/business/CatalogQRPage';
+import { TrashPage }             from '@/pages/business/TrashPage';
 
 // Super Admin Pages
 import { SuperAdminOverviewPage }      from '@/pages/superadmin/SuperAdminOverviewPage';
@@ -192,6 +193,7 @@ export const AppRoutes: React.FC = () => (
       <Route path="seller-reports" element={<SellerReportsPage />} />
       <Route path="branches"     element={<BranchesPage />} />
       <Route path="settings"     element={<SettingsPage />} />
+      <Route path="trash"        element={<TrashPage />} />
       <Route path="subscription" element={<SubscriptionPage />} />
       <Route path="suggestions"  element={<SuggestionsPage />} />
     </Route>
