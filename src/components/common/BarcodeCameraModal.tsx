@@ -1,18 +1,16 @@
 /**
  * BarcodeCameraModal
  * ------------------
- * Modal que abre la cámara del dispositivo (ideal para móvil) y escanea
- * códigos de barras / QR usando @zxing/browser.
- *
- * API compatible con @zxing/browser 0.1.x – 0.4.x:
- * - Usa BrowserMultiFormatReader (extiende BrowserCodeReader)
- * - Para detener: cancela el stream de la MediaStream directamente
+ * Modal híbrido de escaneo ultrarrápido para Android, iOS y Desktop:
+ * 1. Android / Chrome: Usa la API nativa BarcodeDetector (aceleración por hardware, ~20ms).
+ * 2. iOS Safari / Fallback: Usa @zxing/browser optimizado solo a formatos comerciales + HD + TRY_HARDER.
+ * 3. Emite un beep corto + vibración háptica al detectar el código.
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { NotFoundException } from '@zxing/library';
+import { BarcodeFormat, DecodeHintType, NotFoundException } from '@zxing/library';
 import { X, Camera, RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface BarcodeCameraModalProps {
@@ -20,6 +18,50 @@ interface BarcodeCameraModalProps {
   onClose: () => void;
   onScan: (code: string) => void;
   title?: string;
+}
+
+const RETAIL_NATIVE_FORMATS = [
+  'ean_13',
+  'ean_8',
+  'upc_a',
+  'upc_e',
+  'code_128',
+  'code_39',
+  'itf',
+  'qr_code',
+];
+
+const RETAIL_ZXING_FORMATS = [
+  BarcodeFormat.EAN_13,
+  BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A,
+  BarcodeFormat.UPC_E,
+  BarcodeFormat.CODE_128,
+  BarcodeFormat.CODE_39,
+  BarcodeFormat.ITF,
+  BarcodeFormat.QR_CODE,
+];
+
+function playScanFeedback() {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(70);
+    }
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1320, ctx.currentTime);
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.09);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.09);
+    setTimeout(() => ctx.close().catch(() => {}), 200);
+  } catch (_) {}
 }
 
 export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
@@ -31,6 +73,7 @@ export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const timerRef = useRef<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
@@ -38,12 +81,31 @@ export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
   const hasScanned = useRef(false);
 
   const stopScanner = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     try { controlsRef.current?.stop(); } catch (_) {}
     try { streamRef.current?.getTracks().forEach((t) => t.stop()); } catch (_) {}
+    if (videoRef.current) {
+      try { videoRef.current.srcObject = null; } catch (_) {}
+    }
     controlsRef.current = null;
     streamRef.current = null;
     setScanning(false);
   }, []);
+
+  const handleSuccess = useCallback(
+    (code: string) => {
+      if (hasScanned.current) return;
+      hasScanned.current = true;
+      playScanFeedback();
+      stopScanner();
+      onScan(code);
+      onClose();
+    },
+    [stopScanner, onScan, onClose]
+  );
 
   const startScanner = useCallback(async () => {
     if (!videoRef.current) return;
@@ -52,60 +114,119 @@ export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
     setScanning(false);
 
     try {
-      // Listar cámaras disponibles
-      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-      setCameras(devices);
+      // 1. Abrir cámara HD con preferencia trasera y enfoque continuo
+      const videoConstraints: MediaTrackConstraints = selectedCamera
+        ? {
+            deviceId: { exact: selectedCamera },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }
+        : {
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          };
 
-      // Preferir cámara trasera en móvil
-      let deviceId = selectedCamera;
-      if (!deviceId) {
-        const back = devices.find(
-          (d) =>
-            d.label.toLowerCase().includes('back') ||
-            d.label.toLowerCase().includes('rear') ||
-            d.label.toLowerCase().includes('trasera') ||
-            d.label.toLowerCase().includes('environment')
-        );
-        deviceId = back?.deviceId ?? devices[0]?.deviceId;
-        setSelectedCamera(deviceId);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints,
+        audio: false,
+      });
+      streamRef.current = stream;
+
+      // Intentar activar autofocus continuo si el dispositivo lo soporta (Android)
+      const track = stream.getVideoTracks()[0];
+      if (track && typeof track.applyConstraints === 'function') {
+        try {
+          await track.applyConstraints({
+            advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet],
+          });
+        } catch (_) {}
       }
 
-      const reader = new BrowserMultiFormatReader();
-
-      const controls = await reader.decodeFromVideoDevice(
-        deviceId,
-        videoRef.current,
-        (result, err) => {
-          if (result && !hasScanned.current) {
-            hasScanned.current = true;
-            const code = result.getText();
-            stopScanner();
-            onScan(code);
-            onClose();
-          }
-          if (err && !(err instanceof NotFoundException)) {
-            // NotFoundException es normal (frame sin código) → ignorar
-          }
+      // Listar cámaras disponibles para el botón "Cambiar"
+      try {
+        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+        setCameras(devices);
+        if (!selectedCamera && track) {
+          const settings = track.getSettings();
+          if (settings.deviceId) setSelectedCamera(settings.deviceId);
         }
-      );
+      } catch (_) {}
+
+      const videoEl = videoRef.current;
+      videoEl.srcObject = stream;
+      await videoEl.play();
+      setScanning(true);
+
+      // 2. Intentar motor nativo BarcodeDetector (Android Chrome / Edge)
+      const NativeBarcodeDetector = (window as unknown as {
+        BarcodeDetector?: {
+          new (opts?: { formats?: string[] }): {
+            detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue?: string }>>;
+          };
+          getSupportedFormats?: () => Promise<string[]>;
+        };
+      }).BarcodeDetector;
+
+      if (NativeBarcodeDetector) {
+        try {
+          let formatsToUse = RETAIL_NATIVE_FORMATS;
+          if (typeof NativeBarcodeDetector.getSupportedFormats === 'function') {
+            const supported = await NativeBarcodeDetector.getSupportedFormats();
+            const filtered = RETAIL_NATIVE_FORMATS.filter((f) => supported.includes(f));
+            if (filtered.length > 0) formatsToUse = filtered;
+          }
+          const detector = new NativeBarcodeDetector({ formats: formatsToUse });
+
+          const detectLoop = async () => {
+            if (hasScanned.current || !videoRef.current || !streamRef.current) return;
+            try {
+              if (videoRef.current.readyState >= 2) {
+                const barcodes = await detector.detect(videoRef.current);
+                if (barcodes.length > 0 && barcodes[0].rawValue) {
+                  handleSuccess(barcodes[0].rawValue);
+                  return;
+                }
+              }
+            } catch (_) {}
+            timerRef.current = window.setTimeout(detectLoop, 60);
+          };
+
+          detectLoop();
+          return;
+        } catch (_) {
+          // Si falla la inicialización nativa, continúa con ZXing
+        }
+      }
+
+      // 3. Fallback optimizado con ZXing (iOS Safari / Firefox / Desktop)
+      const hints = new Map<DecodeHintType, unknown>();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, RETAIL_ZXING_FORMATS);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+
+      const reader = new BrowserMultiFormatReader(hints);
+      const controls = await reader.decodeFromStream(stream, videoEl, (result, err) => {
+        if (result && !hasScanned.current) {
+          handleSuccess(result.getText());
+        }
+        if (err && !(err instanceof NotFoundException)) {
+          // Frame sin código → ignorar
+        }
+      });
 
       controlsRef.current = controls;
-      // Capturar el stream del video para poder detenerlo
-      if (videoRef.current?.srcObject instanceof MediaStream) {
-        streamRef.current = videoRef.current.srcObject;
-      }
-      setScanning(true);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setScanning(false);
-      if (e?.name === 'NotAllowedError') {
+      const errObj = e as { name?: string; message?: string };
+      if (errObj?.name === 'NotAllowedError') {
         setError('Permiso de cámara denegado. Habilitá el acceso a la cámara en tu navegador.');
-      } else if (e?.name === 'NotFoundError') {
+      } else if (errObj?.name === 'NotFoundError') {
         setError('No se encontró ninguna cámara en este dispositivo.');
       } else {
-        setError(`Error al iniciar la cámara: ${e?.message || 'desconocido'}`);
+        setError(`Error al iniciar la cámara: ${errObj?.message || 'desconocido'}`);
       }
     }
-  }, [selectedCamera, stopScanner, onScan, onClose]);
+  }, [selectedCamera, handleSuccess]);
 
   // Iniciar al abrir, detener al cerrar
   useEffect(() => {
@@ -125,7 +246,7 @@ export const BarcodeCameraModal: React.FC<BarcodeCameraModalProps> = ({
       const idx = cameras.findIndex((c) => c.deviceId === selectedCamera);
       const next = cameras[(idx + 1) % cameras.length];
       setSelectedCamera(next.deviceId);
-      setTimeout(() => startScanner(), 400);
+      setTimeout(() => startScanner(), 300);
     }
   };
 

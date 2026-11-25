@@ -16,7 +16,7 @@
 
 import { useEffect, useRef } from 'react';
 
-const SCAN_THRESHOLD_MS = 60; // tiempo máximo entre teclas de pistola
+const SCAN_THRESHOLD_MS = 85; // tiempo máximo entre teclas de pistola (USB/Bluetooth)
 const MIN_BARCODE_LENGTH = 3;  // mínimo de caracteres para considerarlo escaneo
 
 export function useBarcodeScanner(
@@ -43,9 +43,10 @@ export function useBarcodeScanner(
       const now = Date.now();
       const timeDiff = now - lastKeyTimeRef.current;
 
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' || (e.key === 'Tab' && bufferRef.current.length >= MIN_BARCODE_LENGTH)) {
         const code = bufferRef.current.trim();
         if (code.length >= MIN_BARCODE_LENGTH) {
+          if (e.key === 'Tab') e.preventDefault();
           onScanRef.current(code);
         }
         bufferRef.current = '';
