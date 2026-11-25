@@ -36,6 +36,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 import { BarcodeCameraModal } from '@/components/common/BarcodeCameraModal';
+import { ScanResultCard, type ScanResultData } from '@/components/common/ScanResultCard';
+import { lookupBarcodeOnline } from '@/utils/barcodeLookup';
 
 export const ProductsPage: React.FC = () => {
   const { activeBusiness, settings, currentRole } = useBusiness();
@@ -348,43 +350,76 @@ export const ProductsPage: React.FC = () => {
       (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()))
   );
 
-  // ---- BARCODE SCANNER (pistola USB / Bluetooth) ----
-  const [scanToast, setScanToast] = useState<{ msg: string; ok: boolean } | null>(null);
-  const scanToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // ---- BARCODE SCANNER (pistola USB / Bluetooth + cámara) ----
+  const [scanResult, setScanResult] = useState<ScanResultData | null>(null);
+  const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  const showProductScanToast = (msg: string, ok: boolean) => {
-    if (scanToastTimerRef.current) clearTimeout(scanToastTimerRef.current);
-    setScanToast({ msg, ok });
-    scanToastTimerRef.current = setTimeout(() => setScanToast(null), 2500);
+  const showProductScanResult = (data: ScanResultData) => {
+    if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
+    setScanResult(data);
+    scanTimerRef.current = setTimeout(() => setScanResult(null), 4000);
   };
 
   // Desactivar cuando el modal de edición/creación esté abierto
   const productScannerActive = !isModalOpen && !editingProduct && !isCameraOpen;
 
-  const handleProductBarcodeScan = (code: string) => {
-    // 1. Buscar producto por barcode o SKU exacto
+  const handleProductBarcodeScan = async (code: string) => {
+    const clean = code.trim();
+    // 1. Buscar producto por barcode o SKU exacto en el inventario local
     const found = products.find(
       (p) =>
-        (p.barcode && p.barcode.trim() === code.trim()) ||
-        (p.sku && p.sku.trim() === code.trim())
+        (p.barcode && p.barcode.trim() === clean) ||
+        (p.sku && p.sku.trim() === clean)
     );
 
     if (found) {
-      // Producto encontrado: aplicar como filtro de búsqueda para resaltarlo
-      setSearch(code.trim());
-      showProductScanToast(`✓ "${found.name}" encontrado`, true);
-    } else {
-      // Producto NO encontrado: abrir modal de nuevo producto con barcode pre-relleno
-      setBarcode(code.trim());
-      setName('');
-      setSku(`PROD-${Math.floor(1000 + Math.random() * 9000)}`);
-      setIsModalOpen(true);
-      showProductScanToast(`⚠ Código "${code}" nuevo — completá el producto`, false);
+      // Producto encontrado: filtrar tabla y mostrar tarjeta con imagen/nombre/código
+      setSearch(clean);
+      showProductScanResult({
+        code: found.barcode || found.sku || clean,
+        name: found.name,
+        imageUrl: found.image_url,
+        price: found.sale_price,
+        stock: found.stock,
+        currency,
+        status: 'found',
+        message: 'Encontrado en Stock',
+      });
+      return;
+    }
+
+    // 2. Producto NO encontrado en inventario: abrir modal con código pre-cargado
+    setBarcode(clean);
+    setName('');
+    setProductImage(null);
+    setSku(`PROD-${Math.floor(1000 + Math.random() * 9000)}`);
+    setIsModalOpen(true);
+
+    showProductScanResult({
+      code: clean,
+      status: 'new',
+      message: 'Código nuevo — completá los datos',
+    });
+
+    // 3. Intentar buscar nombre e imagen en catálogo público (OpenFoodFacts)
+    const online = await lookupBarcodeOnline(clean);
+    if (online) {
+      if (online.name) setName((prev) => prev || online.name || '');
+      if (online.imageUrl) setProductImage((prev) => prev || online.imageUrl || null);
+      showProductScanResult({
+        code: clean,
+        name: online.name,
+        imageUrl: online.imageUrl,
+        status: 'online_match',
+        message: 'Datos sugeridos automáticamente',
+      });
     }
   };
 
-  useBarcodeScanner(handleProductBarcodeScan, productScannerActive);  // Productos con Stock Bajo o Crítico
+  useBarcodeScanner(handleProductBarcodeScan, productScannerActive);
+
+  // Productos con Stock Bajo o Crítico
   const lowStockProducts = products.filter(
     (p) => p.is_active && Number(p.stock) <= Number(p.min_stock)
   );
@@ -403,18 +438,8 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* ===== TOAST ESCÁNER DE BARRAS ===== */}
-      {scanToast && (
-        <div
-          className={`fixed top-5 left-1/2 -translate-x-1/2 z-[9999] px-5 py-3 rounded-2xl shadow-xl text-white text-sm font-black flex items-center gap-2 ${
-            scanToast.ok
-              ? 'bg-emerald-600 shadow-emerald-600/40'
-              : 'bg-amber-500 shadow-amber-500/40'
-          }`}
-        >
-          <span>{scanToast.msg}</span>
-        </div>
-      )}
+      {/* ===== TARJETA RESULTADO ESCÁNER DE BARRAS ===== */}
+      <ScanResultCard result={scanResult} onClose={() => setScanResult(null)} />
 
       {/* ======================================================== */}
       {/* CABECERA DE LA PÁGINA Y BOTONES DE ACCIÓN                  */}
@@ -1283,32 +1308,43 @@ export const ProductsPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* COLUMNA DERECHA: SKU, NOMBRE, DESCRIPCIÓN Y STOCK */}
+              {/* COLUMNA DERECHA: CÓDIGO DE BARRAS, SKU, NOMBRE, DESCRIPCIÓN Y STOCK */}
               <div className="space-y-3.5">
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-black text-slate-800 dark:text-zinc-200">
-                      Código de Barra / SKU (Opcional)
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black text-slate-800 dark:text-zinc-200 mb-1.5">
+                      Código de Barras <span className="font-normal text-[10px] text-slate-400">(Escaneado)</span>
                     </label>
-                    <button
-                      type="button"
-                      onClick={generateSkuCode}
-                      className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Dices className="w-3.5 h-3.5" />
-                      <span>Generar código</span>
-                    </button>
+                    <input
+                      type="text"
+                      value={barcode}
+                      onChange={(e) => setBarcode(e.target.value)}
+                      placeholder="Ej: 7771214001109"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={sku}
-                    onChange={(e) => setSku(e.target.value)}
-                    placeholder="PROD-3400"
-                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
-                  />
-                  <p className="text-[10px] font-bold text-slate-400 mt-1">
-                    Si no tienes un código de barras, se asignará uno automáticamente.
-                  </p>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-black text-slate-800 dark:text-zinc-200">
+                        SKU Interno
+                      </label>
+                      <button
+                        type="button"
+                        onClick={generateSkuCode}
+                        className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Dices className="w-3.5 h-3.5" />
+                        <span>Generar</span>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={sku}
+                      onChange={(e) => setSku(e.target.value)}
+                      placeholder="PROD-3400"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
+                    />
+                  </div>
                 </div>
 
                 <div>
