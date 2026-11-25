@@ -66,45 +66,21 @@ export const PublicCatalogPage: React.FC = () => {
 
       try {
         setLoading(true);
+        setError(null);
 
-        // Buscar negocio por ID o por slug
-        let query = supabase.from('businesses').select('*');
-        // Chequear si es UUID
-        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(businessId);
-        if (isUuid) {
-          query = query.eq('id', businessId);
-        } else {
-          query = query.eq('slug', businessId);
-        }
+        const { data: catalogData, error: rpcErr } = await supabase.rpc('get_public_catalog', {
+          p_identifier: businessId,
+        });
 
-        const { data: bizData, error: bizErr } = await query.maybeSingle();
-
-        if (bizErr || !bizData) {
+        if (rpcErr || !catalogData || !catalogData.business) {
           setError('Negocio no encontrado');
           setLoading(false);
           return;
         }
 
-        setBusiness(bizData as BusinessData);
-
-        // Cargar productos activos y categorías públicas
-        const [prodsRes, catsRes] = await Promise.all([
-          supabase
-            .from('products')
-            .select('*, category:categories(name)')
-            .eq('business_id', bizData.id)
-            .eq('is_active', true)
-            .order('name', { ascending: true }),
-          supabase
-            .from('categories')
-            .select('id, name')
-            .eq('business_id', bizData.id)
-            .eq('is_active', true)
-            .order('name', { ascending: true }),
-        ]);
-
-        if (prodsRes.data) setProducts(prodsRes.data as ProductItem[]);
-        if (catsRes.data) setCategories(catsRes.data as CategoryItem[]);
+        setBusiness(catalogData.business as BusinessData);
+        setProducts((catalogData.products || []) as ProductItem[]);
+        setCategories((catalogData.categories || []) as CategoryItem[]);
       } catch (err: any) {
         console.error('Error cargando catálogo público:', err);
         setError('Ocurrió un error al cargar la información del negocio.');
