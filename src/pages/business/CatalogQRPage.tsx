@@ -14,29 +14,125 @@ import {
   Globe,
   MessageCircle,
   Save,
+  ChevronDown,
+  Search,
+  Check,
 } from 'lucide-react';
 import { useBusiness } from '@/contexts/BusinessContext';
+import { COUNTRIES } from '@/utils/formatters';
+
+const DIAL_CODES: Record<string, string> = {
+  BO: '+591',
+  BR: '+55',
+  PY: '+595',
+  UY: '+598',
+  PE: '+51',
+  EC: '+593',
+  PA: '+507',
+  SV: '+503',
+  CO: '+57',
+  MX: '+52',
+  CL: '+56',
+  AR: '+54',
+  DO: '+1',
+  GT: '+502',
+  CR: '+506',
+  HN: '+504',
+  NI: '+505',
+  US: '+1',
+  ES: '+34',
+  PT: '+351',
+  FR: '+33',
+  IT: '+39',
+  DE: '+49',
+  GB: '+44',
+  CH: '+41',
+  NL: '+31',
+  BE: '+32',
+  IE: '+353',
+  AT: '+43',
+  SE: '+46',
+};
+
+const PHONE_COUNTRIES = COUNTRIES.filter((c) => DIAL_CODES[c.code]).map((c) => ({
+  code: c.code,
+  name: c.name,
+  dial: DIAL_CODES[c.code],
+}));
 
 export const CatalogQRPage: React.FC = () => {
   const { activeBusiness, updateActiveBusiness } = useBusiness();
   const [copied, setCopied] = useState(false);
-  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [selectedCountryCode, setSelectedCountryCode] = useState('BO');
+  const [localPhone, setLocalPhone] = useState('');
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
   const [savingPhone, setSavingPhone] = useState(false);
   const [phoneStatus, setPhoneStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   const qrRef = useRef<SVGSVGElement>(null);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setWhatsappPhone(activeBusiness?.phone || '');
+    const handleClickOutside = (e: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(e.target as Node)) {
+        setIsCountryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const raw = (activeBusiness?.phone || '').trim();
+    const defaultCode =
+      activeBusiness?.country && DIAL_CODES[activeBusiness.country]
+        ? activeBusiness.country
+        : 'BO';
+
+    if (!raw) {
+      setSelectedCountryCode(defaultCode);
+      setLocalPhone('');
+      setPhoneStatus('idle');
+      return;
+    }
+
+    const normalized = raw.startsWith('+') ? raw : `+${raw}`;
+    // Buscar el prefijo más largo que coincida
+    const sortedByDialLen = [...PHONE_COUNTRIES].sort((a, b) => b.dial.length - a.dial.length);
+    const matched =
+      sortedByDialLen.find(
+        (c) => c.code === defaultCode && normalized.startsWith(c.dial)
+      ) || sortedByDialLen.find((c) => normalized.startsWith(c.dial));
+
+    if (matched) {
+      setSelectedCountryCode(matched.code);
+      setLocalPhone(normalized.slice(matched.dial.length).trim());
+    } else {
+      setSelectedCountryCode(defaultCode);
+      setLocalPhone(raw.replace(/^\+/, ''));
+    }
     setPhoneStatus('idle');
-  }, [activeBusiness?.id, activeBusiness?.phone]);
+  }, [activeBusiness?.id, activeBusiness?.phone, activeBusiness?.country]);
+
+  const selectedPhoneCountry =
+    PHONE_COUNTRIES.find((c) => c.code === selectedCountryCode) || PHONE_COUNTRIES[0];
+
+  const filteredPhoneCountries = PHONE_COUNTRIES.filter(
+    (c) =>
+      c.name.toLowerCase().includes(countrySearch.toLowerCase()) ||
+      c.dial.includes(countrySearch) ||
+      c.code.toLowerCase().includes(countrySearch.toLowerCase())
+  );
 
   const handleSavePhone = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeBusiness) return;
     setSavingPhone(true);
     setPhoneStatus('idle');
+    const digits = localPhone.replace(/\D/g, '');
+    const fullPhone = digits ? `${selectedPhoneCountry.dial}${digits}` : '';
     const { error } = await updateActiveBusiness({
-      phone: whatsappPhone.trim() || (null as unknown as string),
+      phone: fullPhone || (null as unknown as string),
     });
     setSavingPhone(false);
     if (error) {
@@ -273,17 +369,104 @@ export const CatalogQRPage: React.FC = () => {
             </div>
 
             <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
-              Ingresa el número donde recibirás los pedidos del carrito (incluye código de país, ej: <span className="font-mono font-bold">+591 71234567</span>).
+              Elige tu país e ingresa tu número de WhatsApp para recibir los pedidos del carrito.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="tel"
-                value={whatsappPhone}
-                onChange={(e) => setWhatsappPhone(e.target.value)}
-                placeholder="Ej: +591 71234567"
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm font-bold text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
-              />
+              <div className="flex flex-1 gap-2 relative" ref={countryDropdownRef}>
+                {/* Selector de País con Bandera */}
+                <button
+                  type="button"
+                  onClick={() => setIsCountryOpen((o) => !o)}
+                  className="px-3 py-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:border-emerald-500 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-zinc-100 transition-colors cursor-pointer shrink-0"
+                  title={selectedPhoneCountry.name}
+                >
+                  <img
+                    src={`https://flagcdn.com/w40/${selectedPhoneCountry.code.toLowerCase()}.png`}
+                    alt={selectedPhoneCountry.name}
+                    className="w-5 h-3.5 object-cover rounded shadow-xs border border-black/10 shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
+                  />
+                  <span className="font-mono text-xs font-black">{selectedPhoneCountry.dial}</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+
+                {/* Dropdown de Países */}
+                {isCountryOpen && (
+                  <div className="absolute left-0 top-full mt-1.5 w-72 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                    <div className="p-2 border-b border-slate-100 dark:border-zinc-800">
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          type="text"
+                          value={countrySearch}
+                          onChange={(e) => setCountrySearch(e.target.value)}
+                          placeholder="Buscar país o código (+591)..."
+                          autoFocus
+                          className="w-full pl-8 pr-3 py-1.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-56 overflow-y-auto p-1">
+                      {filteredPhoneCountries.length === 0 ? (
+                        <p className="text-xs text-slate-400 text-center py-4 font-medium">
+                          No se encontró el país
+                        </p>
+                      ) : (
+                        filteredPhoneCountries.map((c) => {
+                          const isSelected = c.code === selectedPhoneCountry.code;
+                          return (
+                            <button
+                              key={c.code}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCountryCode(c.code);
+                                setIsCountryOpen(false);
+                                setCountrySearch('');
+                              }}
+                              className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between gap-2 text-left text-xs transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-black'
+                                  : 'hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 font-semibold'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <img
+                                  src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
+                                  alt={c.name}
+                                  className="w-5 h-3.5 object-cover rounded shadow-xs border border-black/10 shrink-0"
+                                  onError={(e) => {
+                                    (e.target as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                                <span className="truncate">{c.name}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="font-mono text-[11px] text-slate-500 dark:text-zinc-400">
+                                  {c.dial}
+                                </span>
+                                {isSelected && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Input Número Local */}
+                <input
+                  type="tel"
+                  value={localPhone}
+                  onChange={(e) => setLocalPhone(e.target.value)}
+                  placeholder="Ej: 71234567"
+                  className="flex-1 min-w-0 px-3.5 py-2.5 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-sm font-bold text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
               <button
                 type="submit"
                 disabled={savingPhone}
