@@ -42,6 +42,7 @@ import { ClothingVariantModal } from '@/components/pos/ClothingVariantModal';
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 import { BarcodeCameraModal } from '@/components/common/BarcodeCameraModal';
 import { ScanResultCard, type ScanResultData } from '@/components/common/ScanResultCard';
+import { lookupBarcodeOnline } from '@/utils/barcodeLookup';
 
 interface CartItem {
   product: Product;
@@ -154,6 +155,7 @@ export const PosPage: React.FC = () => {
   const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
   const [newProdName, setNewProdName] = useState('');
   const [newProdDescription, setNewProdDescription] = useState('');
+  const [newProdBarcode, setNewProdBarcode] = useState('');
   const [newProdSku, setNewProdSku] = useState('PROD-3400');
   const [newProdCurrency, setNewProdCurrency] = useState<'BOB' | 'USD'>('BOB');
   const [newProdCost, setNewProdCost] = useState('');
@@ -579,6 +581,7 @@ export const PosPage: React.FC = () => {
           cost_price: parseFloat(newProdCost) || 0,
           stock: parseFloat(newProdStock) || 0,
           sku: generatedSku,
+          barcode: newProdBarcode.trim() || null,
           min_stock: parseFloat(newProdMinStock) || 5,
           image_url: newProdImage || null,
           is_active: true,
@@ -591,6 +594,7 @@ export const PosPage: React.FC = () => {
       setIsNewProductModalOpen(false);
       setNewProdName('');
       setNewProdDescription('');
+      setNewProdBarcode('');
       setNewProdPrice('');
       setNewProdCost('');
       setNewProdStock('0');
@@ -647,7 +651,8 @@ export const PosPage: React.FC = () => {
   // ---- BARCODE SCANNER (pistola USB / Bluetooth + cámara) ----
   const [scanResult, setScanResult] = useState<ScanResultData | null>(null);
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraTarget, setCameraTarget] = useState<'pos' | 'create' | null>(null);
+  const isCameraOpen = cameraTarget !== null;
 
   const showScanResult = (data: ScanResultData) => {
     if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
@@ -687,6 +692,37 @@ export const PosPage: React.FC = () => {
         code: clean,
         status: 'not_found',
         message: 'No encontrado en inventario',
+      });
+    }
+  };
+
+  const handlePosCameraScan = async (code: string, target: 'pos' | 'create') => {
+    const clean = code.trim();
+    if (target === 'pos') {
+      handleBarcodeScan(clean);
+      return;
+    }
+
+    // target === 'create'
+    setNewProdBarcode(clean);
+    showScanResult({
+      code: clean,
+      name: newProdName || undefined,
+      imageUrl: newProdImage,
+      status: 'new',
+      message: 'Código capturado',
+    });
+
+    const online = await lookupBarcodeOnline(clean);
+    if (online) {
+      if (online.name) setNewProdName((prev) => prev || online.name || '');
+      if (online.imageUrl) setNewProdImage((prev) => prev || online.imageUrl || null);
+      showScanResult({
+        code: clean,
+        name: online.name || newProdName || undefined,
+        imageUrl: online.imageUrl || newProdImage,
+        status: 'online_match',
+        message: 'Datos sugeridos automáticamente',
       });
     }
   };
@@ -775,7 +811,7 @@ export const PosPage: React.FC = () => {
 
             {/* Botón cámara para móvil */}
             <button
-              onClick={() => setIsCameraOpen(true)}
+              onClick={() => setCameraTarget('pos')}
               className="w-10 h-10 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
               title="Escanear con cámara del celular"
             >
@@ -1639,12 +1675,13 @@ export const PosPage: React.FC = () => {
       {/* ======================================================== */}
       <BarcodeCameraModal
         isOpen={isCameraOpen}
-        onClose={() => setIsCameraOpen(false)}
+        onClose={() => setCameraTarget(null)}
         onScan={(code) => {
-          setIsCameraOpen(false);
-          handleBarcodeScan(code);
+          const target = cameraTarget || 'pos';
+          setCameraTarget(null);
+          handlePosCameraScan(code, target);
         }}
-        title="Escanear → Carrito"
+        title={cameraTarget === 'create' ? 'Escanear → Nuevo Producto' : 'Escanear → Carrito'}
       />
 
       {/* ======================================================== */}
@@ -1777,33 +1814,54 @@ export const PosPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* COLUMNA DERECHA: CÓDIGO/SKU, NOMBRE, DESCRIPCIÓN Y STOCK */}
+              {/* COLUMNA DERECHA: CÓDIGO DE BARRAS, SKU, NOMBRE, DESCRIPCIÓN Y STOCK */}
               <div className="space-y-3.5">
-                {/* 1. Código de Barra / SKU con botón Generar Código */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-black text-slate-800 dark:text-zinc-200">
-                      Código de Barra / SKU (Opcional)
+                {/* 1. Código de Barras y SKU */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black text-slate-800 dark:text-zinc-200 mb-1.5">
+                      Código de Barras <span className="font-normal text-[10px] text-slate-400">(Escaneado)</span>
                     </label>
-                    <button
-                      type="button"
-                      onClick={generateSkuCode}
-                      className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 cursor-pointer transition-colors"
-                    >
-                      <Dices className="w-3.5 h-3.5" />
-                      <span>Generar código</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={newProdBarcode}
+                        onChange={(e) => setNewProdBarcode(e.target.value)}
+                        placeholder="Ej: 7771214001109"
+                        className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setCameraTarget('create')}
+                        className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-sm shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
+                        title="Escanear código de barras con cámara"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    value={newProdSku}
-                    onChange={(e) => setNewProdSku(e.target.value)}
-                    placeholder="PROD-3400"
-                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500 font-mono"
-                  />
-                  <p className="text-[10px] font-bold text-slate-400 mt-1">
-                    Si no tienes un código de barras, se asignará uno automáticamente.
-                  </p>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-black text-slate-800 dark:text-zinc-200">
+                        SKU Interno
+                      </label>
+                      <button
+                        type="button"
+                        onClick={generateSkuCode}
+                        className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Dices className="w-3.5 h-3.5" />
+                        <span>Generar</span>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={newProdSku}
+                      onChange={(e) => setNewProdSku(e.target.value)}
+                      placeholder="PROD-3400"
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
                 </div>
 
                 {/* 2. Nombre del Producto */}

@@ -353,7 +353,8 @@ export const ProductsPage: React.FC = () => {
   // ---- BARCODE SCANNER (pistola USB / Bluetooth + cámara) ----
   const [scanResult, setScanResult] = useState<ScanResultData | null>(null);
   const scanTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [cameraTarget, setCameraTarget] = useState<'search' | 'create' | 'edit' | null>(null);
+  const isCameraOpen = cameraTarget !== null;
 
   const showProductScanResult = (data: ScanResultData) => {
     if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
@@ -411,6 +412,49 @@ export const ProductsPage: React.FC = () => {
         code: clean,
         name: online.name,
         imageUrl: online.imageUrl,
+        status: 'online_match',
+        message: 'Datos sugeridos automáticamente',
+      });
+    }
+  };
+
+  const handleModalCameraScan = async (code: string, target: 'search' | 'create' | 'edit') => {
+    const clean = code.trim();
+    if (target === 'search') {
+      await handleProductBarcodeScan(clean);
+      return;
+    }
+
+    if (target === 'edit') {
+      setEditBarcode(clean);
+      showProductScanResult({
+        code: clean,
+        name: editName || undefined,
+        imageUrl: editProductImage,
+        status: 'found',
+        message: 'Código de barras actualizado',
+      });
+      return;
+    }
+
+    // target === 'create'
+    setBarcode(clean);
+    showProductScanResult({
+      code: clean,
+      name: name || undefined,
+      imageUrl: productImage,
+      status: 'new',
+      message: 'Código capturado',
+    });
+
+    const online = await lookupBarcodeOnline(clean);
+    if (online) {
+      if (online.name) setName((prev) => prev || online.name || '');
+      if (online.imageUrl) setProductImage((prev) => prev || online.imageUrl || null);
+      showProductScanResult({
+        code: clean,
+        name: online.name || name || undefined,
+        imageUrl: online.imageUrl || productImage,
         status: 'online_match',
         message: 'Datos sugeridos automáticamente',
       });
@@ -791,7 +835,7 @@ export const ProductsPage: React.FC = () => {
         </div>
         {/* Botón cámara para móvil */}
         <button
-          onClick={() => setIsCameraOpen(true)}
+          onClick={() => setCameraTarget('search')}
           className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-md shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
           title="Escanear con cámara del celular"
         >
@@ -1315,13 +1359,23 @@ export const ProductsPage: React.FC = () => {
                     <label className="block text-xs font-black text-slate-800 dark:text-zinc-200 mb-1.5">
                       Código de Barras <span className="font-normal text-[10px] text-slate-400">(Escaneado)</span>
                     </label>
-                    <input
-                      type="text"
-                      value={barcode}
-                      onChange={(e) => setBarcode(e.target.value)}
-                      placeholder="Ej: 7771214001109"
-                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="text"
+                        value={barcode}
+                        onChange={(e) => setBarcode(e.target.value)}
+                        placeholder="Ej: 7771214001109"
+                        className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setCameraTarget('create')}
+                        className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-sm shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
+                        title="Escanear código de barras con cámara"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
@@ -1623,13 +1677,23 @@ export const ProductsPage: React.FC = () => {
                   <label className="block text-xs font-black text-slate-800 dark:text-zinc-200 mb-1">
                     Código de Barra Alternativo <span className="font-normal text-[10px] text-slate-400">(Opcional)</span>
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Código EAN / UPC numérico"
-                    value={editBarcode}
-                    onChange={(e) => setEditBarcode(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
-                  />
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Código EAN / UPC numérico"
+                      value={editBarcode}
+                      onChange={(e) => setEditBarcode(e.target.value)}
+                      className="w-full bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 text-xs font-bold rounded-xl border border-slate-300 dark:border-zinc-700 px-3 py-2.5 focus:outline-none focus:border-emerald-600 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCameraTarget('edit')}
+                      className="w-9 h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-sm shadow-blue-600/25 transition-all cursor-pointer active:scale-95 flex-shrink-0"
+                      title="Escanear código de barras con cámara"
+                    >
+                      <Camera className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
@@ -1688,12 +1752,19 @@ export const ProductsPage: React.FC = () => {
       {/* Modal cámara para escaneo móvil */}
       <BarcodeCameraModal
         isOpen={isCameraOpen}
-        onClose={() => setIsCameraOpen(false)}
+        onClose={() => setCameraTarget(null)}
         onScan={(code) => {
-          setIsCameraOpen(false);
-          handleProductBarcodeScan(code);
+          const target = cameraTarget || 'search';
+          setCameraTarget(null);
+          handleModalCameraScan(code, target);
         }}
-        title="Escanear → Producto"
+        title={
+          cameraTarget === 'create'
+            ? 'Escanear → Nuevo Producto'
+            : cameraTarget === 'edit'
+            ? 'Escanear → Editar Producto'
+            : 'Escanear → Producto'
+        }
       />
     </div>
   );
