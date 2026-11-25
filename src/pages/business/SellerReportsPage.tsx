@@ -919,7 +919,7 @@ export const SellerReportsPage: React.FC = () => {
                     Sin ventas registradas en esta sucursal para el período seleccionado.
                   </div>
                 ) : (
-                  <div className="w-full">
+                  <div className="overflow-x-auto">
                     <table className="w-full text-left table-fixed text-xs">
                       <thead className="bg-white dark:bg-zinc-900 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-zinc-800">
                         <tr>

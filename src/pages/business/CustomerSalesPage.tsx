@@ -1385,7 +1385,7 @@ export const CustomerSalesPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="border border-slate-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
+              <div className="border border-slate-100 dark:border-zinc-800 rounded-2xl overflow-hidden overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-zinc-800 text-[10px] uppercase font-black text-slate-400">
                     <tr>

@@ -156,3 +156,36 @@
     size: A4 landscape;
   }
 }
+
+/* Vista completa de planillas en celular (igual que PC, escalado proporcional sin deslizar) */
+@media screen and (max-width: 430px) {
+  .overflow-x-auto:has(table) {
+    overflow: hidden !important;
+  }
+  .overflow-x-auto:has(table) table,
+  .mobile-full-table {
+    zoom: 0.42;
+    min-width: 760px !important;
+    width: 100% !important;
+  }
+  table.table-fixed {
+    zoom: 0.42;
+    min-width: 760px !important;
+  }
+}
+
+@media screen and (min-width: 431px) and (max-width: 767px) {
+  .overflow-x-auto:has(table) {
+    overflow: hidden !important;
+  }
+  .overflow-x-auto:has(table) table,
+  .mobile-full-table {
+    zoom: 0.56;
+    min-width: 760px !important;
+    width: 100% !important;
+  }
+  table.table-fixed {
+    zoom: 0.56;
+    min-width: 760px !important;
+  }
+}

@@ -778,7 +778,7 @@ export const EmployeesPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="w-full">
+          <div className="overflow-x-auto">
             <table className="w-full text-left table-fixed text-xs">
               <thead className="bg-slate-50 dark:bg-zinc-800/60 uppercase tracking-wider text-slate-500 dark:text-zinc-400 border-b border-slate-200/80 dark:border-zinc-800 font-black text-[9px] sm:text-[10px]">
                 <tr>

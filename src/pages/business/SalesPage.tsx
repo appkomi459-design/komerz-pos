@@ -1193,7 +1193,7 @@ export const SalesPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="w-full">
+          <div className="overflow-x-auto">
             <table className="w-full text-left table-fixed">
               <thead className="bg-slate-50 dark:bg-zinc-900 uppercase tracking-wider text-slate-400 dark:text-zinc-500 border-b-2 border-slate-200 dark:border-zinc-800 font-black text-[9px]">
                 <tr>

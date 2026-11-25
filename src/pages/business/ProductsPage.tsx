@@ -873,7 +873,7 @@ export const ProductsPage: React.FC = () => {
             </Button>
           </div>
         ) : (
-          <div>
+          <div className="overflow-x-auto">
             <table className="w-full text-xs border-collapse">
               <thead className="bg-slate-900 text-white uppercase tracking-wider text-[10px] font-black border-b-2 border-slate-950">
                 <tr>
