@@ -30,6 +30,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   MapPin,
+  QrCode,
   MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,6 +85,7 @@ export const BusinessLayout: React.FC = () => {
           { name: t('nav.pos', 'Venta (Caja)'), path: '/app/pos', icon: ShoppingCart, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
           { name: t('nav.products', 'Productos / Stock'), path: '/app/products', icon: Package, activeGradient: 'bg-gradient-to-r from-[#00c6ff] to-[#0072ff] shadow-cyan-600/30 text-white' },
           { name: t('nav.categories', 'Categorías'), path: '/app/categories', icon: Tags, activeGradient: 'bg-gradient-to-r from-[#8e2de2] to-[#4a00e0] shadow-purple-600/30 text-white' },
+          { name: t('nav.catalog_qr', 'QR Catálogo'), path: '/app/catalog-qr', icon: QrCode, activeGradient: 'bg-gradient-to-r from-indigo-600 to-purple-600 shadow-indigo-600/30 text-white' },
         ],
       },
       {

@@ -40,6 +40,7 @@ import { BranchesPage }          from '@/pages/business/BranchesPage';
 import { SettingsPage }          from '@/pages/business/SettingsPage';
 import { SubscriptionPage }      from '@/pages/business/SubscriptionPage';
 import { SuggestionsPage }       from '@/pages/business/SuggestionsPage';
+import { CatalogQRPage }         from '@/pages/business/CatalogQRPage';
 
 // Super Admin Pages
 import { SuperAdminOverviewPage }      from '@/pages/superadmin/SuperAdminOverviewPage';
@@ -177,6 +178,7 @@ export const AppRoutes: React.FC = () => (
       <Route path="pos"          element={<PosPage />} />
       <Route path="products"     element={<ProductsPage />} />
       <Route path="categories"   element={<CategoriesPage />} />
+      <Route path="catalog-qr"   element={<CatalogQRPage />} />
       <Route path="inventory"    element={<Navigate to="/app/products" replace />} />
       <Route path="sales"        element={<SalesPage />} />
       <Route path="customers"       element={<CustomersPage />} />
