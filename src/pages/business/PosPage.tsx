@@ -103,6 +103,7 @@ export const PosPage: React.FC = () => {
   const [showCustomerFields, setShowCustomerFields] = useState(false);
   const [showTaxDrawer, setShowTaxDrawer] = useState(false);
   const [showDiscountDrawer, setShowDiscountDrawer] = useState(false);
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [completedSale, setCompletedSale] = useState<any | null>(null);
@@ -551,6 +552,7 @@ export const PosPage: React.FC = () => {
 
       // Reset
       setCart([]);
+      setMobileCartOpen(false);
       setAmountPaid('');
       setDiscountValue('');
       setCustomerName('Consumidor Final');
@@ -763,7 +765,7 @@ export const PosPage: React.FC = () => {
       {/* ======================================================== */}
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* LADO IZQUIERDO: CATÁLOGO CON TARJETAS VISUALES */}
-        <div className="flex-1 w-full space-y-3.5 min-w-0">
+        <div className="flex-1 w-full space-y-3.5 min-w-0 pb-28 lg:pb-0">
           {/* BARRA DE ADAPTACIÓN INTELIGENTE SEGÚN GIRO DE NEGOCIO */}
           <BusinessModeBar
             currentType={businessType}
@@ -1006,7 +1008,52 @@ export const PosPage: React.FC = () => {
         {/* ======================================================== */}
         {/* LADO DERECHO: PANEL CARRITO DE VENTA ERGONÓMICO          */}
         {/* ======================================================== */}
-        <div className="w-full lg:w-[380px] xl:w-[410px] bg-white dark:bg-[#181615] rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden flex flex-col h-[calc(100vh-120px)] max-h-[820px] min-h-[480px] sticky top-3 flex-shrink-0">
+
+        {/* BACKDROP oscuro en móvil cuando el carrito está abierto */}
+        {mobileCartOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+            onClick={() => setMobileCartOpen(false)}
+          />
+        )}
+
+        {/* FAB flotante del carrito — solo visible en móvil */}
+        <button
+          onClick={() => setMobileCartOpen(true)}
+          className={`fixed bottom-6 right-5 z-50 lg:hidden w-16 h-16 rounded-full shadow-2xl flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90 ${
+            cart.length > 0
+              ? 'bg-emerald-500 shadow-emerald-500/50'
+              : 'bg-slate-700 shadow-slate-700/40'
+          }`}
+          style={{ display: mobileCartOpen ? 'none' : undefined }}
+        >
+          <ShoppingCart className="w-6 h-6 text-white" />
+          {totalItemsCount > 0 && (
+            <span className="text-white text-[11px] font-black leading-none">
+              {totalItemsCount} item{totalItemsCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          {totalItemsCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[11px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-zinc-900">
+              {totalItemsCount > 99 ? '99+' : totalItemsCount}
+            </span>
+          )}
+        </button>
+
+        {/* Panel carrito: bottom-drawer en móvil / columna lateral en desktop */}
+        <div className={`
+          lg:static lg:w-[380px] xl:w-[410px] lg:flex lg:flex-col lg:h-[calc(100vh-120px)] lg:max-h-[820px] lg:min-h-[480px] lg:sticky lg:top-3 lg:flex-shrink-0 lg:translate-y-0
+          fixed bottom-0 left-0 right-0 z-50 flex flex-col
+          bg-white dark:bg-[#181615] rounded-t-3xl lg:rounded-3xl border-2 border-slate-900/90 dark:border-zinc-700 shadow-2xl overflow-hidden
+          transition-transform duration-300 ease-out
+          ${mobileCartOpen ? 'translate-y-0' : 'translate-y-full lg:translate-y-0'}
+          max-h-[88vh] lg:max-h-[820px]
+        `}>
+          {/* Handle de drag — solo visible en móvil */}
+          <div className="lg:hidden flex justify-center pt-2.5 pb-1 bg-slate-900 flex-shrink-0">
+            <div className="w-10 h-1 rounded-full bg-white/30" />
+          </div>
+
           {/* 1. Cabecera Fija del Carrito */}
           <div className="bg-slate-900 text-white px-4 py-2.5 border-b-2 border-slate-950 flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
@@ -1032,6 +1079,13 @@ export const PosPage: React.FC = () => {
                 </button>
               )}
             </div>
+            {/* Botón cerrar — solo en móvil */}
+            <button
+              onClick={() => setMobileCartOpen(false)}
+              className="lg:hidden ml-2 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
           </div>
 
           {/* 2. Barra de Cliente Compacta (Fija arriba, accesible y no compite con la lista de productos) */}
