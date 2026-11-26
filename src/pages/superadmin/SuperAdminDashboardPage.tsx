@@ -52,6 +52,7 @@ interface TenantUser {
   planName: string;
   planPrice: number;
   isPayingCustomer: boolean;
+  sellersCount: number;
   createdAt: string;
 }
 
@@ -81,6 +82,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
         .from('business_members')
         .select(`
           user_id,
+          role,
           business:businesses (
             id,
             name,
@@ -101,8 +103,30 @@ export const SuperAdminDashboardPage: React.FC = () => {
           )
         `);
 
-      const list: TenantUser[] = (profiles || []).map((p: any) => {
-        const membership = (members || []).find((m: any) => m.user_id === p.id);
+      // Contar cuántos vendedores/empleados tiene cada negocio
+      const sellersPerBusiness: Record<string, number> = {};
+      (members || []).forEach((m: any) => {
+        const rawB = m?.business;
+        const b = Array.isArray(rawB) ? rawB[0] : rawB;
+        if (b?.id && m.role && m.role !== 'owner') {
+          sellersPerBusiness[b.id] = (sellersPerBusiness[b.id] || 0) + 1;
+        }
+      });
+
+      const list: TenantUser[] = (profiles || [])
+        .filter((p: any) => {
+          const isSuperAdmin = Boolean(p.is_super_admin) || p.email === 'admin@komipos.com';
+          if (isSuperAdmin) return true;
+          const userMemberships = (members || []).filter((m: any) => m.user_id === p.id);
+          // Si no tiene membresías aún (recién registrado) o es owner de alguna, mostrarlo.
+          // Si todas sus membresías son de vendedor/empleado (role !== 'owner'), ocultarlo de la lista principal.
+          if (userMemberships.length === 0) return true;
+          return userMemberships.some((m: any) => !m.role || m.role === 'owner');
+        })
+        .map((p: any) => {
+        const userMemberships = (members || []).filter((m: any) => m.user_id === p.id);
+        const membership =
+          userMemberships.find((m: any) => m.role === 'owner') || userMemberships[0];
         const rawBiz = (membership as any)?.business;
         const biz = Array.isArray(rawBiz) ? rawBiz[0] : rawBiz;
         const rawSub = biz?.subscription;
@@ -142,6 +166,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
           planName: isSuperAdmin ? 'Acceso Maestro Ilimitado' : (plan?.name || 'Gratis / Prueba'),
           planPrice: isSuperAdmin ? 0 : Number(plan?.price_monthly || 0),
           isPayingCustomer: Boolean(isPaying),
+          sellersCount: biz?.id ? (sellersPerBusiness[biz.id] || 0) : 0,
           createdAt: p.created_at,
         };
       });
@@ -457,9 +482,17 @@ export const SuperAdminDashboardPage: React.FC = () => {
                               </button>
                             )}
                           </div>
-                          <p className="text-[10px] font-semibold text-slate-500 capitalize">
-                            Rubro: {item.businessType}
-                          </p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-[10px] font-semibold text-slate-500 capitalize">
+                              Rubro: {item.businessType}
+                            </p>
+                            {item.businessId && item.sellersCount > 0 && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                <Users className="w-2.5 h-2.5" />
+                                {item.sellersCount} {item.sellersCount === 1 ? 'vendedor' : 'vendedores'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>

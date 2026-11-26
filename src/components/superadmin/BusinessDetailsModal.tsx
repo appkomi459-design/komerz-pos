@@ -307,23 +307,39 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-zinc-100 mb-2 flex items-center gap-1.5">
                   <Users className="w-4 h-4 text-slate-700 dark:text-zinc-300" />
-                  Usuarios y Miembros del Negocio ({members.length})
+                  Titular y Vendedores del Negocio ({members.length})
                 </h3>
                 <div className="border-2 border-slate-900/60 dark:border-zinc-700 rounded-2xl overflow-hidden divide-y-2 divide-slate-200 dark:divide-zinc-800">
                   {members.length === 0 ? (
                     <div className="p-4 text-center text-xs text-slate-500">No hay miembros registrados</div>
                   ) : (
-                    members.map((m) => (
-                      <div key={m.id} className="p-3.5 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3 text-xs">
-                        <div>
-                          <p className="font-black text-slate-950 dark:text-zinc-100">{m.profile?.full_name || 'Sin nombre'}</p>
-                          <p className="text-slate-500 font-mono text-[11px]">{m.profile?.email || 'Sin correo'}</p>
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 px-2.5 py-1 rounded-xl border border-slate-300 dark:border-zinc-700">
-                          {m.role || 'Miembro'}
-                        </span>
-                      </div>
-                    ))
+                    [...members]
+                      .sort((a, b) => (a.role === 'owner' ? -1 : b.role === 'owner' ? 1 : 0))
+                      .map((m) => {
+                        const isOwner = m.role === 'owner';
+                        const roleLabel = isOwner
+                          ? 'Titular / Dueño'
+                          : m.role === 'cashier' || m.role === 'seller'
+                          ? 'Vendedor'
+                          : m.role || 'Miembro';
+                        return (
+                          <div key={m.id} className="p-3.5 bg-white dark:bg-zinc-900 flex items-center justify-between gap-3 text-xs">
+                            <div>
+                              <p className="font-black text-slate-950 dark:text-zinc-100">{m.profile?.full_name || 'Sin nombre'}</p>
+                              <p className="text-slate-500 font-mono text-[11px]">{m.profile?.email || 'Sin correo'}</p>
+                            </div>
+                            <span
+                              className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl border ${
+                                isOwner
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                  : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                              }`}
+                            >
+                              {roleLabel}
+                            </span>
+                          </div>
+                        );
+                      })
                   )}
                 </div>
               </div>
