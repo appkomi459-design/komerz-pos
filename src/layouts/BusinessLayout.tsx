@@ -406,20 +406,29 @@ export const BusinessLayout: React.FC = () => {
         </div>
 
         {/* Sidebar Footer with Collapse Toggle */}
-        <div className="p-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+        <div className={`p-3 border-t border-gray-200 dark:border-zinc-800 flex items-center ${collapsed ? 'justify-center' : 'justify-between gap-2'}`}>
           {!collapsed && (
-            <div className="px-2">
-              <span className="text-[10px] uppercase font-bold text-gray-400 dark:text-zinc-500 tracking-wider">
+            <div className="px-2 min-w-0">
+              <span className="text-[10px] uppercase font-extrabold text-slate-600 dark:text-zinc-400 tracking-wider truncate block">
                 Plan {subscription?.plan?.name || 'Gratis'}
               </span>
             </div>
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden lg:flex items-center justify-center p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors ml-auto cursor-pointer"
+            className={`hidden lg:flex items-center justify-center gap-1 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-100 hover:bg-emerald-600 hover:text-white hover:border-emerald-600 dark:hover:bg-emerald-600 dark:hover:border-emerald-600 shadow-xs transition-all cursor-pointer active:scale-95 ${
+              collapsed ? 'w-10 h-10' : 'px-2.5 py-1.5'
+            }`}
             title={collapsed ? 'Expandir barra lateral' : 'Contraer barra lateral'}
           >
-            {collapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
+            {collapsed ? (
+              <ChevronsRight className="w-5 h-5 stroke-[2.5]" />
+            ) : (
+              <>
+                <ChevronsLeft className="w-4 h-4 stroke-[2.5]" />
+                <span className="text-[10px] font-black uppercase tracking-wide">Ocultar</span>
+              </>
+            )}
           </button>
         </div>
       </aside>
