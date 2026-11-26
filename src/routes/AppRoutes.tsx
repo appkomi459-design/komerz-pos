@@ -130,6 +130,22 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 // ─────────────────────────────────────────────
+// Guard: callback de OAuth (Google)
+// Espera sesión/negocios y envía directo a /onboarding o /app (nunca al landing)
+// ─────────────────────────────────────────────
+const AuthCallbackRoute = () => {
+  const { user, isSuperAdmin, loading: authLoading, profile } = useAuth();
+  const { businesses, loading: bizLoading } = useBusiness();
+
+  if (authLoading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!profile || bizLoading) return <LoadingScreen />;
+  if (isSuperAdmin) return <Navigate to="/superadmin" replace />;
+  if (businesses.length === 0) return <Navigate to="/onboarding" replace />;
+  return <Navigate to="/app" replace />;
+};
+
+// ─────────────────────────────────────────────
 // Rutas principales
 // ─────────────────────────────────────────────
 export const AppRoutes: React.FC = () => (
@@ -155,6 +171,9 @@ export const AppRoutes: React.FC = () => (
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password"  element={<ResetPasswordPage />} />
     </Route>
+
+    {/* Callback de OAuth (Google) → espera sesión y redirige directo a /onboarding o /app */}
+    <Route path="/auth/callback" element={<AuthCallbackRoute />} />
 
     {/* 3. Wizard de configuración inicial */}
     <Route
