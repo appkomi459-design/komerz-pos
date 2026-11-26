@@ -34,6 +34,8 @@ import { Badge } from '@/components/ui/Badge';
 import type { Branch } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency, formatDate } from '@/utils/formatters';
+import { getPlanLimits } from '@/utils/planLimits';
+import { PlanLimitModal } from '@/components/subscription/PlanLimitModal';
 
 interface BranchWithStats extends Branch {
   sellersCount: number;
@@ -43,7 +45,9 @@ interface BranchWithStats extends Branch {
 }
 
 export const BranchesPage: React.FC = () => {
-  const { activeBusiness } = useBusiness();
+  const { activeBusiness, subscription } = useBusiness();
+  const planLimits = getPlanLimits(subscription);
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
   const { t } = useLanguage();
 
   const [branches, setBranches] = useState<BranchWithStats[]>([]);
@@ -355,7 +359,13 @@ export const BranchesPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => {
+            if (branches.length >= planLimits.maxBranches) {
+              setLimitModalOpen(true);
+              return;
+            }
+            setIsCreateModalOpen(true);
+          }}
           className="px-4 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/25 transition-all cursor-pointer active:scale-95"
         >
           <Plus className="w-4 h-4 stroke-[3]" />
@@ -952,6 +962,15 @@ export const BranchesPage: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      <PlanLimitModal
+        isOpen={limitModalOpen}
+        onClose={() => setLimitModalOpen(false)}
+        resourceLabel="sucursales"
+        currentCount={branches.length}
+        maxAllowed={planLimits.maxBranches}
+        limits={planLimits}
+      />
     </div>
   );
 };

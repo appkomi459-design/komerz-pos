@@ -236,7 +236,7 @@ export const SubscriptionPage: React.FC = () => {
           const rawFeatures = Array.isArray(p.features) ? p.features : [];
           const additionalFeatures = rawFeatures.filter((f: string) => {
             const lower = f.toLowerCase();
-            return !lower.includes('sucursal') && !lower.includes('usuario') && !lower.includes('producto');
+            return !lower.includes('sucursal') && !lower.includes('usuario') && !lower.includes('vendedor') && !lower.includes('producto');
           });
           const allFeatures = [...baseFeatures, ...additionalFeatures];
 

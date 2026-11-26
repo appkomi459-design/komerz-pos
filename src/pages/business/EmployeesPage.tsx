@@ -44,6 +44,8 @@ import { formatDate, formatCurrency } from '@/utils/formatters';
 import { WhatsAppIcon } from '@/components/common/WhatsAppIcon';
 import type { BusinessMember, Profile, Sale } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getPlanLimits } from '@/utils/planLimits';
+import { PlanLimitModal } from '@/components/subscription/PlanLimitModal';
 
 interface SellerWithStats {
   memberId: string;
@@ -61,7 +63,9 @@ interface SellerWithStats {
 }
 
 export const EmployeesPage: React.FC = () => {
-  const { activeBusiness } = useBusiness();
+  const { activeBusiness, subscription } = useBusiness();
+  const planLimits = getPlanLimits(subscription);
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
   const { t } = useLanguage();
 
   const [sellers, setSellers] = useState<SellerWithStats[]>([]);
@@ -658,6 +662,11 @@ export const EmployeesPage: React.FC = () => {
 
         <Button
           onClick={() => {
+            const nonOwnerCount = sellers.filter((s) => s.role !== 'owner').length;
+            if (nonOwnerCount >= planLimits.maxSellers) {
+              setLimitModalOpen(true);
+              return;
+            }
             setFullName('');
             setEmail('');
             setPassword('');
@@ -1635,6 +1644,15 @@ export const EmployeesPage: React.FC = () => {
           </div>
         </Modal>
       )}
+
+      <PlanLimitModal
+        isOpen={limitModalOpen}
+        onClose={() => setLimitModalOpen(false)}
+        resourceLabel="vendedores"
+        currentCount={sellers.filter((s) => s.role !== 'owner').length}
+        maxAllowed={planLimits.maxSellers}
+        limits={planLimits}
+      />
     </div>
   );
 };

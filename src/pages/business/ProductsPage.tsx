@@ -38,9 +38,13 @@ import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 import { BarcodeCameraModal } from '@/components/common/BarcodeCameraModal';
 import { ScanResultCard, type ScanResultData } from '@/components/common/ScanResultCard';
 import { lookupBarcodeOnline } from '@/utils/barcodeLookup';
+import { getPlanLimits } from '@/utils/planLimits';
+import { PlanLimitModal } from '@/components/subscription/PlanLimitModal';
 
 export const ProductsPage: React.FC = () => {
-  const { activeBusiness, settings, currentRole } = useBusiness();
+  const { activeBusiness, settings, currentRole, subscription } = useBusiness();
+  const planLimits = getPlanLimits(subscription);
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
   const { t } = useLanguage();
   const isCashier = currentRole === 'cashier';
   const [products, setProducts] = useState<Product[]>([]);
@@ -390,7 +394,11 @@ export const ProductsPage: React.FC = () => {
       return;
     }
 
-    // 2. Producto NO encontrado en inventario: abrir modal con código pre-cargado
+    // 2. Producto NO encontrado en inventario: validar límite antes de abrir modal
+    if (products.length >= planLimits.maxProducts) {
+      setLimitModalOpen(true);
+      return;
+    }
     setBarcode(clean);
     setName('');
     setProductImage(null);
@@ -571,6 +579,10 @@ export const ProductsPage: React.FC = () => {
           {!isCashier && (
             <button
               onClick={() => {
+                if (products.length >= planLimits.maxProducts) {
+                  setLimitModalOpen(true);
+                  return;
+                }
                 generateSkuCode();
                 setIsModalOpen(true);
               }}
@@ -878,6 +890,10 @@ export const ProductsPage: React.FC = () => {
             <p className="text-xs mt-1">Comienza agregando los artículos que vendes en tu negocio.</p>
             <Button
               onClick={() => {
+                if (products.length >= planLimits.maxProducts) {
+                  setLimitModalOpen(true);
+                  return;
+                }
                 generateSkuCode();
                 setIsModalOpen(true);
               }}
@@ -1742,6 +1758,15 @@ export const ProductsPage: React.FC = () => {
             ? 'Escanear → Editar Producto'
             : 'Escanear → Producto'
         }
+      />
+
+      <PlanLimitModal
+        isOpen={limitModalOpen}
+        onClose={() => setLimitModalOpen(false)}
+        resourceLabel="productos"
+        currentCount={products.length}
+        maxAllowed={planLimits.maxProducts}
+        limits={planLimits}
       />
     </div>
   );
