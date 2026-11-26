@@ -24,6 +24,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
+    root.style.colorScheme = theme;
     localStorage.setItem('komi_pos_theme', theme);
   }, [theme]);
 
