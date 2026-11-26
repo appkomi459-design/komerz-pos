@@ -59,16 +59,16 @@ export const KomerzLogo: React.FC<LogoProps> = ({
       {showText && (
         <div className="flex flex-col text-left">
           <div className="flex items-center gap-1.5 leading-none">
-            <span className={`${currentSize.text} font-black tracking-tight text-white`}>
+            <span className={`${currentSize.text} font-black tracking-tight text-slate-900 dark:text-white`}>
               Komerz
             </span>
-            <span className={`${currentSize.text} font-black tracking-tight text-emerald-400 drop-shadow-sm`}>
+            <span className={`${currentSize.text} font-black tracking-tight text-emerald-600 dark:text-emerald-400 drop-shadow-sm`}>
               POS
             </span>
           </div>
           {subtitle && (
             <span
-              className={`${currentSize.sub} font-bold uppercase tracking-[0.2em] text-emerald-400/80 mt-0.5`}
+              className={`${currentSize.sub} font-bold uppercase tracking-[0.2em] text-emerald-600/90 dark:text-emerald-400/80 mt-0.5`}
             >
               {subtitle}
             </span>

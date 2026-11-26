@@ -3,6 +3,7 @@ import { Link, Outlet } from 'react-router-dom';
 import { Moon, Sun, ArrowLeft } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { KomerzLogo } from '@/components/common/KomerzLogo';
+import { ShopIllustration } from '@/components/common/ShopIllustration';
 
 export const AuthLayout: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -30,11 +31,12 @@ export const AuthLayout: React.FC = () => {
         </button>
       </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mt-6 flex flex-col items-center">
-        <Link to="/" className="mb-2">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mt-8 flex flex-col items-center">
+        <ShopIllustration className="w-40 h-32 sm:w-44 sm:h-36 mb-1 drop-shadow-md animate-[cardFloat_5s_ease-in-out_infinite]" />
+        <Link to="/" className="mb-1.5">
           <KomerzLogo size="lg" />
         </Link>
-        <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 font-semibold">
+        <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 font-semibold">
           Plataforma de Punto de Venta y Gestión Empresarial
         </p>
       </div>
