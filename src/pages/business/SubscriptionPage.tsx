@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatCurrency, formatDateShort } from '@/utils/formatters';
 import type { Plan } from '@/types';
+import { PlanCheckoutModal } from '@/components/subscription/PlanCheckoutModal';
 
 export const SubscriptionPage: React.FC = () => {
-  const { activeBusiness, subscription, refreshBusinesses } = useBusiness();
+  const { activeBusiness, subscription } = useBusiness();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [checkoutPlan, setCheckoutPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -80,54 +81,10 @@ export const SubscriptionPage: React.FC = () => {
     fetchPlans();
   }, []);
 
-  const handleChangePlan = async (plan: Plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     if (!activeBusiness) return;
-    const isYearly = billingCycle === 'yearly';
-    const price = isYearly ? plan.price_yearly : plan.price_monthly;
-    const cycleLabel = isYearly ? 'Anual (2 meses gratis)' : 'Mensual';
-
-    const confirmed = window.confirm(
-      `¿Deseas activar el plan ${plan.name} en modalidad ${cycleLabel} por ${formatCurrency(price, 'USD')}?`
-    );
-    if (!confirmed) return;
-
-    try {
-      setUpdating(plan.id);
-
-      const newPeriodEnd = new Date();
-      if (isYearly) {
-        newPeriodEnd.setFullYear(newPeriodEnd.getFullYear() + 1); // 12 meses completos
-      } else {
-        newPeriodEnd.setMonth(newPeriodEnd.getMonth() + 1); // 1 mes
-      }
-
-      if (subscription) {
-        await supabase
-          .from('subscriptions')
-          .update({
-            plan_id: plan.id,
-            status: 'active',
-            current_period_start: new Date().toISOString(),
-            current_period_end: newPeriodEnd.toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', subscription.id);
-      } else {
-        await supabase.from('subscriptions').insert({
-          business_id: activeBusiness.id,
-          plan_id: plan.id,
-          status: 'active',
-          current_period_start: new Date().toISOString(),
-          current_period_end: newPeriodEnd.toISOString(),
-        });
-      }
-      await refreshBusinesses();
-      alert(`¡Plan ${plan.name} (${cycleLabel}) activado con éxito!`);
-    } catch (err: any) {
-      alert(`Error al actualizar suscripción: ${err.message}`);
-    } finally {
-      setUpdating(null);
-    }
+    if (plan.code === 'free') return;
+    setCheckoutPlan(plan);
   };
 
   const currentPlanCode = subscription?.plan?.code || 'free';
@@ -328,9 +285,8 @@ export const SubscriptionPage: React.FC = () => {
               {/* Botón de Selección */}
               <Button
                 variant={isCurrent ? 'outline' : isPro ? 'primary' : 'primary'}
-                disabled={isCurrent || updating === p.id}
-                loading={updating === p.id}
-                onClick={() => handleChangePlan(p)}
+                disabled={isCurrent}
+                onClick={() => handleSelectPlan(p)}
                 size="md"
                 className={`w-full font-black text-xs uppercase tracking-wider py-2.5 rounded-xl transition-all cursor-pointer ${
                   isCurrent
@@ -358,6 +314,20 @@ export const SubscriptionPage: React.FC = () => {
           <span>Soporte y actualizaciones continuas incluidas.</span>
         </div>
       </div>
+
+      {/* Modal de Pago: Hotmart o WhatsApp */}
+      {checkoutPlan && (
+        <PlanCheckoutModal
+          isOpen={Boolean(checkoutPlan)}
+          onClose={() => setCheckoutPlan(null)}
+          planCode={(checkoutPlan.code === 'enterprise' ? 'enterprise' : 'pro')}
+          planName={checkoutPlan.name}
+          billingCycle={billingCycle}
+          monthlyPrice={Number(checkoutPlan.price_monthly || (checkoutPlan.code === 'enterprise' ? 75 : 25))}
+          yearlyPrice={Number(checkoutPlan.price_yearly || (checkoutPlan.code === 'enterprise' ? 750 : 250))}
+          businessName={activeBusiness?.name}
+        />
+      )}
     </div>
   );
 };

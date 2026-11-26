@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Crown,
@@ -13,6 +13,7 @@ import {
   Users,
   Package,
 } from 'lucide-react';
+import { PlanCheckoutModal } from './PlanCheckoutModal';
 
 interface TrialExpiredModalProps {
   isOpen: boolean;
@@ -30,8 +31,9 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
   isTrial = true,
 }) => {
   const navigate = useNavigate();
+  const [checkoutPlan, setCheckoutPlan] = useState<'pro' | 'enterprise' | null>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen && !checkoutPlan) return null;
 
   const handleGoToPlans = () => {
     onClose();
@@ -135,7 +137,7 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
               </div>
 
               <button
-                onClick={handleGoToPlans}
+                onClick={() => setCheckoutPlan('pro')}
                 className="mt-5 w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               >
                 <span>Activar Profesional</span>
@@ -194,7 +196,7 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
               </div>
 
               <button
-                onClick={handleGoToPlans}
+                onClick={() => setCheckoutPlan('enterprise')}
                 className="mt-5 w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-black dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-black text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
               >
                 <span>Activar Empresarial</span>
@@ -226,6 +228,19 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
           </button>
         </div>
       </div>
+
+      {checkoutPlan && (
+        <PlanCheckoutModal
+          isOpen={Boolean(checkoutPlan)}
+          onClose={() => setCheckoutPlan(null)}
+          planCode={checkoutPlan}
+          planName={checkoutPlan === 'enterprise' ? 'Empresarial' : 'Profesional'}
+          billingCycle="monthly"
+          monthlyPrice={checkoutPlan === 'enterprise' ? 75 : 25}
+          yearlyPrice={checkoutPlan === 'enterprise' ? 750 : 250}
+          businessName={businessName}
+        />
+      )}
     </div>
   );
 };
