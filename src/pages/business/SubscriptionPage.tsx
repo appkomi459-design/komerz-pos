@@ -25,15 +25,47 @@ export const SubscriptionPage: React.FC = () => {
           .eq('is_active', true)
           .order('price_monthly', { ascending: true });
 
-        // Precios oficiales actualizados:
-        // Profesional: $25 USD/mes o $250 USD/año (2 meses gratis)
-        // Empresarial: $75 USD/mes o $750 USD/año (2 meses gratis)
+        // Precios y límites oficiales:
+        // Profesional: $25/mes · 5 vendedores · 250 productos · QR + Escáner
+        // Empresarial: $75/mes · 20 vendedores · 600 productos · QR + Escáner
         const normalized = (data || []).map((p: any) => {
           if (p.code === 'pro') {
-            return { ...p, price_monthly: 25, price_yearly: 250 };
+            return {
+              ...p,
+              price_monthly: 25,
+              price_yearly: 250,
+              max_users: 5,
+              max_products: 250,
+              features: [
+                'Hasta 3 sucursales activas',
+                'Hasta 5 vendedores con roles',
+                '250 productos en catálogo',
+                'QR Catálogo público compartible',
+                'Escáner lector de código de barras',
+                'Control avanzado de inventario',
+                'Múltiples turnos de caja',
+                'Soporte prioritario',
+              ],
+            };
           }
           if (p.code === 'enterprise') {
-            return { ...p, price_monthly: 75, price_yearly: 750 };
+            return {
+              ...p,
+              price_monthly: 75,
+              price_yearly: 750,
+              max_users: 20,
+              max_products: 600,
+              features: [
+                'Hasta 10 sucursales',
+                'Hasta 20 vendedores con permisos finos',
+                '600 productos en catálogo',
+                'QR Catálogo público compartible',
+                'Escáner lector de código de barras',
+                'Registro de auditoría completo',
+                'API de integración y webhooks',
+                'Soporte dedicado 24/7',
+              ],
+            };
           }
           return p;
         });
@@ -195,11 +227,11 @@ export const SubscriptionPage: React.FC = () => {
           const isPro = p.code === 'pro';
           const isEnterprise = p.code === 'enterprise';
 
-          // Filtrar características para evitar duplicados visuales
+          // Características base con terminología correcta
           const baseFeatures = [
             `Hasta ${p.max_branches} ${p.max_branches === 1 ? 'sucursal' : 'sucursales'}`,
-            `Hasta ${p.max_users} usuarios`,
-            `Hasta ${p.max_products.toLocaleString()} productos`,
+            `Hasta ${p.max_users} vendedores`,
+            `${p.max_products.toLocaleString()} productos en catálogo`,
           ];
           const rawFeatures = Array.isArray(p.features) ? p.features : [];
           const additionalFeatures = rawFeatures.filter((f: string) => {
