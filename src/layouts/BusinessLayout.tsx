@@ -33,6 +33,9 @@ import {
   QrCode,
   Trash2,
   MessageSquare,
+  Crown,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -40,6 +43,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Badge } from '@/components/ui/Badge';
 import { NotificationsBell } from '@/components/common/NotificationsBell';
+import { TrialExpiredModal } from '@/components/subscription/TrialExpiredModal';
 
 export const BusinessLayout: React.FC = () => {
   const { user, profile, isSuperAdmin, signOut } = useAuth();
@@ -66,6 +70,57 @@ export const BusinessLayout: React.FC = () => {
     reports_team: false,
     settings_group: false,
   });
+  const [trialModalOpen, setTrialModalOpen] = useState(false);
+  const [trialModalDismissed, setTrialModalDismissed] = useState(false);
+
+  // Calcular plan actual, días restantes y si venció la prueba gratis de 3 días
+  const planStatus = useMemo(() => {
+    const planCode = subscription?.plan?.code || 'free';
+    const isTrial = planCode === 'free' || subscription?.status === 'trialing';
+    const planName =
+      planCode === 'pro'
+        ? 'Profesional'
+        : planCode === 'enterprise'
+        ? 'Empresarial'
+        : subscription?.plan?.name || 'Gratis';
+
+    let endMs: number | null = null;
+    if (subscription?.current_period_end) {
+      endMs = new Date(subscription.current_period_end).getTime();
+    } else if (isTrial && (subscription?.created_at || activeBusiness?.created_at)) {
+      const base = new Date(subscription?.created_at || activeBusiness!.created_at);
+      base.setDate(base.getDate() + 3);
+      endMs = base.getTime();
+    }
+
+    const nowMs = Date.now();
+    const diffMs = endMs !== null ? endMs - nowMs : 3 * 24 * 60 * 60 * 1000;
+    const isExpired = endMs !== null ? diffMs <= 0 : false;
+    const daysRemaining = isExpired ? 0 : Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+    return {
+      planCode,
+      planName,
+      isTrial,
+      daysRemaining,
+      isExpired,
+    };
+  }, [subscription, activeBusiness]);
+
+  // Abrir notificación automáticamente cuando vence el plan (para dueños/admins fuera de /app/subscription)
+  useEffect(() => {
+    const canManageBilling = currentRole === 'owner' || currentRole === 'admin';
+    const onSubscriptionPage = location.pathname.startsWith('/app/subscription');
+    if (
+      !isSuperAdmin &&
+      canManageBilling &&
+      !onSubscriptionPage &&
+      planStatus.isExpired &&
+      !trialModalDismissed
+    ) {
+      setTrialModalOpen(true);
+    }
+  }, [isSuperAdmin, currentRole, location.pathname, planStatus.isExpired, trialModalDismissed]);
 
   const toggleSection = (id: string) => {
     setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -450,6 +505,48 @@ export const BusinessLayout: React.FC = () => {
               <MapPin className="w-3.5 h-3.5 text-emerald-500" />
               <span>{mainBranch?.name || 'Sucursal Principal'}</span>
             </div>
+
+            {/* Plan & Days Counter Pill */}
+            {!isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (planStatus.isExpired) {
+                    setTrialModalOpen(true);
+                  } else {
+                    navigate('/app/subscription');
+                  }
+                }}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-black border transition-all cursor-pointer active:scale-95 ${
+                  planStatus.isExpired
+                    ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-700 animate-pulse shadow-xs'
+                    : planStatus.isTrial
+                    ? planStatus.daysRemaining <= 1
+                      ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700'
+                      : 'bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800'
+                    : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                }`}
+                title="Ver detalles de tu plan y suscripción"
+              >
+                {planStatus.isExpired ? (
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
+                ) : planStatus.isTrial ? (
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                ) : (
+                  <Crown className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                )}
+
+                <span className="truncate max-w-[90px] sm:max-w-none">
+                  Plan {planStatus.planName}
+                </span>
+                <span className="opacity-50">•</span>
+                <span className="whitespace-nowrap">
+                  {planStatus.isExpired
+                    ? 'Vencido'
+                    : `${planStatus.daysRemaining} ${planStatus.daysRemaining === 1 ? 'día' : 'días'}`}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Right Header: Theme Toggle, Super Admin link, User Profile */}
@@ -556,6 +653,18 @@ export const BusinessLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Modal de Notificación para Activar Plan cuando expira la prueba */}
+      <TrialExpiredModal
+        isOpen={trialModalOpen}
+        onClose={() => {
+          setTrialModalOpen(false);
+          setTrialModalDismissed(true);
+        }}
+        businessName={activeBusiness?.name}
+        planName={planStatus.planName}
+        isTrial={planStatus.isTrial}
+      />
     </div>
   );
 };
