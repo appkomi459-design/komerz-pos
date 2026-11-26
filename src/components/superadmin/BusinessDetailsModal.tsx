@@ -67,19 +67,30 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
 
         setBranches(brData || []);
 
-        // 3. Miembros y usuarios del negocio
+        // 3. Miembros y usuarios del negocio (consulta separada para evitar fallo de relación FK con profiles)
         const { data: mData } = await supabase
           .from('business_members')
-          .select(`
-            id,
-            role,
-            is_active,
-            created_at,
-            profile:profiles ( id, full_name, email )
-          `)
+          .select('id, user_id, role, is_active, created_at')
           .eq('business_id', businessId);
 
-        setMembers(mData || []);
+        const userIds = (mData || []).map((m: any) => m.user_id).filter(Boolean);
+        let profilesMap: Record<string, { id: string; full_name: string | null; email: string | null }> = {};
+        if (userIds.length > 0) {
+          const { data: pData } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+          (pData || []).forEach((p: any) => {
+            profilesMap[p.id] = p;
+          });
+        }
+
+        const mergedMembers = (mData || []).map((m: any) => ({
+          ...m,
+          profile: profilesMap[m.user_id] || null,
+        }));
+
+        setMembers(mergedMembers);
 
         // 4. Suscripción y Plan
         const { data: subData } = await supabase
