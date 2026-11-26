@@ -20,11 +20,23 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency, formatDate } from '@/utils/formatters';
 
+interface PreloadedMember {
+  id: string;
+  user_id: string;
+  role: string;
+  is_active: boolean;
+  created_at?: string;
+  full_name?: string | null;
+  email?: string | null;
+}
+
 interface BusinessDetailsModalProps {
   businessId: string | null;
   isOpen: boolean;
   onClose: () => void;
   onStatusChanged?: () => void;
+  /** Members already fetched by the parent (bypasses RLS issues) */
+  preloadedMembers?: PreloadedMember[];
 }
 
 export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
@@ -32,6 +44,7 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
   isOpen,
   onClose,
   onStatusChanged,
+  preloadedMembers,
 }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -67,30 +80,40 @@ export const BusinessDetailsModal: React.FC<BusinessDetailsModalProps> = ({
 
         setBranches(brData || []);
 
-        // 3. Miembros y usuarios del negocio (consulta separada para evitar fallo de relación FK con profiles)
-        const { data: mData } = await supabase
-          .from('business_members')
-          .select('id, user_id, role, is_active, created_at')
-          .eq('business_id', businessId);
+        // 3. Miembros y usuarios del negocio
+        // If parent already loaded members (bypasses RLS), use them directly
+        if (preloadedMembers && preloadedMembers.length >= 0) {
+          const formatted = preloadedMembers.map((m) => ({
+            ...m,
+            profile: { id: m.user_id, full_name: m.full_name || null, email: m.email || null },
+          }));
+          setMembers(formatted);
+        } else {
+          // Fallback: direct query (may fail with RLS for other businesses)
+          const { data: mData } = await supabase
+            .from('business_members')
+            .select('id, user_id, role, is_active, created_at')
+            .eq('business_id', businessId);
 
-        const userIds = (mData || []).map((m: any) => m.user_id).filter(Boolean);
-        let profilesMap: Record<string, { id: string; full_name: string | null; email: string | null }> = {};
-        if (userIds.length > 0) {
-          const { data: pData } = await supabase
-            .from('profiles')
-            .select('id, full_name, email')
-            .in('id', userIds);
-          (pData || []).forEach((p: any) => {
-            profilesMap[p.id] = p;
-          });
+          const userIds = (mData || []).map((m: any) => m.user_id).filter(Boolean);
+          let profilesMap: Record<string, { id: string; full_name: string | null; email: string | null }> = {};
+          if (userIds.length > 0) {
+            const { data: pData } = await supabase
+              .from('profiles')
+              .select('id, full_name, email')
+              .in('id', userIds);
+            (pData || []).forEach((p: any) => {
+              profilesMap[p.id] = p;
+            });
+          }
+
+          const mergedMembers = (mData || []).map((m: any) => ({
+            ...m,
+            profile: profilesMap[m.user_id] || null,
+          }));
+
+          setMembers(mergedMembers);
         }
-
-        const mergedMembers = (mData || []).map((m: any) => ({
-          ...m,
-          profile: profilesMap[m.user_id] || null,
-        }));
-
-        setMembers(mergedMembers);
 
         // 4. Suscripción y Plan
         const { data: subData } = await supabase

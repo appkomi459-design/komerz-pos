@@ -58,6 +58,10 @@ interface TenantUser {
 
 export const SuperAdminDashboardPage: React.FC = () => {
   const [tenants, setTenants] = useState<TenantUser[]>([]);
+  // Raw business_members data for passing to BusinessDetailsModal (bypasses RLS)
+  const [rawMembers, setRawMembers] = useState<any[]>([]);
+  // Raw profiles for enriching member data in modal
+  const [rawProfiles, setRawProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'users' | 'clients'>('all');
@@ -102,6 +106,10 @@ export const SuperAdminDashboardPage: React.FC = () => {
             )
           )
         `);
+
+      // Store raw data for modal use (bypasses RLS in BusinessDetailsModal)
+      setRawMembers(members || []);
+      setRawProfiles(profiles || []);
 
       // Contar cuántos vendedores/empleados tiene cada negocio
       const sellersPerBusiness: Record<string, number> = {};
@@ -622,6 +630,27 @@ export const SuperAdminDashboardPage: React.FC = () => {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onStatusChanged={fetchTenants}
+        preloadedMembers={
+          selectedBusinessId
+            ? (rawMembers || [])
+                .filter((m: any) => {
+                  const rawB = m?.business;
+                  const b = Array.isArray(rawB) ? rawB[0] : rawB;
+                  return b?.id === selectedBusinessId;
+                })
+                .map((m: any) => {
+                  const prof = (rawProfiles || []).find((p: any) => p.id === m.user_id);
+                  return {
+                    id: m.id || m.user_id + '-' + selectedBusinessId,
+                    user_id: m.user_id,
+                    role: m.role,
+                    is_active: m.is_active !== false,
+                    full_name: prof?.full_name ?? null,
+                    email: prof?.email ?? null,
+                  };
+                })
+            : []
+        }
       />
 
       {/* Modal para Asignar Plan y Meses a Usuarios/Negocios */}
