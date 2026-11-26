@@ -24,6 +24,7 @@ import { CountrySelect } from '@/components/ui/CountrySelect';
 import { CurrencySelect } from '@/components/ui/CurrencySelect';
 import { Card } from '@/components/ui/Card';
 import { BUSINESS_TYPES, COUNTRIES } from '@/utils/formatters';
+import { ShopIllustration } from '@/components/common/ShopIllustration';
 
 export const OnboardingWizardPage: React.FC = () => {
   const { createBusiness } = useBusiness();
@@ -149,9 +150,7 @@ export const OnboardingWizardPage: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/25">
-            <Store className="w-7 h-7" />
-          </div>
+          <ShopIllustration className="w-40 h-32 sm:w-44 sm:h-36 mx-auto mb-2 drop-shadow-md animate-[cardFloat_5s_ease-in-out_infinite]" />
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 dark:text-zinc-100">
             Configuración de tu Negocio
           </h1>
