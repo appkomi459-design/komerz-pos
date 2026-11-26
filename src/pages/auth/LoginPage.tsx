@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Lock, AlertCircle, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -23,13 +23,6 @@ export const LoginPage: React.FC = () => {
   const [error, setError]           = useState<string | null>(null);
   const [loading, setLoading]       = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  /** Rellena los campos con credenciales de demo */
-  const fillCredentials = (type: 'admin' | 'usuario') => {
-    setIdentifier(type === 'admin' ? 'admin' : 'usuario');
-    setPassword(type === 'admin' ? 'Admin123*' : 'usuario123*');
-    setError(null);
-  };
 
   /** Convierte alias cortos al email real de Supabase */
   const resolveEmail = (raw: string): string => {
@@ -91,32 +84,6 @@ export const LoginPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Acceso rápido demo */}
-      <div className="mb-5 p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/40 text-xs">
-        <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 font-bold mb-2">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Acceso Rápido de Prueba:</span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => fillCredentials('admin')}
-            className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 rounded-xl border border-emerald-200 dark:border-emerald-800/60 text-left hover:border-emerald-500 transition-colors cursor-pointer"
-          >
-            <p className="font-bold text-gray-900 dark:text-zinc-100">👑 Admin</p>
-            <p className="text-[10px] text-gray-400">admin / Admin123*</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => fillCredentials('usuario')}
-            className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 rounded-xl border border-emerald-200 dark:border-emerald-800/60 text-left hover:border-emerald-500 transition-colors cursor-pointer"
-          >
-            <p className="font-bold text-gray-900 dark:text-zinc-100">👤 Usuario</p>
-            <p className="text-[10px] text-gray-400">usuario / usuario123*</p>
-          </button>
-        </div>
-      </div>
-
       {/* Error */}
       {error && (
         <div className="mb-5 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 flex items-start gap-2.5 text-xs text-rose-700 dark:text-rose-300">
@@ -130,7 +97,7 @@ export const LoginPage: React.FC = () => {
         <Input
           label="Usuario o Correo"
           type="text"
-          placeholder="admin o tu@correo.com"
+          placeholder="usuario o tu@correo.com"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           icon={<User className="w-4 h-4" />}
