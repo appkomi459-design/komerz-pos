@@ -156,11 +156,11 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* Hero Section con Fondos de Fotos de Negocios Reales */}
-      <section className="relative pt-8 md:pt-16">
-        {/* IMÁGENES DE NEGOCIOS REALES VISIBLES FLOTANTES */}
+      <section className="relative pt-6 md:pt-16">
+        {/* IMÁGENES DE NEGOCIOS REALES — solo visible en sm+ para no tapar el título en móvil */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          {/* Foto Tienda de Ropa / Moda (Izquierda) */}
-          <div className="absolute top-2 left-2 sm:left-6 w-56 sm:w-80 h-48 sm:h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[-3deg] border-2 border-emerald-500/30">
+          {/* Foto Tienda de Ropa / Moda (Izquierda) — oculta en móvil */}
+          <div className="hidden sm:block absolute top-2 left-6 w-80 h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[-3deg] border-2 border-emerald-500/30">
             <img
               src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80"
               alt="Boutique y Tienda de Ropa"
@@ -173,8 +173,8 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Foto Supermercado / Minimarket (Derecha) */}
-          <div className="absolute top-2 right-2 sm:right-6 w-56 sm:w-80 h-48 sm:h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[3deg] border-2 border-emerald-500/30">
+          {/* Foto Supermercado / Minimarket (Derecha) — oculta en móvil */}
+          <div className="hidden sm:block absolute top-2 right-6 w-80 h-72 rounded-3xl overflow-hidden opacity-85 shadow-2xl rotate-[3deg] border-2 border-emerald-500/30">
             <img
               src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80"
               alt="Minimarket y Supermercado"
@@ -220,7 +220,7 @@ export const LandingPage: React.FC = () => {
             </Link>
           </div>
 
-          <div className="mt-6 flex items-center justify-center gap-6 text-xs text-slate-400 font-semibold">
+          <div className="mt-6 flex items-center justify-center gap-4 sm:gap-6 text-xs text-slate-400 font-semibold flex-wrap">
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Sin tarjeta requerida</span>
@@ -228,6 +228,34 @@ export const LandingPage: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               <span>Prueba completa de 7 días</span>
+            </div>
+          </div>
+
+          {/* FOTOS DE NEGOCIOS REALES — solo visible en móvil, debajo de los botones */}
+          <div className="sm:hidden mt-8 grid grid-cols-2 gap-3 px-1">
+            <div className="relative rounded-2xl overflow-hidden h-36 border border-emerald-500/30 shadow-xl">
+              <img
+                src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=400&q=80"
+                alt="Tiendas de Ropa"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
+              <div className="absolute bottom-2 left-2 text-[11px] font-black text-white flex items-center gap-1">
+                <Shirt className="w-3 h-3 text-emerald-400" />
+                <span>Ropa & Moda</span>
+              </div>
+            </div>
+            <div className="relative rounded-2xl overflow-hidden h-36 border border-emerald-500/30 shadow-xl">
+              <img
+                src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=400&q=80"
+                alt="Minimarkets"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent" />
+              <div className="absolute bottom-2 right-2 text-[11px] font-black text-white flex items-center gap-1">
+                <ShoppingCart className="w-3 h-3 text-emerald-400" />
+                <span>Minimarkets</span>
+              </div>
             </div>
           </div>
 

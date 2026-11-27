@@ -14,18 +14,19 @@ export const PublicLayout: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#080c10] text-slate-100 selection:bg-emerald-500 selection:text-slate-950 transition-colors duration-200 relative overflow-x-hidden">
       {/* Top Banner Esmeralda Nórdico Ejecutivo */}
       <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-emerald-950 border-b border-emerald-500/20 text-emerald-300 text-xs py-2 px-4 text-center font-bold flex items-center justify-center gap-2 shadow-sm">
-        <Sparkles className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
-        <span>Komerz POS Cloud: Plataforma Multi-Empresa de Alta Disponibilidad para tu Negocio.</span>
+        <Sparkles className="w-3.5 h-3.5 animate-pulse text-emerald-400 flex-shrink-0" />
+        <span className="hidden sm:inline">Komerz POS Cloud: Plataforma Multi-Empresa de Alta Disponibilidad para tu Negocio.</span>
+        <span className="sm:hidden">Komerz POS · Prueba gratis 7 días</span>
       </div>
 
       {/* Navbar Dark Glassmorphic con Acentos Esmeralda */}
       <header className="sticky top-0 z-40 bg-[#080c10]/90 backdrop-blur-xl border-b border-slate-800/80 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
-          <Link to="/">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-18 flex items-center justify-between gap-2">
+          <Link to="/" className="flex-shrink-0">
             <KomerzLogo size="md" />
           </Link>
 
-          {/* Nav links */}
+          {/* Nav links — solo desktop */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
             <a href="#caracteristicas" className="hover:text-emerald-400 transition-colors">
               Características
@@ -45,10 +46,10 @@ export const PublicLayout: React.FC = () => {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             <button
               onClick={toggleTheme}
-              className="p-2.5 rounded-xl border border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-emerald-400 transition-colors cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-xl border border-slate-800 text-slate-400 hover:bg-slate-800/80 hover:text-emerald-400 transition-colors cursor-pointer"
               title="Cambiar tema"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-emerald-400" />}
@@ -57,19 +58,22 @@ export const PublicLayout: React.FC = () => {
             {user ? (
               <Link to="/app">
                 <Button size="sm" icon={<ArrowRight className="w-4 h-4" />}>
-                  Ir a mi Panel
+                  <span className="hidden sm:inline">Ir a mi Panel</span>
+                  <span className="sm:hidden">Panel</span>
                 </Button>
               </Link>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login">
-                  <button className="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white font-bold text-xs hover:bg-slate-800/60 transition-all cursor-pointer">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* "Iniciar sesión" solo visible en sm+ */}
+                <Link to="/login" className="hidden sm:block">
+                  <button className="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white font-bold text-xs hover:bg-slate-800/60 transition-all cursor-pointer whitespace-nowrap">
                     Iniciar sesión
                   </button>
                 </Link>
                 <Link to="/register">
-                  <button className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer">
-                    Registrarse
+                  <button className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/20 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap">
+                    <span className="hidden sm:inline">Registrarse</span>
+                    <span className="sm:hidden">Registrarse</span>
                   </button>
                 </Link>
               </div>
