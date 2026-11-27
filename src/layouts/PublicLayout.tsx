@@ -138,9 +138,15 @@ export const PublicLayout: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500">
+          <div className="border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
             <p>© {new Date().getFullYear()} Komerz POS SaaS. Todos los derechos reservados.</p>
-            <p className="mt-2 sm:mt-0">Construido con tecnología de punta para comercio global.</p>
+            <div className="flex items-center gap-4">
+              <Link to="/privacidad" className="hover:text-emerald-400 transition-colors font-semibold">
+                Política de Privacidad
+              </Link>
+              <span>·</span>
+              <span>Construido con tecnología de punta para comercio global.</span>
+            </div>
           </div>
         </div>
       </footer>

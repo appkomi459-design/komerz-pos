@@ -12,6 +12,7 @@ import { SuperAdminLayout } from '@/layouts/SuperAdminLayout';
 // Public & Auth Pages
 import { LandingPage }        from '@/pages/public/LandingPage';
 import { PublicCatalogPage }  from '@/pages/public/PublicCatalogPage';
+import { PrivacyPolicyPage }  from '@/pages/public/PrivacyPolicyPage';
 import { LoginPage }          from '@/pages/auth/LoginPage';
 import { RegisterPage }       from '@/pages/auth/RegisterPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
@@ -153,6 +154,7 @@ export const AppRoutes: React.FC = () => (
   <Routes>
     {/* Catálogo público accesible por QR (sin autenticación requerida) */}
     <Route path="/c/:businessId" element={<PublicCatalogPage />} />
+    <Route path="/privacidad"    element={<PrivacyPolicyPage />} />
 
     {/* 1. Landing pública */}
     <Route element={<PublicLayout />}>
