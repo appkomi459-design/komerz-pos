@@ -36,6 +36,7 @@ import {
   Crown,
   Clock,
   AlertTriangle,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -73,7 +74,7 @@ export const BusinessLayout: React.FC = () => {
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [trialModalDismissed, setTrialModalDismissed] = useState(false);
 
-  // Calcular plan actual, días restantes y si venció la prueba gratis de 3 días
+  // Calcular plan actual, días restantes y si venció la prueba gratis de 7 días
   const planStatus = useMemo(() => {
     const planCode = subscription?.plan?.code || 'free';
     const isTrial = planCode === 'free' || subscription?.status === 'trialing';
@@ -89,12 +90,12 @@ export const BusinessLayout: React.FC = () => {
       endMs = new Date(subscription.current_period_end).getTime();
     } else if (isTrial && (subscription?.created_at || activeBusiness?.created_at)) {
       const base = new Date(subscription?.created_at || activeBusiness!.created_at);
-      base.setDate(base.getDate() + 3);
+      base.setDate(base.getDate() + 7);
       endMs = base.getTime();
     }
 
     const nowMs = Date.now();
-    const diffMs = endMs !== null ? endMs - nowMs : 3 * 24 * 60 * 60 * 1000;
+    const diffMs = endMs !== null ? endMs - nowMs : 7 * 24 * 60 * 60 * 1000;
     const isExpired = endMs !== null ? diffMs <= 0 : false;
     const daysRemaining = isExpired ? 0 : Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
 
@@ -107,14 +108,16 @@ export const BusinessLayout: React.FC = () => {
     };
   }, [subscription, activeBusiness]);
 
-  // Abrir notificación automáticamente cuando vence el plan (para dueños/admins fuera de /app/subscription)
+  // Abrir notificación automáticamente cuando vence el plan (para dueños/admins fuera de /app/subscription o /app/komerz-web)
   useEffect(() => {
     const canManageBilling = currentRole === 'owner' || currentRole === 'admin';
-    const onSubscriptionPage = location.pathname.startsWith('/app/subscription');
+    const onBillingOrWebPage =
+      location.pathname.startsWith('/app/subscription') ||
+      location.pathname.startsWith('/app/komerz-web');
     if (
       !isSuperAdmin &&
       canManageBilling &&
-      !onSubscriptionPage &&
+      !onBillingOrWebPage &&
       planStatus.isExpired &&
       !trialModalDismissed
     ) {
@@ -203,6 +206,7 @@ export const BusinessLayout: React.FC = () => {
         collapsible: false,
         items: [
           { name: t('nav.subscription', 'Suscripción'), path: '/app/subscription', icon: CreditCard, activeGradient: 'bg-gradient-to-r from-[#f2994a] to-[#f2c94c] shadow-amber-600/30 text-white' },
+          { name: t('nav.komerz_web', 'Komerz Web'), path: '/app/komerz-web', icon: Globe, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#0575e6] shadow-emerald-600/30 text-white' },
           { name: t('nav.suggestions', 'Sugerencias'), path: '/app/suggestions', icon: MessageSquare, activeGradient: 'bg-gradient-to-r from-[#00b09b] to-[#96c93d] shadow-emerald-600/30 text-white' },
         ],
       },

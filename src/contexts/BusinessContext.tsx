@@ -217,7 +217,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         is_active: true,
       });
 
-      // 5. Asignar plan gratuito inicial (3 días de prueba)
+      // 5. Asignar plan gratuito inicial (7 días de prueba)
       const { data: freePlan } = await supabase
         .from('plans')
         .select('id')
@@ -227,7 +227,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       if (freePlan) {
         const trialStart = new Date();
         const trialEnd = new Date(trialStart);
-        trialEnd.setDate(trialEnd.getDate() + 3);
+        trialEnd.setDate(trialEnd.getDate() + 7);
 
         await supabase.from('subscriptions').insert({
           business_id: business.id,

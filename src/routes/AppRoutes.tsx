@@ -39,6 +39,7 @@ import { SellerReportsPage }     from '@/pages/business/SellerReportsPage';
 import { BranchesPage }          from '@/pages/business/BranchesPage';
 import { SettingsPage }          from '@/pages/business/SettingsPage';
 import { SubscriptionPage }      from '@/pages/business/SubscriptionPage';
+import { KomerzWebPage }         from '@/pages/business/KomerzWebPage';
 import { SuggestionsPage }       from '@/pages/business/SuggestionsPage';
 import { CatalogQRPage }         from '@/pages/business/CatalogQRPage';
 import { TrashPage }             from '@/pages/business/TrashPage';
@@ -214,6 +215,7 @@ export const AppRoutes: React.FC = () => (
       <Route path="settings"     element={<SettingsPage />} />
       <Route path="trash"        element={<TrashPage />} />
       <Route path="subscription" element={<SubscriptionPage />} />
+      <Route path="komerz-web"   element={<KomerzWebPage />} />
       <Route path="suggestions"  element={<SuggestionsPage />} />
     </Route>
 

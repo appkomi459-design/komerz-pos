@@ -67,7 +67,7 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
               <div>
                 <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 mb-1">
                   <Sparkles className="w-3 h-3" />
-                  {isTrial ? 'Tu prueba de 3 días finalizó' : `Tu ${planName} ha vencido`}
+                  {isTrial ? 'Tu prueba de 7 días finalizó' : `Tu ${planName} ha vencido`}
                 </span>
                 <h2 className="text-lg sm:text-xl font-black tracking-tight text-white leading-snug">
                   Activa un Plan para {businessName || 'tu Negocio'}
@@ -98,10 +98,10 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
               </div>
               <div className="text-center space-y-2">
                 <h3 className="text-base font-black text-slate-900 dark:text-white">
-                  Activa tu plan desde la web
+                  Adquiere nuestro plan desde nuestro sitio web
                 </h3>
                 <p className="text-[13px] text-slate-600 dark:text-zinc-400 leading-relaxed">
-                  Para activar el <strong>Plan Profesional ($25/mes)</strong> o el <strong>Plan Empresarial ($75/mes)</strong>, visita nuestra plataforma web:
+                  Tu periodo de prueba ha finalizado. Entra a <strong>Komerz Web</strong> con tu misma cuenta para adquirir el plan que prefieras y seguir usando tu negocio sin interrupciones:
                 </p>
                 <div className="mt-2 p-3 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700">
                   <p className="text-[13px] font-black text-emerald-600 dark:text-emerald-400 select-all">
@@ -109,18 +109,31 @@ export const TrialExpiredModal: React.FC<TrialExpiredModalProps> = ({
                   </p>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-zinc-500 leading-relaxed">
-                  Desde la web puedes pagar con Hotmart (tarjeta internacional) o por WhatsApp con otros métodos locales.
+                  Inicia sesión en la web con el mismo correo que creaste aquí; todos tus datos ya están sincronizados.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard?.writeText(APP_WEB_URL).catch(() => {});
-                }}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95"
-              >
-                <span>Copiar enlace de la web</span>
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(APP_WEB_URL).catch(() => {});
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                >
+                  <span>Copiar enlace de la web</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    navigate('/app/komerz-web');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black dark:bg-zinc-800 dark:hover:bg-zinc-700 text-white font-black text-xs shadow-md flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                >
+                  <span>Ir a Komerz Web</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           ) : (
             <>

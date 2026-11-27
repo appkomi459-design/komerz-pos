@@ -72,7 +72,7 @@ export const LandingPage: React.FC = () => {
     {
       name: 'Gratis / Prueba',
       price: '$0',
-      period: 'por 3 días',
+      period: 'por 7 días',
       savings: null,
       description: 'Ideal para poner en marcha tu negocio y probar toda la plataforma.',
       features: [
@@ -227,7 +227,7 @@ export const LandingPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Prueba completa de 3 días</span>
+              <span>Prueba completa de 7 días</span>
             </div>
           </div>
 

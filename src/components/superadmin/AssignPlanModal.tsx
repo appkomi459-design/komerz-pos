@@ -127,13 +127,13 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
     const now = new Date();
 
     if (selectedPlanCode === 'free') {
-      // Plan gratuito: 3 días de prueba
+      // Plan gratuito: 7 días de prueba
       const end = new Date(now);
-      end.setDate(end.getDate() + 3);
+      end.setDate(end.getDate() + 7);
       return {
         startDate: now,
         endDate: end,
-        totalDays: 3,
+        totalDays: 7,
         totalCost: 0,
       };
     }
@@ -445,7 +445,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
                 }`}
               >
                 {selectedPlanCode === 'free'
-                  ? '✓ Seleccionado: Devolver a Plan Gratuito de Prueba (3 días)'
+                  ? '✓ Seleccionado: Devolver a Plan Gratuito de Prueba (7 días)'
                   : '¿Deseas devolver este usuario a Prueba Gratuita (Sin costo)?'}
               </button>
             </div>
@@ -559,7 +559,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
                 Modo Prueba Gratuita
               </p>
               <p className="font-medium text-amber-700 dark:text-amber-400">
-                Al activar este modo, el usuario dispondrá de 3 días para explorar el sistema con límites de prueba sin cobro alguno.
+                Al activar este modo, el usuario dispondrá de 7 días para explorar el sistema con límites de prueba sin cobro alguno.
               </p>
             </div>
           )}
@@ -591,7 +591,7 @@ export const AssignPlanModal: React.FC<AssignPlanModalProps> = ({
               <div>
                 <p className="text-slate-400 font-medium">Duración</p>
                 <p className="font-black text-white text-sm mt-0.5">
-                  {selectedPlanCode === 'free' ? '3 Días' : `${months} Mes(es)`}
+                  {selectedPlanCode === 'free' ? '7 Días' : `${months} Mes(es)`}
                 </p>
               </div>
 

@@ -553,7 +553,7 @@ export const SuperAdminDashboardPage: React.FC = () => {
                                 : `Vence: ${formatDate(item.currentPeriodEnd)} (${item.daysRemaining}d)`}
                             </span>
                           ) : (
-                            <span className="text-[10px] text-slate-400 font-bold">3 días de prueba</span>
+                            <span className="text-[10px] text-slate-400 font-bold">7 días de prueba</span>
                           )}
                         </div>
                       )}
