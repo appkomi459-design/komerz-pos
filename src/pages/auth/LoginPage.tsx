@@ -116,27 +116,17 @@ export const LoginPage: React.FC = () => {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          <div className="relative">
-            <Input
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              icon={<Lock className="w-4 h-4" />}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors z-10"
-              tabIndex={-1}
-            >
-              {showPassword
-                ? <EyeOff className="w-4 h-4" />
-                : <Eye className="w-4 h-4" />}
-            </button>
-          </div>
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="current-password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            icon={<Lock className="w-4 h-4" />}
+            rightIcon={showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            onRightIconClick={() => setShowPassword(!showPassword)}
+            required
+          />
         </div>
 
         <Button

@@ -5,11 +5,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   icon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  onRightIconClick?: () => void;
   helperText?: string;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, icon, helperText, className, id, ...props }, ref) => {
+  ({ label, error, icon, rightIcon, onRightIconClick, helperText, className, id, ...props }, ref) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
     return (
@@ -34,7 +36,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               'w-full bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 text-sm rounded-xl border border-gray-200 dark:border-zinc-800 transition-all duration-150',
               'focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20',
-              icon ? 'pl-10 pr-4' : 'px-4',
+              icon ? 'pl-10' : 'pl-4',
+              rightIcon ? 'pr-10' : 'pr-4',
               'py-2.5',
               error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500/20',
               props.disabled && 'opacity-60 bg-gray-50 dark:bg-zinc-800/40 cursor-not-allowed',
@@ -42,6 +45,16 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             )}
             {...props}
           />
+          {rightIcon && (
+            <button
+              type="button"
+              onClick={onRightIconClick}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 dark:text-zinc-500 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+              tabIndex={-1}
+            >
+              {rightIcon}
+            </button>
+          )}
         </div>
         {error && <p className="mt-1.5 text-xs text-rose-500 font-medium">{error}</p>}
         {helperText && !error && (
